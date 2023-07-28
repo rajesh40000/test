@@ -1,0 +1,29 @@
+.imageclass {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 80px; /* or any other desired height */
+    position: relative;
+    /* margin-top: -40px; */
+    margin-left: -40px;
+}
+.table {
+    border-collapse: separate;
+    border-spacing: 0 15px;
+  }
+  th {
+    background-color: #4287f5;
+    color: black;
+    z-index: 3;
+    position: sticky;
+    top:0;
+  }
+  
+  th,
+  td {
+    width: 40px;
+    text-align: center;
+   
+    padding: 6px;
+  }

@@ -1,0 +1,113 @@
+<template>
+        <div class="slds-radio1 slds-float_left slds-p-right_left slds-col--padded"> 
+            <img src={comapny_logo} width="180" height="180">
+        </div>
+        <img src={cart_logo} class="slds-col--padded" style="float:right;margin:5px 200px -50px 4px;height:30px;" onclick={Cart}>
+        <p style="float:right;margin:-3px 200px -30px 4px;height:30px;color:white;">{cartsize}</p>
+        <img src={refresh_logo} class="slds-m-left_x-large" style="float:right;margin:5px 100px 2px 4px;height:30px;"  onclick={refresh}/>
+        <div class="slds-box slds-box_x-small" style="background-color:black ">
+            <h1 class="createordertext" style="color:white;text-align:Center;padding-left:60;font-size: 25px;"><b>Create Order</b></h1>
+        </div>
+        <div style="background-color: lightgrey;">
+            <div class="redbackground slds-grid slds-p-top_medium "  style="background-color: lightgrey;">
+                <div style="margin:5px 1px 1px 1px;"   class=" slds-float_right slds-col--padded  slds-medium-size--1-of-3">
+                    <lightning-input  onchange={searchproduct}  placeholder="Search by product code or name..." type="search" ></lightning-input>
+                </div> 
+            </div>
+            <div class="slds-m-left_x-larg slds-radio1 slds-float_right  slds-col--padded" style="float:right;margin:-50px 50px -50px -100px;height:40px;">
+                <lightning-radio-group
+                       options={options}
+                       value={selectedValue}
+                        onchange={handleRadioChange}></lightning-radio-group>
+            </div>
+        </div>
+        <div class="slds-box slds-card slds-grid slds-wrap slds-p-around_small" style="border: width 100px;">
+            
+                <template for:each={products} for:item="pd" for:index="index"> 
+                    <div class="card slds-box slds-size_1-of-3 slds-p-around_small slds-grid" key={pd.id}>
+                        <lightning-layout>
+                            
+                            <lightning-layout-item>
+                                <template if:true={isAllProdcuct}>
+                                    <img src={Tyre_logo} style="height: 120px;text-align:center;margin-left:100px"><br/>
+                                    <b> Unit Price:₹{pd.Unit_Price__c}</b><br/>
+                                    <b>Tyre Size:{pd.Item_Master__r.Tyre_Size__c}</b> <br/>
+                                    <b> Product Name:{pd.Item_Master__r.Name}</b><br/>
+                                </template>
+                                <template if:false={isAllProdcuct}>
+                                    <img src={Tyre_logo} style="height: 120px;text-align:center;margin-left:100px"><br/>
+                                    <b> Unit Price:₹{pd.Unit_Price__c}</b><br/>
+                                    <b>Tyre Size:{pd.Item_Master__r.Tyre_Size__c}</b> <br/>
+                                    <b> Product Name:{pd.Item_Master__r.Name}/{pd.Variant__c}</b><br/>
+                                </template>
+                               <b>Enter Quantity</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                               <lightning-input type="Number" style="display: inline-block;width:max-content" name="inputValue" onchange={handlenamechange}></lightning-input>&nbsp;&nbsp;&nbsp;&nbsp;
+                               <button style="display: inline-block;background-color:red;color:white" onclick={createcart} data-index={index}>Add</button>
+                            </lightning-layout-item>
+                        </lightning-layout>
+                        
+                         
+                    </div>
+                </template>
+                <!--for cart-->
+           
+        </div>
+        <template if:true={isopencart}>
+            <div class="slds-box slds-grid" style="background-color: lightslategrey;">
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <!-- Modal/Popup Box LWC header here -->
+                    <header class="slds-modal__header" style="background-color:grey">
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"  title="Close" onclick={closeModal}>
+                            <lightning-icon icon-name="utility:close"
+                                alternative-text="close"
+                                variant="inverse"
+                                size="small" ></lightning-icon>
+                            <span class="slds-assistive-text">Close</span>
+                        </button>
+                        <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate" ><b> Cart Details</b> </h2>
+                    </header>
+                    <!-- Modal/Popup Box LWC body starts here -->
+                    <div class="slds-modal__content slds-p-around_medium tableFixHead" id="modal-content-id-1">
+                       <!--logic for Table-->
+                       <table>
+                          <thead>
+                            <tr>
+                                <th>Product Name</th>
+                                <th>Tyre size</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>FinalPrice</th>
+                                <th>Final Quantity</th>
+                                <th></th>
+                              </tr>
+                          </thead>
+                          <tbody style="background-color: lightgray;">
+                            <template for:each={Cartproducts} for:item="cart" for:index="index">
+                                <tr key={cart.id}>
+                                    <td>{cart.Name}</td>
+                                    <td>{cart.Tyre_Size__c}</td>
+                                    <td>₹{cart.Unit_Price__c}</td>
+                                    <td>{cart.Quantity__c}</td>
+                                    <td>₹{cart.Final_Price__c}</td>
+                                    <td><lightning-input type="number"  style="display: inline-block;width:50px" data-index={index}  name='finalqty' value={cart.Final_Quantity__c} onchange={finalqunat}>
+                                    </lightning-input></td>
+                                    <td><lightning-button-icon icon-name="utility:delete" alternative-text="Delete"  title="Delete" data-index={index} onclick={deletecart}></lightning-button-icon></td>
+                                    
+                                </tr>
+                            </template>
+                          </tbody>
+                       </table>
+                    </div>
+                    <!-- Modal/Popup Box LWC footer starts here -->
+                    
+                    <footer class="slds-modal__footer">
+                        <h1 style="display: inline-block;margin:-10px 200px -40px 10px;height:50px;text-align:left"><b>Order Amount :₹{totalamount}</b></h1>
+                        <button class="slds-button slds-button_neutral" style="background-color: rgb(168, 59, 59);color:white" onclick={closeModal} title="Cancel">Cancel</button>
+                        <button  class="slds-button slds-button_brand" onclick={submitDetails} title="OK">Place Order</button>
+                    </footer>
+                </div>
+            </section>
+        </div>
+        </template>
+</template>
