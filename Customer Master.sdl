@@ -1,0 +1,19 @@
+#Mapping values
+#Thu Mar 31 13:05:28 IST 2022
+State\ id=States__c
+Credit\ limit=Credit_Limit__c
+Address=Address__c
+Branch\ id=Branch_Code__c
+Customer\ code/SAP\ customer\ no.=SAP_Customer_No__c
+Branch\ Name=Branch_Name__c
+District\ id=District__c
+Customer\ Vertical=Customer_Vertical__c
+Customer\ Group=Customer_Group__c
+Customer\ Name/Account\ name=Name
+Business\ category=Business_Category__c
+City\ id=City_Master__c
+Division/\ Products\ extended\ to\ customer=Division_Products_extended_to_customer__c
+customer\ category=Category__c
+Credit\ days=Credit_Days__c
+Sub\ category=Sub_Category__c
+Customer\ created\ on=Customer_Created__c
