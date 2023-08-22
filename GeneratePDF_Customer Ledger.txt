@@ -1,0 +1,148 @@
+<apex:page standardController="Customer_Ledger__c" extensions="CustomerLedgerPDFController" docType="html-5.0" renderAs="PDF" >
+    <head>
+        <!--style type="text/css">
+        *{
+        margin:0px;
+        padding:0px;
+        }
+        
+        </style-->
+        <style  type="text/css" media="print">
+            @page {
+                size:A4 portrait;
+                border: 1px solid black; 
+                padding-top:240px;
+               @top-center {
+                padding-top: 40px;
+                content: element(header);
+               }
+               @bottom-left {
+               content: element(footer);
+               }
+            }
+            div.header {
+                margin-top:10px;
+                position: running(header);
+                width: 100%;
+                margin-right: 10px;
+            }
+            div.footer {
+                display: block;
+                padding: 5px;
+                position: running(footer);
+            }
+            .pagenumber:before {
+                content: counter(page);
+            }
+            .pagecount:before {
+                content: counter(pages);
+            }
+        </style>
+    </head>
+    
+    <html style=" border: 1px solid black">
+        <body>
+            <div class="header">
+                <table witdh="100%" style="text-align: center;font-size:12px" cellpadding="0">
+                    <tr>
+                        <td><img src="{!$Resource.Yokohama_logo}" width="150px" height="35px" align="left"/></td>
+                        <td style="text-align: center;font-size:20px"><b>YOKOHAMA INDIA PRIVATE LIMITED</b></td>
+                        <td>
+                            <apex:outputText value="{0,date,dd-MM-yyyy}">
+                                <apex:param value="{!Today()}" /> 
+                            </apex:outputText>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td>Plot No.1, Sector 4B Bahadurgarh Industrial Estate HSIIDC Bahadurgarh,Dist-Jhajjar,</td>
+                        <td>Page no :<span class="pagenumber"/> </td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td>Haryana-124507 BAHADURGARH</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td>Phone No. : +91-1276-662200 Fax No : +91-1276-662000</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td style="font-size:20px"><h4>Customer Ledger</h4></td>
+                        <td rowspan="2">
+                            Start Date :
+                            <apex:outputText value="{0,date,dd-MM-yyyy}">
+                                <apex:param value="{!startdate}" /> 
+                            </apex:outputText>
+                            <br/>
+                            End Date :
+                            <apex:outputText value="{0,date,dd-MM-yyyy}">
+                                <apex:param value="{!enddate}" /> 
+                            </apex:outputText>
+                            <!--span value="{0, date, MM-dd-yyyy}">Start Date: {!startdate}</span><br/>
+                            <span value="{0, date, MM-dd-yyyy}">End Date: {!enddate}</span><br/-->
+                         </td>
+                        </tr>
+                        <tr style="text-align:left">
+                            <td colspan ="2">{!customerNo}</td>
+                        </tr>
+                        <tr style="text-align:left">
+                            <td colspan ="2">{!namee}</td>
+                        </tr>
+                        <tr style="text-align:left">
+                            <td colspan ="2">{!addre}</td>
+                        </tr>
+                        <tr>
+                            <td colspan ="3" style="font-size:14px"><b>Opening Balance: {!balance}</b></td>
+                        </tr>
+                    </table>
+            </div> 
+            <!--***********************************CONTENT******************************-->
+            <div  class="content">
+                <apex:pageMessages />
+            </div>
+                <table border="1" width="100%" cellpadding="0" cellspacing="0" style="font-size:12px">
+                    <thead >
+                        <tr>
+                            <th><b>Posting Date</b></th>
+                            <th><b>Document No</b></th>
+                            <th><b>External Document No</b></th>
+                            <th><b>Description</b></th>
+                            <th><b>Cheque No</b></th>
+                            <th><b>Debit Amount</b></th>
+                            <th><b>Credit Amount</b></th>
+                            <th><b>Balance</b></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <apex:repeat value="{!cus}" var="ledger" id="theRepeat">
+                            <tr>
+                                <td><apex:outputText value="{0, date, MMMM d','  yyyy}">
+                                    <apex:param value="{!ledger.Posting_Date__c}" /> 
+                                    </apex:outputText>
+                                </td>
+                                <td>{!ledger.Document_No__c}</td>
+                                <td>{!ledger.External_Document_No__c}</td>
+                                <td>{!ledger.Description__c}</td>
+                                <td>{!ledger.Cheque_No__c}</td>
+                                <td>{!ledger.Debit_Amount__c}</td>
+                                <td>{!ledger.Credit_Amount__c}</td>
+                                <td>
+                                    <apex:variable value="{!balance + ledger.Amount__c}" var="calc"/>
+                                    <apex:outputText id="calc" value="{!calc}"/>
+                                </td>                         
+                            </tr>
+                        </apex:repeat>
+                        <tr>
+                            <td colspan="8" style="text-align:right">
+                                <b>Total INR {!totalINR}</b>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+        </body>
+    </html>
+</apex:page>

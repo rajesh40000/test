@@ -1,0 +1,138 @@
+public class CustomerLedgerPDFController {
+    
+    public Customer_Ledger__c objledger{get;set;}
+    public Date TodayDate{get;set;}
+    public String data{get;set;}
+    public List<Customer_Ledger__c> cus{get;set;}
+    public List<Customer_Ledger__c> openBalance{get;set;}
+    public static String usrId{get;set;}
+    public static User usr{get;set;}
+    public static Contact con{get;set;}
+    public static Account acc{get;set;}
+    public Integer flag {get;set;}
+    public Integer len {get;set;}    
+    public Decimal balance{get;set;}
+    public Decimal totalINR{get;set;}
+    
+    public Date startdate {get;set;}
+    public Date enddate {get;set;}
+    public Date ledgerPosting {get;set;}
+    
+    
+    public String addre{get;set;}
+    public String customerNo{get;set;}
+    public String namee{get;set;}
+    
+    public String ledgerName{get;set;}
+    public String documentType{get;set;}
+    /*
+    public String[] documentNo{get;set;}
+    public String[] externalDocumentNo{get;set;}
+    public String description{get;set;}
+    public String[] chequeNo{get;set;}
+    
+    public Decimal[] debitAmount{get;set;}
+    public Decimal[] creditAmount{get;set;}
+    public Decimal[] balance{get;set;}
+	*/
+    
+    
+    public CustomerLedgerPDFController(ApexPages.StandardController controller){
+        
+        String ref = ApexPages.currentPage().getHeaders().get('fromPostingDate');
+        system.debug('ref '+ref);
+        data=apexpages.currentpage().getparameters().get('data');
+        system.debug('ref '+data);
+        String[] address = data.split(',');
+        System.debug('address size ' +address.size() );
+        string invoicess;
+        string fromdatess=address[0];
+        string todatess=address[1];
+        
+        if(address.size()==3){
+            invoicess=address[2];
+            System.debug('invoicess ' +invoicess );
+        }
+        
+        
+        startdate = date.valueOf(fromdatess);
+        enddate =date.valueOf(todatess);
+        System.debug('startdate ' +startdate );
+        System.debug('todatess '+todatess);
+        
+        
+        usrId = UserInfo.getUserId();
+        System.debug('usrId '+usrId);
+        usr = [SELECT id,Name, ContactID FROM User WHERE id=: usrId];
+        System.debug('usr '+usr);
+        con = [SELECT id,Name, AccountId FROM Contact WHERE id=:usr.ContactId];
+        System.debug('con '+con);
+        acc = [SELECT id, Name, Corresponding_Address__c, Customer_No__c FROM Account WHERE  id=: con.AccountId];//Address_line_1__c
+        System.debug('acc '+acc);
+        
+        namee = acc.Name;
+        customerNo = acc.Customer_No__c;
+        addre = acc.Corresponding_Address__c; //+ acc.Address_line_1__c;
+        
+        cus=new List<Customer_Ledger__c>();
+        if(string.isBlank(invoicess)){
+            
+            cus=[SELECT id, Name, Document_Type__c, Posting_Date__c,Document_No__c, External_Document_No__c, Description__c, Cheque_No__c,
+                 Debit_Amount__c, Credit_Amount__c, Amount_LCY__c, Amount__c FROM Customer_Ledger__c
+                 WHERE Posting_Date__c <=: date.valueof(todatess) 
+                 AND Posting_Date__c >=: date.valueof(fromdatess)
+                 AND Customer_No__c=: acc.Id];
+        }
+        else{
+            cus=[SELECT id, Name, Document_Type__c, Posting_Date__c,Document_No__c, External_Document_No__c, Description__c, Cheque_No__c,
+                 Debit_Amount__c, Credit_Amount__c, Amount_LCY__c,Amount__c,Balance__c FROM Customer_Ledger__c
+                 WHERE Posting_Date__c <=: date.valueof(todatess) 
+                 AND Posting_Date__c >=: date.valueof(fromdatess)
+                 AND Document_Type__c=:invoicess 
+                 AND Customer_No__c=: acc.Id];
+        }
+        
+        len = cus.size();
+        System.debug('Ledger size :::'+ cus.size());
+        
+        if(cus.size()<1){
+            flag = 1;
+            ApexPages.Message myMsg = new ApexPages.Message(ApexPages.Severity.ERROR,'');
+            ApexPages.addMessage(myMsg); 
+        }
+        system.debug(cus);
+        
+        openBalance = [SELECT Name, id, Amount__c
+                       FROM Customer_Ledger__c
+                       WHERE Posting_Date__c <: date.valueof(fromdatess) AND Customer_No__c=: acc.Id ];
+        system.debug('openBalance::::' + openBalance.size());
+        balance = 0;
+        for(Customer_Ledger__c ledge : openBalance){
+            balance += ledge.Amount__c;
+        }
+        system.debug('gytest openBalance' + balance);
+        
+       /* for(Customer_Ledger__c cLedger : cus){
+            cLedger.Balance__c = balance + cLedger.Amount__c;
+            //database.Update(cLedger);
+        }*/
+        
+        totalINR =0;
+        System.debug(' gytest totalINR '+totalINR);
+        for( Customer_Ledger__c cc : cus){
+            if(cc.Amount__c!=Null){
+                System.debug('totalINR' + totalINR);
+                totalINR += cc.Amount__c;
+            }
+        }
+        totalINR += balance;
+    }
+    
+    public Pagereference gotonewpage()
+    {
+        PageReference pageRef = Page.CustomerLedgerPDF;
+        pageRef.getParameters().put('toDate','{!toDate}');
+        // system.debug('toDate '+toDate);
+        return PageRef;
+    }
+}
