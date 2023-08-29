@@ -1,0 +1,783 @@
+public without sharing class OrderPageCtrl {
+    public list<SelectOption> prdgrp{get;set;}
+    public list<SelectOption> prdgrp1{get;set;}
+    public list<SelectOption> prdgrp2{get;set;}
+    public list<SelectOption> prdgrp3{get;set;}
+    public Id prdgrpId{get;set;}
+    public String searchValue{get;set;}
+    public list<Product_Pricing__c> listPricing{get;set;}
+    public Account accData{get;set;}   
+    public Id proId{get;set;} 
+    public List<Quote_Line__c> quoteList{get;set;}
+    public Quote__c quote{get;set;}
+    public Order_Header__c Headerorder{get;set;}
+    public set<Id> setIDs{get;set;}
+    public List<Scheme__c> lstScheme{get;set;}
+    public integer quant1{get;set;}
+    public boolean discFlag{get;set;}
+    public Decimal TotalPrice{get;set;}
+    public double discount{get;set;}
+    public Decimal finalPrice{get;set;}
+    public Set<String> setfreq{get;set;}
+    public String offerPromo{get;set;}
+    public contact con{get;set;}
+    public boolean bb{get;set;}
+    public Map<Id, Scheme__c> mapScheme{get;set;}
+    public Id removeId{get;set;}
+    public string selectProducts;
+    public string selectProducts2;
+    public string selectProducts3;
+    public string selectProducts4;
+    public List<String> selectProductList;
+    public List<String> selectProductList2;
+    public List<String> selectProductList3;
+    public List<String> selectProductList4;
+    
+    public boolean condition{get;set;}
+    public string prtestId{get;set;} 
+    public string sendimage{get;set;}
+    public string send_dis_price{get;set;}
+    public string send_product_code{get;set;}
+    public string send_cust_price{get;set;}
+    public string send_disc_price{get;set;}
+    public string send_avail_quantity{get;set;}
+    
+    public string rid{get;set;}
+    public string currentuserId = UserInfo.getUserId();
+    
+    public String toFilterJSON{get;set;} 
+    public String selectedFilter{get;set;} 
+    public set<string> filterlst{get;set;}
+    
+    private Id recentItemsId ;
+    private Id discountSchemeId;
+    public Map<String,Set<String>> filter1Map{get;set;}//04 Dec 2021
+    public Set<String> filter1List{get;set;}//04 Dec 2021
+    public Set<String> filter2List{get;set;}//04 Dec 2021
+    public Set<String> filter3List{get;set;}//04 Dec 2021
+    public Map<String,Set<String>> filter2Map{get;set;}//04 Dec 2021
+    public String selectedfilter1{get;set;}//04 Dec 2021
+    public String selectedfilter2{get;set;}//04 Dec 2021
+    public String selectedfilter3{get;set;}//04 Dec 2021
+   
+    
+    
+    
+    public OrderPageCtrl(){
+        selectProducts = '';
+        selectProducts2 = '';
+        selectProducts3 = '';
+        selectProducts4 = '';
+        selectProductList = new list<String>();
+        selectProductList2 = new list<String>();
+        selectProductList3 = new list<String>();
+        selectProductList4 = new list<String>();
+        discFlag = false;
+        TotalPrice = 0;
+        discount = 0;
+        finalPrice = 0;
+        setIDs = new set<Id>();
+        quant1 = 0;
+        
+       
+        prdgrp = new list<SelectOption>();
+        prdgrp1 = new list<SelectOption>();
+        prdgrp2 = new list<SelectOption>();
+        prdgrp3 = new list<SelectOption>();
+        quote = new Quote__c();
+        Headerorder=new Order_Header__c ();
+        accData = new Account();
+        filter1Map = new Map<String,Set<String>>();//04 Dec 2021
+        filter2Map = new Map<String,Set<String>>();//04 Dec 2021
+        filter1List = new Set<String>();//04 Dec 2021
+        filter2List = new Set<String>();//04 Dec 2021
+        filter3List = new Set<String>();//04 Dec 2021
+        selectedfilter1 = '';//04 Dec 2021
+        selectedfilter2 = '';//04 Dec 2021
+        selectedfilter3 = '';//04 Dec 2021
+        mapScheme = new Map<Id, Scheme__c>();
+        User u =[Select ContactId, AccountId, Contact.account.Rating__c, Contact.AccountId from User where Id =:Userinfo.getuserid()];
+        system.debug('Gaytriii'+' ' + u.AccountId);
+        setfreq = new Set<String>();
+        //ContactId=
+        if(u.ContactId != null){
+            bb = true;
+            accData = [Select Rating__c, Region__c, Optional_Picklist__c, Type from Account where Id = : u.Contact.accountId];
+            system.debug('aaaaaaaa'+accData.Type);
+            lstScheme = [Select Quantity__c, Eligible_Free_Quantity__c,Product_Group__c from Scheme__c where recordtype.name = 'Quantity Discount' AND Rating__c =: accData.Rating__c AND Region__c=: accData.Region__c AND Party__c=: accData.Type];
+            for(Scheme__c sc: lstScheme){
+                mapScheme.put(sc.Product_Group__c, sc);
+            }
+            system.debug(mapScheme);
+            quoteList = new List<Quote_Line__c>();
+            List<AggregateResult> results = [Select product__r.name, SUM(quantity__c) from Quote_Line__c where Quote__r.customer__c =: accData.Id group by product__r.name order by SUM(quantity__c) desc limit 10];
+            
+            for(AggregateResult fre: results){
+                setfreq.add(string.valueof(fre.get('Name')));
+            }
+            listPricing = new list<Product_Pricing__c>();
+            
+            //prdgrp.add(new SelectOption('','-None-'));//hna commented
+            List<Product_Group__c> pglst = [Select Name from Product_Group__c];
+            for(Product_Group__c p: pglst){
+                prdgrp.add(new SelectOption(p.Id,p.Name));
+            }
+            List<	Size__c> pglst1 = [Select Name from Size__c];
+            for(Size__c p: pglst1){
+                prdgrp1.add(new SelectOption(p.Id,p.Name));
+            }
+            
+            List<Color__c> pglst2 = [Select Name from Color__c];
+            for(Color__c p: pglst2){
+                prdgrp2.add(new SelectOption(p.Id,p.Name));
+            }
+            List<Type__c> pglst3 = [Select Name from 	Type__c];
+            for(Type__c p: pglst3){
+                prdgrp3.add(new SelectOption(p.Id,p.Name));
+            }     
+            
+            
+            
+            listPricing = [Select name, Product_c__c, Bar_Code__c ,Product_Group__r.name,quant__c, Customer_Price__c,Img_Link__c,Discount1__c,Available_Qty__c,Discounted_Price__c, product_c__r.Product_Code_del__c,Product_Group__c,	Sizes__c ,Colors__c,Types__c  from Product_Pricing__c where Party__c =: accData.Type AND Rating__c =: accData.Rating__c AND Region__c=: accData.Region__c AND Optional_Picklist__c=: accData.Optional_Picklist__c];
+            //listPricing = [Select name, Product_c__c,Product_Group__r.name,quant__c, Customer_Price__c from Product_Pricing__c ];
+        }
+        else{
+            con = new Contact();
+            bb = false;
+        }
+        
+    }
+    
+    public void createCrmOrder(){
+        bb = true;
+        accData = [Select Rating__c, Region__c, Optional_Picklist__c, Type from Account where Id = : con.accountId];
+        lstScheme = [Select Quantity__c, Eligible_Free_Quantity__c,Product_Group__c from Scheme__c where recordtype.name = 'Quantity Discount' AND Rating__c =: accData.Rating__c AND Region__c=: accData.Region__c AND Party__c=: accData.Type];
+        for(Scheme__c sc: lstScheme){
+            mapScheme.put(sc.Product_Group__c, sc);
+        }
+        system.debug(mapScheme);
+        quoteList = new List<Quote_Line__c>();
+        List<AggregateResult> results = [Select product__r.name, SUM(quantity__c) from Quote_Line__c where Quote__r.customer__c =: accData.Id group by product__r.name order by SUM(quantity__c) desc limit 10];
+        
+        for(AggregateResult fre: results){
+            setfreq.add(string.valueof(fre.get('Name')));
+        }
+        listPricing = new list<Product_Pricing__c>();
+        //prdgrp.add(new SelectOption('','-None-'));
+        List<Product_Group__c> pglst = [Select Name from Product_Group__c];
+        for(Product_Group__c p: pglst){
+            prdgrp.add(new SelectOption(p.Id,p.Name));
+        }
+        List<		Size__c> pglst1 = [Select Name from Size__c];
+        for(	Size__c p: pglst1){
+            prdgrp1.add(new SelectOption(p.Id,p.Name));
+        }
+        
+        List<	Color__c> pglst2 = [Select Name from Color__c];
+        for(Color__c p: pglst2){
+            prdgrp2.add(new SelectOption(p.Id,p.Name));
+        }
+        
+        List<		Type__c> pglst3 = [Select Name from Type__c];
+        for(Type__c p: pglst3){
+            prdgrp3.add(new SelectOption(p.Id,p.Name));
+        }   
+        
+        
+        
+        
+        
+        listPricing = [Select name, Price_List__c, Discount1__c, Img_Link__c, Product_c__c, Discounted_Price__c ,Product_Group__r.name,Sizes__r.name,Types__r.name,	Colors__r.name,quant__c, Customer_Price__c, product_c__r.Product_Code_del__c,Product_Group__c,Sizes__c,Colors__c,Types__c,Bar_Code__c from Product_Pricing__c where Party__c =: accData.Type AND Rating__c =: accData.Rating__c AND Region__c=: accData.Region__c AND Optional_Picklist__c=: accData.Optional_Picklist__c];
+        //listPricing = [Select name, Product_c__c,Product_Group__r.name,quant__c, Customer_Price__c from Product_Pricing__c ];
+        
+    }
+    public void searchProduct(){
+        String party = accData.Type;
+        string region = accData.Region__c;
+        String rating = accData.Rating__c;
+        String Optional = accData.Optional_Picklist__c;
+        String query = 'Select name, Price_List__c,Available_Qty__c, Product_c__c,Product_Group__r.name,quant__c,Customer_Price__c,product_c__r.Product_Code_del__c,Discount1__c,Img_Link__c,Discounted_Price__c,Bar_Code__c from Product_Pricing__c where  Party__c =: party AND Rating__c =: rating AND Region__c=: region AND Optional_Picklist__c=: optional';
+        if(selectProductList2.size()>0 ){
+            query += ' AND Sizes__c in:selectProductList2';
+        }
+        if(selectProductList3.size()>0){
+            query += ' AND Colors__c in:selectProductList3';
+        }
+        if(selectProductList.size() > 0  && selectProductList != null && !selectProductList.isEmpty()){
+            query += ' AND Product_Group__c in:selectProductList';
+        }
+        
+        /*      listPricing = [Select name, Price_List__c, Product_c__c,Product_Group__r.name,quant__c,Customer_Price__c,product_c__r.Product_Code_del__c,Discount1__c,Img_Link__c,Discounted_Price__c from Product_Pricing__c where  Product_Group__c in:selectProductList   AND Party__c =: accData.Type AND Rating__c =: accData.Rating__c AND Region__c=: accData.Region__c AND Optional_Picklist__c=: accData.Optional_Picklist__c];
+}
+else {
+listPricing = [Select name, Product_c__c,Product_Group__r.name,quant__c, Customer_Price__c,Img_Link__c,Discount1__c,Discounted_Price__c, product_c__r.Product_Code_del__c,Product_Group__c from Product_Pricing__c where  Party__c =: accData.Type AND Rating__c =: accData.Rating__c AND Region__c=: accData.Region__c AND Optional_Picklist__c=: accData.Optional_Picklist__c];     
+} */
+        system.debug('query'+query);
+        listPricing = database.query(query);
+    }
+    
+    public void selectGroup(){
+        selectProducts = apexpages.currentPage().getParameters().get('selectProducts');
+        selectProductList = selectProducts != null && string.isNotBlank(selectProducts) ? selectProducts.split(',') : new list<String>();
+        searchProduct();
+        /*selectProducts2 = apexpages.currentPage().getParameters().get('selectProducts2');
+system.debug('selectProducts2'+selectProducts2);
+selectProductList2 = selectProducts2 != null ? selectProducts2.split(',') : new list<String>();
+selectProducts3 = apexpages.currentPage().getParameters().get('selectProducts3');
+system.debug('selectProducts3'+selectProducts3);
+selectProductList3 = selectProducts3 != null ? selectProducts3.split(',') : new list<String>();
+searchValue = '';*/
+        //  Map<Id, String > tempMap = new Map<Id,String>(selectProductList);
+        // if(string.isNotBlank(selectProducts) && selectProductList != null && selectProductList.size()>0 ) {
+        /*String query = 'Select name, Price_List__c, Product_c__c,Product_Group__r.name,quant__c,Customer_Price__c,product_c__r.Product_Code_del__c,Discount1__c,Img_Link__c,Discounted_Price__c from Product_Pricing__c where  Party__c =: accData.Type AND Rating__c =: accData.Rating__c AND Region__c=: accData.Region__c AND Optional_Picklist__c=: accData.Optional_Picklist__c';
+if(selectProductList2.size()>0 ){
+query += ' AND Sizes__c in:selectProductList2';
+}
+if(selectProductList3.size()>0){
+query += ' AND Colors__c in:selectProductList3';
+}
+if(selectProductList.size()>0){
+query += ' AND Product_Group__c in:selectProductList';
+}
+listPricing = [Select name, Price_List__c, Product_c__c,Product_Group__r.name,quant__c,Customer_Price__c,product_c__r.Product_Code_del__c,Discount1__c,Img_Link__c,Discounted_Price__c from Product_Pricing__c where  Product_Group__c in:selectProductList   AND Party__c =: accData.Type AND Rating__c =: accData.Rating__c AND Region__c=: accData.Region__c AND Optional_Picklist__c=: accData.Optional_Picklist__c];
+}
+else {
+listPricing = [Select name, Product_c__c,Product_Group__r.name,quant__c, Customer_Price__c,Img_Link__c,Discount1__c,Discounted_Price__c, product_c__r.Product_Code_del__c,Product_Group__c from Product_Pricing__c where  Party__c =: accData.Type AND Rating__c =: accData.Rating__c AND Region__c=: accData.Region__c AND Optional_Picklist__c=: accData.Optional_Picklist__c];     
+} 
+system.debug('query'+query);*/
+        //listPricing = database.query(query);
+        
+        
+    }
+    public void selectGroup2(){
+        selectProducts2 = apexpages.currentPage().getParameters().get('selectProducts2');
+        selectProductList2 = selectProducts2 != null && string.isNotBlank(selectProducts2) ? selectProducts2.split(',') : new list<String>();
+        searchProduct();
+        /*system.debug('selectProducts '+selectProducts2);
+searchValue = '';
+//  Map<Id, String > tempMap = new Map<Id,String>(selectProductList);
+if(string.isNotBlank(selectProducts2) && selectProductList2 != null && selectProductList2.size()>0 ) {
+listPricing = [Select name, Price_List__c, Product_c__c,Product_Group__r.name,quant__c,Customer_Price__c, product_c__r.Product_Code_del__c,Discount1__c,Img_Link__c,Discounted_Price__c from Product_Pricing__c where Product_Group__c in:selectProductList And Sizes__c in:selectProductList2   AND Party__c =: accData.Type AND Rating__c =: accData.Rating__c AND Region__c=: accData.Region__c AND Optional_Picklist__c=: accData.Optional_Picklist__c];
+}
+
+else {
+
+
+listPricing = [Select name, Product_c__c,Product_Group__r.name,quant__c, Customer_Price__c,Img_Link__c,Discount1__c,Discounted_Price__c, product_c__r.Product_Code_del__c,Product_Group__c from Product_Pricing__c where Product_Group__c in:selectProductList And  Party__c =: accData.Type AND Rating__c =: accData.Rating__c AND Region__c=: accData.Region__c AND Optional_Picklist__c=: accData.Optional_Picklist__c];
+
+} */
+        
+        
+    }
+    public void selectGroup3(){
+        selectProducts3 = apexpages.currentPage().getParameters().get('selectProducts3');
+        selectProductList3 = selectProducts3 != null && string.isNotBlank(selectProducts3) ? selectProducts3.split(',') : new list<String>();
+        searchProduct();
+        
+        /* system.debug('selectProducts '+selectProducts3);
+searchValue = '';
+//  Map<Id, String > tempMap = new Map<Id,String>(selectProductList);
+if(string.isNotBlank(selectProducts3) && selectProductList3 != null && selectProductList3.size()>0 ) {
+listPricing = [Select name, Price_List__c, Product_c__c,Product_Group__r.name,quant__c,	Customer_Price__c, product_c__r.Product_Code_del__c,Discount1__c,Img_Link__c,Discounted_Price__c from Product_Pricing__c where Product_Group__c in:selectProductList And Sizes__c in:selectProductList2 And Colors__c in:selectProductList3 AND Party__c =: accData.Type AND Rating__c =: accData.Rating__c AND Region__c=: accData.Region__c AND Optional_Picklist__c=: accData.Optional_Picklist__c];
+}
+
+else {
+listPricing = [Select name, Product_c__c,Product_Group__r.name,quant__c, Customer_Price__c,Img_Link__c,	Discount1__c,Discounted_Price__c, product_c__r.Product_Code_del__c,Product_Group__c from Product_Pricing__c where Product_Group__c in:selectProductList And Sizes__c in:selectProductList2 And  Party__c =: accData.Type AND Rating__c =: accData.Rating__c AND Region__c=: accData.Region__c AND Optional_Picklist__c=: accData.Optional_Picklist__c];
+
+} */
+        
+        
+    }
+    public void selectGroup4(){
+        selectProducts4 = apexpages.currentPage().getParameters().get('selectProducts4');
+        
+        
+        selectProductList4 = selectProducts4.split(',');
+        
+        
+        system.debug('selectProducts '+selectProducts4);
+        searchValue = '';
+        //  Map<Id, String > tempMap = new Map<Id,String>(selectProductList);
+        if(string.isNotBlank(selectProducts4) && selectProductList4 != null && selectProductList4.size()>0 ) {
+            listPricing = [Select name, Price_List__c, Product_c__c,Product_Group__r.name,quant__c,Customer_Price__c, product_c__r.Product_Code_del__c,Discount1__c,Img_Link__c,Discounted_Price__c from Product_Pricing__c where Product_Group__c in:selectProductList And Sizes__c in:selectProductList2 And Colors__c in:selectProductList3 AND Types__c in:selectProductList4 And  Party__c =: accData.Type AND Rating__c =: accData.Rating__c AND Region__c=: accData.Region__c AND Optional_Picklist__c=: accData.Optional_Picklist__c];
+        }
+        
+        else {
+            
+            
+            listPricing = [Select name, Product_c__c,Product_Group__r.name,quant__c, Customer_Price__c,Img_Link__c,	Discount1__c,Discounted_Price__c, product_c__r.Product_Code_del__c,Product_Group__c,Bar_Code__c from Product_Pricing__c where Product_Group__c in:selectProductList And Sizes__c in:selectProductList2 And Colors__c in:selectProductList3 And  Party__c =: accData.Type AND Rating__c =: accData.Rating__c AND Region__c=: accData.Region__c AND Optional_Picklist__c=: accData.Optional_Picklist__c];
+            
+        } 
+        
+        
+    }
+    
+    
+    
+    public void searchPro(){
+                system.debug('fdd'+searchValue);
+        if(searchValue != null && prdgrpId != null){
+            String ss = '%'+searchValue+'%';
+            system.debug('fdd'+ss);
+            listPricing = [Select name,Price_List__c,  Product_c__c,Product_Group__r.name,quant__c,Customer_Price__c, product_c__r.Product_Code_del__c,Img_Link__c,Discount1__c,Discounted_Price__c,Bar_Code__c from Product_Pricing__c where Product_Group__c =:prdgrpId AND Party__c =: accData.Type AND Rating__c =: accData.Rating__c AND Region__c=: accData.Region__c AND Optional_Picklist__c=: accData.Optional_Picklist__c AND Name like: ss];
+        }
+        else if(searchValue != null && prdgrpId == null){
+            String ss = '%'+searchValue+'%';
+            listPricing = [Select name,Price_List__c, Product_c__c,Product_Group__r.name,quant__c,Customer_Price__c, product_c__r.Product_Code_del__c,Img_Link__c,Discount1__c,Discounted_Price__c,Bar_Code__c from Product_Pricing__c where Party__c =: accData.Type AND Rating__c =: accData.Rating__c AND Region__c=: accData.Region__c AND Optional_Picklist__c=: accData.Optional_Picklist__c AND Name like: ss];
+            
+        }
+        else{
+            listPricing = [Select name,Price_List__c,  Product_c__c,Product_Group__r.name,quant__c,Customer_Price__c, product_c__r.Product_Code_del__c,Img_Link__c,Discount1__c,Discounted_Price__c,Bar_Code__c from Product_Pricing__c Where Party__c =: accData.Type AND Rating__c =: accData.Rating__c AND Region__c=: accData.Region__c AND Optional_Picklist__c=: accData.Optional_Picklist__c];
+        }
+    }
+    
+    public void addProduct(){
+        //setIDs.clear();
+        system.debug('ppp'+listPricing);
+        for(Product_Pricing__c dd: listPricing){
+            system.debug('!bingo '+dd.quant__c + ' => '+quoteList.size()+' => '+setIDs.contains(dd.Id));
+            if(dd.quant__c > 0){ // && (quoteList.size()==0 || !setIDs.contains(dd.Id)) ){
+                system.debug('ppp1'+dd);
+                
+                if(setIDs.contains(dd.Id)){
+                    integer i = 0;
+                    Boolean isRemove = false;
+                    for(Quote_Line__c ob :quoteList){
+                        if(ob.Product__c == dd.Id){
+                            isRemove = true;
+                            break;
+                        }
+                        i++;
+                    }
+                    if(isRemove){
+                        quoteList.remove(i);
+                    }
+                }
+                
+                Quote_Line__c q = new Quote_Line__c();
+                q.Product__c = dd.Id;
+                list<Inventory__c> inventoryonHandList = [Select Quantity__c from Inventory__c where Product1__c =: dd.Id AND Warehouse_Location__c =: accData.Id];
+                if(inventoryonHandList.size() > 0){
+                    q.Inventory_On_Hand__c = inventoryonHandList[0].Quantity__c;
+                }
+                else{
+                    q.Inventory_On_Hand__c = 0;
+                }
+                list<AggregateResult> incomingDeliveries = [select Product__c, sum(Quantity__c) quan from Shipment_Lines__c where  Product__c != null and Shipments__r.Receipt_Received__c = false and Shipments__r.Distributor__c =:accData.Id  and Product__c =: dd.Id group by Product__c ];
+                if(incomingDeliveries.size() > 0){
+                    q.Incoming_Deliveries__c = (decimal)incomingDeliveries[0].get('quan');
+                }
+                else{
+                    q.Incoming_Deliveries__c = 0;
+                }
+                
+                list<AggregateResult> orderToDeliver = [select Product__c, sum(Quantity__c) quan from Quote_Line__c where  Product__c != null and (Quote__r.Quote_Status__c =  'Ordered' OR Quote__r.Quote_Status__c = 'Accepted') and Quote__r.Customer__c=: accData.Id  and Product__c =: dd.Id group by Product__c ];
+                if(orderToDeliver.size() > 0){
+                    q.Ooders_To_Deliver__c = (decimal)orderToDeliver[0].get('quan');
+                }
+                else{
+                    q.Ooders_To_Deliver__c = 0;
+                }
+                q.Net_Stock__c = (q.Inventory_On_Hand__c + q.Incoming_Deliveries__c ) - q.Ooders_To_Deliver__c;
+                q.Quantity__c = dd.quant__c;
+                q.Type__c = 'Paid';
+                q.Customer_Price_Unit__c = dd.Customer_Price__c;
+                q.Discount_Unit__c = dd.Customer_Price__c - dd.Discounted_Price__c;
+                q.Customer_Price__c = dd.Customer_Price__c * dd.quant__c;
+                q.Discounted_Price__c = dd.Discounted_Price__c * dd.quant__c;
+                q.Discount_Amount__c = (q.Customer_Price__c - q.Discounted_Price__c) ;
+                q.Net_Cost__c = q.Discounted_Price__c;
+                q.Product_Group__c = dd.Product_Group__c;
+                TotalPrice += q.Net_Cost__c;
+                finalPrice = TotalPrice;
+                quoteList.add(q); 
+                setIDs.add(proId);
+                system.debug('TotalPrice:-'+TotalPrice);
+                if(TotalPrice!=null){
+                    List<Scheme_Slab__c> sch=[select id,Gift__c,Scheme__c from Scheme_Slab__c where Scheme__r.Scheme_Category__c=:'Order Based'];
+                    system.debug('sch----'+sch.size());
+                    if(sch.size()>0){
+                        //Schemeslabid=sch[0].id;
+                       // Gift=sch[0].Gift__c; 
+                        //Payouts=sch[0].Scheme__c;
+                    }
+                    else{
+                        //Gift='NA';
+                    }
+                    
+                    //system.debug('Gift'+Gift);  
+                }
+                
+                dd.quant__c = 0;
+                if(mapScheme.size() > 0){
+                    if(mapScheme.get(dd.Product_Group__c) != null){
+                        if(q.Quantity__c >= decimal.valueof(mapScheme.get(dd.Product_Group__c).Quantity__c)){
+                            Quote_Line__c q1 = new Quote_Line__c();
+                            q1.Product__c = proId;
+                            q1.Quantity__c = (q.Quantity__c / decimal.valueof(mapScheme.get(dd.Product_Group__c).Quantity__c)).intvalue() * mapScheme.get(dd.Product_Group__c).Eligible_Free_Quantity__c;
+                            q1.Type__c = 'Free';
+                            q1.Customer_Price__c = 0;
+                            q1.Net_Cost__c = q1.Customer_Price__c * q1.Quantity__c;
+                            q1.Product_Group__c = dd.Product_Group__c;
+                            discFlag = true;
+                            quoteList.add(q1);
+                        }
+                    }
+                    
+                }
+                
+            }
+            
+        }
+        list<Scheme__c> schemelst = [select id,Order_Value_from__c ,Order_Value_Upto__c,Discount__c  from Scheme__c where Order_Value_Upto__c >=: TotalPrice AND Order_Value_from__c <=: TotalPrice];
+        system.debug('schemelst'+schemelst);
+        system.debug('discFlag'+discFlag);
+        if(discFlag == False && schemelst.size() > 0){
+            system.debug('iiii');
+            for(Scheme__c s: schemelst){
+                discount =s.Discount__c;
+                system.debug('iiii'+discount);
+                if(discount!=null){
+                    finalPrice = TotalPrice -((TotalPrice * discount)/100);}
+                else{
+                    finalPrice = TotalPrice;
+                    
+                }
+            } 
+            list<Scheme__c> schemelst1 = [Select Order_Value_from__c, Order_Value_Upto__c, Discount__c from Scheme__c where Order_Value_from__c >=: TotalPrice];
+            if(schemelst1.size() > 0)
+                offerPromo= 'offer: '+schemelst1[0].Discount__c +'% off on Rs. '+string.valueof(schemelst1[0].Order_Value_from__c) +' or above';
+        }
+        else{
+            discount =0;
+            finalPrice = TotalPrice;
+            list<Scheme__c> schemelst1 = [Select Order_Value_from__c, Order_Value_Upto__c, Discount__c from Scheme__c where Order_Value_from__c >=: TotalPrice];
+            if(schemelst1.size() > 0)
+                offerPromo= 'offer: '+schemelst1[0].Discount__c +'% off on Rs. '+string.valueof(schemelst1[0].Order_Value_from__c) +' or above';
+        }
+        
+          
+   }
+    
+    public pagereference save(){
+        account accCreditCheck = [Select Available_Credit_Limit__c, Id from account where Id =: accData.Id];
+        if(TotalPrice > accCreditCheck.Available_Credit_Limit__c){
+            ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'Available credit limit is low, please add credit limit or remove quantity'));
+            return null;
+        }
+        else{
+            try{
+                
+                
+                List<Quote_Line__c> newLine = new List<Quote_Line__c>();
+                List<Order_Header__c> Orderinfo = new List<Order_Header__c>();
+                List<Sales_KPI__c> salesKPI = [Select Name from Sales_KPI__c limit 1];
+                if(discFlag == true){
+                    quote.Scheme_Flag__c = true;
+                }
+                quote.Customer__c = accCreditCheck.Id;		//'001O000001UkhOnIAJ';
+                // quote.Payout__c=payy[0].id;
+                quote.Order_Type__c = 'Distributor';
+                quote.Order_To__c = accCreditCheck.Id;		//'001O000001UkhOnIAJ';
+                
+                quote.Order_Date__c= Date.today();
+                insert quote;
+                
+                for(Quote_Line__c d: quoteList){
+                    if(d.Quantity__c > 0){
+                        d.Quote__c = quote.Id;
+                        d.Sales_KPI__c = salesKPI[0].Id;
+                        newLine.add(d);
+                    }
+                    
+                }
+                insert newLine;
+                
+                Headerorder.Order__c=quote.id;
+                
+                Orderinfo.add(Headerorder);
+                insert Orderinfo;
+                if(Orderinfo.size()>0){
+                    system.debug('size------------'+Orderinfo.size());
+                    //test=Orderinfo[0].id;
+                }
+                
+                
+                PageReference pr = new PageReference('/'+quote.id);
+                pr.setRedirect(True);
+                return pr;
+            }
+            
+            catch(Exception ex){
+                ApexPages.addMessages(ex);
+                system.debug('test'+ex.getLineNumber());
+            } 
+            return null;
+        }
+    }
+    
+    public pagereference save1(){
+        account accCreditCheck = [Select Available_Credit_Limit__c, Id from account where Id =: accData.Id];
+        if(TotalPrice > accCreditCheck.Available_Credit_Limit__c){
+            ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'Available credit limit is low, please add credit limit or remove quantity'));
+        	return null;
+        }
+        else{
+            try{
+                
+                List<Quote_Line__c> newLine = new List<Quote_Line__c>();
+                List<Order_Header__c> Orderinfo = new List<Order_Header__c>();
+                List<Sales_KPI__c> salesKPI = [Select Name from Sales_KPI__c limit 1];
+                if(discFlag == true){
+                    quote.Scheme_Flag__c = true;
+                }
+                quote.Customer__c = accData.Id;
+                quote.Order_Type__c = 'Distributor';
+                quote.Order_To__c = accCreditCheck.Id;		//'0010p00000FRCcGAAX';
+                quote.RecordTypeId = accCreditCheck.Id;		//'012O0000000P5oiIAC';
+                //quote.Quote_Status__c='Approved';
+                quote.Order_Date__c= Date.today();
+                insert quote;
+                for(Quote_Line__c d: quoteList){
+                    if(d.Quantity__c > 0){
+                        d.Quote__c = quote.Id;
+                        d.Sales_KPI__c = salesKPI[0].Id;
+                        newLine.add(d);
+                    }
+                    
+                }
+                insert newLine;
+                
+                Headerorder.Order__c=quote.id;
+                
+                Orderinfo.add(Headerorder);
+                insert Orderinfo;
+                
+                rid = Orderinfo[0].Id;
+                
+                
+                //PageReference pr = new PageReference('/'+quote.Id);
+                //pr.setRedirect(True);
+                //return pr;
+            }
+            
+            catch(Exception ex){
+                ApexPages.addMessages(ex);
+            } 
+            return null;
+        }
+    }
+    
+    public void quantityChange(){
+        setIDs.clear();
+        discFlag = false;
+        TotalPrice = 0;
+        List<Quote_Line__c> newLine = new List<Quote_Line__c>();
+        for(Quote_Line__c d: quoteList){
+            if(d.Type__c =='Paid' && d.Quantity__c > 0){
+                d.Customer_Price__c = d.Customer_Price_Unit__c * d.Quantity__c;
+                d.Discount_Amount__c = d.Discount_Unit__c * d.Quantity__c;
+                d.Net_Cost__c = (d.Customer_Price__c - d.Discount_Amount__c);
+                TotalPrice += d.Net_Cost__c;
+                setIDs.add(d.Product__c);
+                newLine.add(d);
+                List<Quote_Line__c> listLine = [Select name,Quantity__c from Quote_Line__c where type__c = 'Free' AND Product__c = : d.Product__c AND Id = null];
+                system.debug('listLine'+listLine);
+                if(mapScheme.size() > 0){
+                    if(mapScheme.get(d.Product_Group__c) != null){
+                        if(d.Quantity__c >= decimal.valueof(mapScheme.get(d.Product_Group__c).Quantity__c)){
+                            if(listLine.size() > 0){
+                                system.debug('2');
+                                listLine[0].Quantity__c = (d.Quantity__c / decimal.valueof(mapScheme.get(d.Product_Group__c).Quantity__c)).intvalue() * mapScheme.get(d.Product_Group__c).Eligible_Free_Quantity__c;
+                                newLine.add(listLine[0]);
+                            }
+                            
+                            else{
+                                Quote_Line__c q1 = new Quote_Line__c();
+                                q1.Product__c = d.Product__c;
+                                q1.Quantity__c = (d.Quantity__c / decimal.valueof(mapScheme.get(d.Product_Group__c).Quantity__c)).intvalue() * mapScheme.get(d.Product_Group__c).Eligible_Free_Quantity__c;
+                                q1.Type__c = 'Free';
+                                q1.Customer_Price__c = 0;
+                                q1.Net_Cost__c = q1.Customer_Price__c * q1.Quantity__c;
+                                discFlag = true;
+                                newLine.add(q1);
+                            }
+                        }
+                    }
+                    else{
+                        system.debug('4');
+                        //delete listLine;
+                        
+                    }
+                }
+                
+            }
+            
+        }
+        
+        quoteList.clear();
+        quoteList.addAll(newLine);
+        list<Scheme__c> schemelst = [select id,Order_Value_from__c ,Order_Value_Upto__c,Discount__c  from Scheme__c where Order_Value_Upto__c >=: TotalPrice AND Order_Value_from__c <=: TotalPrice];
+        system.debug('schemelst'+schemelst);
+        system.debug('discFlag'+discFlag);
+        if(discFlag == False && schemelst.size() > 0){
+            system.debug('iiii');
+            for(Scheme__c s: schemelst){
+                discount =s.Discount__c;
+                finalPrice = TotalPrice -((TotalPrice * discount)/100);
+            }  
+            list<Scheme__c> schemelst1 = [Select Order_Value_from__c, Order_Value_Upto__c, Discount__c from Scheme__c where Order_Value_from__c >=: TotalPrice];
+            if(schemelst1.size() > 0)
+                offerPromo= 'offer: '+schemelst1[0].Discount__c +'% off on Rs. '+string.valueof(schemelst1[0].Order_Value_from__c) +' or above';
+        }
+        else{
+            discount =0;
+            finalPrice = TotalPrice;
+            list<Scheme__c> schemelst1 = [Select Order_Value_from__c, Order_Value_Upto__c, Discount__c from Scheme__c where Order_Value_from__c >=: TotalPrice];
+            if(schemelst1.size() > 0)
+                offerPromo='offer: '+schemelst1[0].Discount__c +'% off on Rs. '+string.valueof(schemelst1[0].Order_Value_from__c) +' or above';
+        }
+    }
+    
+    public void removeProd(){
+        system.debug('removeId'+removeId);
+        setIDs.clear();
+        discFlag = false;
+        TotalPrice = 0;
+        List<Quote_Line__c> newLine = new List<Quote_Line__c>();
+        for(Quote_Line__c d: quoteList){
+            if(d.Product__c != removeId){
+                TotalPrice += d.Net_Cost__c;
+                newLine.add(d);
+                setIDs.add(d.Product__c);
+                if(d.Type__c == 'Free'){
+                    discFlag = true;
+                }
+            }
+            
+        }
+        system.debug(newLine);
+        quoteList.clear();
+        quoteList.addAll(newLine);
+        list<Scheme__c> schemelst = [select id,Order_Value_from__c ,Order_Value_Upto__c,Discount__c  from Scheme__c where Order_Value_Upto__c >=: TotalPrice AND Order_Value_from__c <=: TotalPrice];
+        system.debug('schemelst'+schemelst);
+        system.debug('discFlag'+discFlag);
+        if(discFlag == False && schemelst.size() > 0){
+            system.debug('iiii');
+            for(Scheme__c s: schemelst){
+                discount =s.Discount__c;
+                finalPrice = TotalPrice -((TotalPrice * discount)/100);
+            }  
+            list<Scheme__c> schemelst1 = [Select Order_Value_from__c, Order_Value_Upto__c, Discount__c from Scheme__c where Order_Value_from__c >=: TotalPrice];
+            if(schemelst1.size() > 0)
+                offerPromo= 'offer: '+schemelst1[0].Discount__c +'% off on Rs. '+string.valueof(schemelst1[0].Order_Value_from__c) +' or above';
+        }
+        else{
+            discount =0;
+            finalPrice = TotalPrice;
+            list<Scheme__c> schemelst1 = [Select Order_Value_from__c, Order_Value_Upto__c, Discount__c from Scheme__c where Order_Value_from__c >=: TotalPrice];
+            if(schemelst1.size() > 0)
+                offerPromo='offer: '+schemelst1[0].Discount__c +'% off on Rs. '+string.valueof(schemelst1[0].Order_Value_from__c) +' or above';
+        }
+    }
+    
+    public void selectGroup1(){
+        string selectProducts = apexpages.currentPage().getParameters().get('selectProducts1');
+        String ss = '';
+        if(string.isNotBlank(selectProducts))
+            ss = '%'+selectProducts+'%';
+        /*List<String> selectProductList = selectProducts.split(',');
+system.debug('selectProducts '+selectProducts);
+searchValue = '';*/
+        
+        if(string.isNotBlank(selectProducts)) { 
+            listPricing = [Select name,Price_List__c, Discount1__c, Img_Link__c,Discounted_Price__c,Available_Qty__c,Product_c__c,Product_Group__r.name,quant__c,Customer_Price__c, product_c__r.Product_Code_del__c,Bar_Code__c from Product_Pricing__c where Party__c =: accData.Type AND Rating__c =: accData.Rating__c AND Region__c=: accData.Region__c AND Optional_Picklist__c=: accData.Optional_Picklist__c AND Name like: ss];
+        }
+        else {
+            listPricing = [Select name, Product_c__c,Product_Group__r.name,quant__c, Customer_Price__c,Img_Link__c,Discount1__c,Discounted_Price__c,Available_Qty__c, product_c__r.Product_Code_del__c,Product_Group__c,Bar_Code__c from Product_Pricing__c where Party__c =: accData.Type AND Rating__c =: accData.Rating__c AND Region__c=: accData.Region__c AND Optional_Picklist__c=: accData.Optional_Picklist__c];
+            
+        }
+        /*
+if(selectProductList != null && searchValue == null){
+listPricing = [Select name, Price_List__c, Product_c__c,Product_Group__r.name,quant__c,Customer_Price__c, product_c__r.Product_Code_del__c,Discount1__c,Img_Link__c,Discounted_Price__c from Product_Pricing__c where Product_Group__c in:selectProductList AND Party__c =: accData.Type AND Rating__c =: accData.Rating__c AND Region__c=: accData.Region__c AND Optional_Picklist__c=: accData.Optional_Picklist__c];
+}
+else if(selectProductList != null && searchValue != null){
+String ss = '%'+searchValue+'%';
+listPricing = [Select name, Price_List__c, Product_c__c,Product_Group__r.name,quant__c,Customer_Price__c, product_c__r.Product_Code_del__c,Discount1__c,Img_Link__c,Discounted_Price__c from Product_Pricing__c where Product_Group__c in:selectProductList AND Party__c =: accData.Type AND Rating__c =: accData.Rating__c AND Region__c=: accData.Region__c AND Optional_Picklist__c=: accData.Optional_Picklist__c AND Name like: ss];
+}
+else if(searchValue != null){
+String ss = '%'+searchValue+'%';
+listPricing = [Select name, Price_List__c, Product_c__c,Product_Group__r.name,quant__c,Customer_Price__c, product_c__r.Product_Code_del__c,Discount1__c,Img_Link__c,Discounted_Price__c from Product_Pricing__c Where Party__c =: accData.Type AND Rating__c =: accData.Rating__c AND Region__c=: accData.Region__c AND Optional_Picklist__c=: accData.Optional_Picklist__c AND Name like: ss];
+}
+else {
+listPricing = [Select name,Price_List__c,  Product_c__c,Product_Group__r.name,quant__c,Customer_Price__c, product_c__r.Product_Code_del__c,Discount1__c,Img_Link__c,Discounted_Price__c from Product_Pricing__c Where Party__c =: accData.Type AND Rating__c =: accData.Rating__c AND Region__c=: accData.Region__c AND Optional_Picklist__c=: accData.Optional_Picklist__c ];
+}
+*/
+    } 
+    
+    
+    public void save_test()
+    {
+        
+        // proId=proId;
+        // condition = false;
+        
+        system.debug('proid2'+proId);
+        system.debug('proid2'+prtestId);
+    }
+    
+    public void func()
+    {
+        //  condition = true; 
+    }
+    public void func1(){
+        
+    }
+    //04 Dec 2021
+    public void handleFilter1(){
+        System.debug('selectedfilter1 '+selectedfilter1);
+        System.debug('selectedfilter2 '+selectedfilter2);
+        System.debug('selectedfilter3 '+selectedfilter3);
+        filter2List.addAll(filter1Map.get(selectedfilter1));
+        System.debug('filter2List'+filter2List);
+        searchProduct();
+    }
+    //04 Dec 2021
+    public void handleFilter2(){
+        System.debug('selectedfilter1 '+selectedfilter1);
+        System.debug('selectedfilter2 '+selectedfilter2);
+        System.debug('selectedfilter3 '+selectedfilter3);
+        System.debug('filter2Map'+filter2Map);
+        filter3List.addAll(filter2Map.get(selectedfilter1+ ' - ' +selectedfilter2));
+        System.debug('filter3List'+filter3List);
+        searchProduct();
+    }
+    //04 Dec 2021
+    public void handleFilter3(){
+        System.debug('selectedfilter1 '+selectedfilter1);
+        System.debug('selectedfilter2 '+selectedfilter2);
+        System.debug('selectedfilter3 '+selectedfilter3);
+        searchProduct();
+    }
+    //04 Dec 2021
+    public void handleclearFilter1(){
+        selectedfilter1 = '';
+        selectedfilter2 = '';
+        selectedfilter3 = '';
+        filter1List.addAll(filter1Map.keySet());
+        searchProduct();
+    }
+    //04 Dec 2021
+    public void handleclearFilter2(){
+        selectedfilter2 = '';
+        selectedfilter3 = '';
+        filter2List.addAll(filter1Map.get(selectedfilter1));
+        searchProduct();
+    }
+    //04 Dec 2021
+    public void handleclearFilter3(){
+        selectedfilter3 = '';
+        filter3List.addAll(filter2Map.get(selectedfilter1+ ' - ' +selectedfilter2));
+        searchProduct();
+    }
+}

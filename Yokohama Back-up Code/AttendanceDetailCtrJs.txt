@@ -1,0 +1,72 @@
+({
+	myAction : function(component, event, helper) {
+                                helper.leaveType(component,event);
+    },
+      attenSave : function(component, event, helper) {
+            var action = component.get("c.attend");
+            action.setParams({acc : component.get("v.acc"),
+                             });
+            action.setCallback(this,function(response) { 
+                var state = response.getState();
+                if(state==="SUCCESS"){
+                    var resultsToast = $A.get("e.force:showToast");
+                    resultsToast.setParams({
+                        "type": "success",
+                        "duration": "2000",
+                        "mode": "dismissible",
+                        "title": "Success!",
+                        "message": "Attendance Marked successfully."
+                    });
+                    resultsToast.fire();
+                 
+                }
+                else if(state == "ERROR"){
+                    var errors = action.getError();
+                    
+                    if (errors) {
+                        //alert(errors[0].message);
+                        if (errors[0] && errors[0].message) {
+                            
+                            //alert(res[1]);
+                            var toastEvent = $A.get("e.force:showToast");
+                            toastEvent.setParams({
+                                title : 'Error Message',
+                                message: errors[0].message,
+                                duration:' 5000',
+                                key: 'info_alt',
+                                type: 'error',
+                                mode: 'pester'
+                            });
+                            toastEvent.fire();                       
+                            
+                        }
+                        
+                    }
+                }
+            });
+           window.location.reload();
+          
+          
+          $A.enqueueAction(action);
+  
+    },
+    
+     doInit: function(component, event, helper) {
+        var action = component.get("c.getIndustry");
+        var inputIndustry = component.find("InputAccountIndustry");
+        var opts=[];
+        action.setCallback(this, function(a) {
+            opts.push({
+                class: "optionClass",
+                label: "--- None ---",
+                value: ""
+            });
+            for(var i=0;i< a.getReturnValue().length;i++){
+                opts.push({"class": "optionClass", label: a.getReturnValue()[i], value: a.getReturnValue()[i]});
+            }
+            inputIndustry.set("v.options", opts);
+             
+        });
+        $A.enqueueAction(action); 
+    },
+})

@@ -1,0 +1,91 @@
+public class CreateDealerCtrl {
+    public String selectedRT {get;set;}
+    public List<SelectOption> recordTypeList {get;set;}
+    public new_dealer_on_boarding__c dealerList {get;set;}
+    public Dealer_Login_Detail__c dealerLogin {get;set;}
+    public boolean b{get;set;}
+    public List<Attachment> fileList {get; set;}
+    public Attachment attach {get; set;}
+    public Map<String, String> recordMap {get;set;}
+    
+    public CreateDealerCtrl(){
+        recordMap = new Map<String, String>();
+        recordTypeList = new List<SelectOption>();
+        dealerList = new new_dealer_on_boarding__c();
+        dealerLogin = new Dealer_Login_Detail__c();
+        fileList = new List<Attachment>();
+        attach = new Attachment();
+        attach.name = 'Pan Card';
+        Attachment attach1 = new Attachment();
+        attach1.name = 'Aadhaar';
+        fileList.add(attach);
+        fileList.add(attach1);
+        List<RecordType> rtList =new  List<RecordType>();//[SELECT Id,Name FROM RecordType WHERE SObjectType='new_dealer_on_boarding__c'];
+        recordTypeList.add(new SelectOption('--None--', '--None--'));
+        for(RecordType rt : rtList)
+        {
+            recordTypeList.add(new SelectOption(rt.Id, rt.Name));
+            recordMap.put(rt.Id, rt.Name);
+            
+        }
+    }
+    
+    public void getPickListValues(){
+        system.debug(selectedRT);
+        if(selectedRT != null){
+            b=true;
+            dealerList = new new_dealer_on_boarding__c(RecordTypeId = selectedRT);
+            system.debug(recordMap.get(selectedRT));
+            if(recordMap.get(selectedRT) == 'Retailer'){
+                dealerList.Type__c = 'Store';
+            }
+            if(recordMap.get(selectedRT) == 'Dealer'){
+                dealerList.Type__c = 'Dealer';
+            }
+        }
+    }
+    
+    public PageReference Save(){
+        
+        try{
+            insert dealerList;
+            
+            
+            if(dealerList != null) {     
+                dealerLogin.Dealer_Detail__c = dealerList.id;
+                dealerLogin.Email_ID__c = dealerList.Email__c;
+                insert dealerLogin;
+                List<Attachment> attachments = new List<Attachment>();                               
+                
+                for(Attachment att : fileList)              
+                { 
+                    system.debug(att);
+                    if(att.name != null && att.body != null)
+                        attachments.add(new Attachment(parentId = dealerList.Id, name = att.name, body = att.body)) ;                
+                }
+                if(attachments != null){
+                    upsert attachments;                 
+                    //ApexPages.addmessage(new ApexPages.message(ApexPages.Severity.INFO, attachments.size() + ' file(s) uploaded successfully'));   
+                    PageReference pageRef = new PageReference('/apex/ThankyouPage');
+                    pageRef.setRedirect(true);
+                    return pageRef;                                           
+                }else {
+                    ApexPages.addMessage(new ApexPages.message(ApexPages.Severity.ERROR, 'Error uploading file'));
+                }              
+            }
+        }
+        catch(Exception ex){
+            ApexPages.addMessages(ex);
+        } 
+        return null;
+    }
+    
+    public PageReference cancel() {
+        
+        PageReference pageRef = new PageReference('/apex/DealerLoginPage');
+        pageRef.setRedirect(true);
+        return pageRef;
+        
+    }
+    
+}
