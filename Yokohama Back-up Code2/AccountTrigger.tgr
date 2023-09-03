@@ -1,0 +1,25 @@
+trigger AccountTrigger on Account (After insert,After Update) {
+    
+    If(trigger.isInsert){
+        for(Account acc:trigger.new){
+            if((acc.GST_Registration_No__c!=null) || (acc.Email__c!=null)){
+                String message='Dear'+ acc.Name+'Invoice No 98542 dated fdgh for Rs. 89 issued by Yokohama India. Thanks.Please do not reply' ;
+                // String message='Dear Ayush, Invoice No 98542 dated fdgh for Rs. 84 issued by Yokohama India. Thanks. Please do not reply!' ;  
+                SendBulkSMS.send(acc.Phone, message);
+            } 
+        }
+    }
+    if( trigger.isUpdate){
+        system.debug('::::>>'+trigger.new);
+        for(Account acc:trigger.new){
+            //if((acc.GST_Registration_No__c!=null) || (acc.Email__c!=null)){
+            if((acc.GST_Registration_No__c!= trigger.oldMap.get(acc.Id).GST_Registration_No__c) || (acc.Email__c !=trigger.oldMap.get(acc.Id).Email__c) ){
+                String message='Dear'+ acc.Name+'Invoice No 98542 dated fdgh for Rs. 89 issued by Yokohama India. Thanks.Please do not reply' ;
+                // String message='Dear Ayush, Invoice No 98542 dated fdgh for Rs. 84 issued by Yokohama India. Thanks. Please do not reply!' ;
+                SendBulkSMS.send(acc.Phone, message);
+            }     
+        }
+        
+        
+    }
+}

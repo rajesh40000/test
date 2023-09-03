@@ -1,0 +1,121 @@
+<apex:page standardController="Invoice__c" recordSetVar="Inv" extensions="PassSelectedIdsToFlowVFController" lightningStylesheets="true" action="{!newForm}" >
+    <apex:slds />
+    
+    <style>
+<style>
+        body {
+            background-image: url("http://www.w3schools.com/cssref/img_tree");
+            background-repeat:repeat;
+        }
+        input[type="text"] {
+            background: transparent;
+            border:1px solid #000;
+        }        
+    </style>
+</style> 
+    <apex:form >
+        
+    <apex:pageBlock title="Selected Records">        
+    <apex:pageBlockTable value="{!selectedInvoiceRecords}" var="Invoice__c">
+    <apex:column headerValue="Name"                 value="{!Invoice__c.Name}" />
+    <apex:column headerValue="Total Invoice"        value="{!Invoice__c.Total_Invoice__c}" />
+    </apex:pageBlockTable>
+    </apex:pageBlock>
+    
+    <apex:pageBlock title="Total">      
+    <p>Total Invoice Sum:  {!total}</p>                 
+    </apex:pageBlock> 
+       
+              
+    <apex:pageBlock >                 
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>    
+    Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.PassSelectedIdsToFlowVFController.passpaymentid}',
+            Selectedutr,
+            handleResult
+        );
+    var Amount = '{!amountVal}'
+    var rzpid = '{!razorpay}'
+    var name = '{!name}'
+    var phone = '{!phone}'
+    var email = '{!email}'
+    
+    //var img = new Image(300, 200); // width, height
+    //img.src = "https://www.yokohama-india.com/admin/assets/img/rn-logo.png";
+    //document.body.appendChild(img);    
+        
+    console.log('valuefromApex >>>>>> ',rzpid);
+    console.log('valuefromApex >>>>>> ',Amount);    
+    console.log('valuefromApex >>>>>> ',name);
+    console.log('valuefromApex >>>>>> ',phone);
+    console.log('valuefromApex >>>>>> ',email);    
+            
+    var options = 
+    {
+    "key": "rzp_test_P91LOZ6H0nG1L8", 
+    "amount": Amount, 
+    "currency": "INR",
+    "name": "Yokohama",
+    "description": "Test Transaction",
+    "image": "https://toppng.com/uploads/preview/yokohama-tire-logo-115628732139ixtdqmj3q.png",    
+    "order_id": rzpid,
+            
+        
+    "handler": function (response)
+    {
+         console.log('valuefromApex >>>>>> ',rzpid);
+         alert(response.razorpay_payment_id);         
+         alert(response.razorpay_order_id);
+         alert(response.razorpay_signature);
+         console.log("response:",response);
+    },
+        
+    "prefill": 
+    {
+        "name": name,
+        "email": email,
+        "contact": phone,
+    },
+        
+    "notes": 
+    {
+        "address": "Razorpay Corporate Office"
+    },
+        
+    "theme": 
+    {
+        "color": "#3399cc"
+    }
+};
+        
+
+var rzp1 = new Razorpay(options);
+rzp1.on('payment.failed', function (response){
+        alert(response.error.code);
+        alert(response.error.description);
+        alert(response.error.source);
+        alert(response.error.step);
+        alert(response.error.reason);
+        alert(response.error.metadata.order_id);
+        alert(response.error.metadata.payment_id);
+});
+        //document.getElementById('rzp-button1').onclick = function(e){
+        //rzp1.open();
+        //e.preventDefault();
+        //}
+        
+</script>
+        
+             
+          
+            <apex:commandButton styleClass="slds-button slds-button_success" action="{!getorderid}"  value="Confirm" oncomplete="rzp1.open()" reRender="success" />            
+            <p>Razor pay id:  {!razorpay}</p>
+            <apex:commandButton action="{!URLFOR($Action.Invoice__c.Tab, $ObjectType.Invoice__c)}" value="Cancel"/>
+            
+                                    
+    </apex:pageBlock>
+   </apex:form>
+    
+        
+</apex:page>

@@ -1,0 +1,62 @@
+trigger claimTriggerInsert on Claim__c (after insert,after update,before insert,before update) {
+ 
+       TriggerDisabled__c bypassTrigger= TriggerDisabled__c.getInstance('DisableTrigger');
+    system.debug('bypassTrigger '+ bypassTrigger);
+    system.debug('bypassTrigger '+ bypassTrigger.Is_Disabled_Trigger__c);
+    
+    if(!bypassTrigger.Is_Disabled_Trigger__c){
+        
+    
+    
+    /*list<Dealer_Cart__c> dlist=new list<Dealer_Cart__c>();
+         for(Claim__c cc:trigger.new){
+             if(cc.Claim_Status__c=='Accepted'){
+                 Dealer_Cart__c dcc=new Dealer_Cart__c();
+                 dcc.Dealer__c=cc.Dealer__c;
+                 dcc.Claim__c=cc.Id;
+                 dcc.Article_No__c=cc.Article_No__c;
+                 dcc.Docket_No__c=cc.Docket_No__c;
+                 dlist.add(dcc);
+             }
+         }
+Claim_Status__c
+        if(dlist.size()>0){
+            insert dlist;
+        }*/
+    if(trigger.isInsert){
+       
+        /*for(Claim__c wrc:trigger.new){
+            if(wrc.Claim_Status__c=='Approved'){
+                String message='Dear'+ wrc.Claim_Status__c+'Invoice No 98542 dated fdgh for Rs. 89 issued by Yokohama India. Thanks.Please do not reply' ;
+                SendBulkSMS.send(wrc.Phone__c, message);
+                   
+            }
+             else if(wrc.Claim_Status__c=='Rejected'){
+                String message='Dear'+ wrc.Changed_Article__c+'Invoice No 420 dated fdgh for Rs. 52 issued by Yokohama India. Thanks.Please do not reply' ;
+                SendBulkSMS.send(wrc.Phone__c, message);
+                   
+            }
+            
+         
+        }*/
+       
+    }
+    if(Trigger.isBefore == True){
+        if(Trigger.isInsert == True || Trigger.isUpdate == True){
+            for(Claim__c cc:trigger.new){
+                Price_List__c priceListSalesType = [SELECT Customer__c,Item_Code__c,SalesType__c,Unit_Price__c FROM Price_List__c WHERE Customer__c=:cc.Dealer__c AND Item_Code__c=:cc.Article_No__c];
+                System.debug('priceListSalesType'+priceListSalesType);
+                if(priceListSalesType.SalesType__c == 'Customer'){
+                    cc.Sales_Price_at_Uploaded_Time__c = priceListSalesType.Unit_Price__c;
+                }else if(priceListSalesType.SalesType__c == 'Customer Price Group'){
+                    cc.Sales_Price_at_Uploaded_Time__c = priceListSalesType.Unit_Price__c;
+                }else if(priceListSalesType.SalesType__c == 'All Customers'){
+                    cc.Sales_Price_at_Uploaded_Time__c = priceListSalesType.Unit_Price__c;
+                }else if(priceListSalesType.SalesType__c == 'Campaign'){
+                    cc.Sales_Price_at_Uploaded_Time__c = priceListSalesType.Unit_Price__c;
+                }
+            }
+        }
+    }
+  }
+}

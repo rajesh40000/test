@@ -1,0 +1,28 @@
+trigger AccountFieldsUpdateSms on Account (after update) {
+        TriggerDisabled__c bypassTrigger= TriggerDisabled__c.getInstance('DisableTrigger');
+    system.debug('bypassTrigger '+ bypassTrigger);
+    system.debug('bypassTrigger '+ bypassTrigger.Is_Disabled_Trigger__c);
+    
+    if(!bypassTrigger.Is_Disabled_Trigger__c){
+        
+    list<string> acc=new list<string>();
+    for(Account acheck:trigger.new){
+        if(Trigger.oldmap.get(acheck.Id).Email__c != Trigger.newmap.get(acheck.Id).Email__c){
+            acc.add(acheck.Email__c);
+            
+        
+    }
+        update acheck;
+    }
+   
+        
+        //System.debug('jjjjjjjjjjjjjjjjjjjjjjjjjjjj'+acc);
+    if(trigger.isupdate){
+        Account alist=[Select Id,Email__c,GST_IN_y__c,Bank_Account_Number_c__c,Phone from Account where Email__c IN:acc];
+        system.debug(alist);
+        string a=alist.Phone;
+        string message='dummy message' ;
+        AuthCallout.basicAuthCallout(alist.Phone,message);
+    }
+    }
+}

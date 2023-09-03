@@ -1,0 +1,159 @@
+public class createBeatCtrl {
+    public Double valueLong { get; set; }
+    public Double valueLat { get; set; }
+    public Beat__c beat{get;set;}
+    public List<Account> retailer{get;set;}
+    public Id retId{get;set;}
+    public boolean b{get;set;}
+    public String areaSearch{get;set;}
+    Public list<WrapperClass> listWrapper{get;set;}
+    public list<Beat__c> lstBB{get;set;}
+    public boolean b2{get;set;}
+    
+    public createBeatCtrl(ApexPages.StandardController controller){
+        //beat = new Beat__c();
+        beat = (Beat__c)controller.getRecord();
+        retId = null;
+        retailer = new List<Account>();
+        listWrapper = new list<WrapperClass>();
+        lstBB = new list<Beat__c>();
+    }
+    public void iFoundYou(){
+        
+    }
+    
+    public void searchNearBy() {
+        lstBB.clear();
+        retailer.clear();
+        listWrapper.clear();
+        system.debug('sada');
+        //retailer = [Select name, Address__c from Retailers__c WHERE DISTANCE(Geo_Location__c, GEOLOCATION(valueLat,valueLong), 'mi') < .1 ];
+        String queryString =
+            'SELECT Name, Type, BillingStreet, BillingCity, BillingState,BillingCountry ' +
+            'FROM Account ' +
+            'WHERE DISTANCE(Location__c, GEOLOCATION('+valueLat+','+valueLong+'), \'mi\') < 0.5 AND Type = \'Retailer\'' +
+            'ORDER BY DISTANCE(Location__c, GEOLOCATION('+valueLat+','+valueLong+'), \'mi\') ';
+        if(valueLat != null)
+            retailer = database.Query(queryString);
+        /* for(Account w: retailer){
+Beat__c beat = new Beat__c();
+beat.Distributor__c = w.Id;
+beat.Visit_Date__c = system.today();
+beat.Text_Address__c = w.BillingStreet +', '+ w.BillingCity+', '+ w.BillingState+ ', '+ w.BillingCountry;
+listWrapper.add(new WrapperClass(beat));            
+}
+if(retailer.size() == 0){
+ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'No near by reatiler found'));
+}*/
+      /*  if(retailer.size() == 1){
+            
+            beat.Retailer__c = retailer[0].Id;
+            
+        }*/
+        
+        
+    }
+    
+    public void searchByBox() {
+        lstBB.clear();
+        listWrapper.clear();
+        retailer.clear();
+        system.debug('sada');
+        //retailer = [Select name, Address__c from Retailers__c WHERE DISTANCE(Geo_Location__c, GEOLOCATION(valueLat,valueLong), 'mi') < .1 ];
+        
+        retailer = [Select Name, Type, BillingStreet, BillingCity, BillingState,BillingCountry from Account where Area__c =: areaSearch AND Type =: 'Retailer'];
+        system.debug(retailer.size());
+        system.debug(retailer);
+        //beat.Location__Latitude__s= valueLat;
+        //beat.Location__Longitude__s= valueLong;
+        //beat.Date_Time__c = system.now();
+        /*for(Account w: retailer){
+Beat__c beat = new Beat__c();
+beat.Distributor__c = w.Id;
+beat.Visit_Date__c = system.today();
+beat.Text_Address__c = w.BillingStreet +', '+ w.BillingCity+', '+ w.BillingState+ ', '+ w.BillingCountry;
+//beat.Meeting_Objective_Retailer__c = '';
+listWrapper.add(new WrapperClass(beat));            
+}
+if(retailer.size() == 0){
+ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'No near by reatiler found'));
+}*/
+      /*  if(retailer.size() == 1){
+            
+            beat.Retailer__c = retailer[0].Id;
+            
+        }*/
+        
+        
+    }
+    
+    public pageReference mapRetailer(){
+        try{
+            beat.Distributor__c = retId;
+            beat.Visit_Date__c = system.today();
+            insert beat;
+            retailer.clear();
+            pageReference r = new pageReference('/'+beat.Id);
+            r.setRedirect(true);
+            return r;
+        }
+        catch(Exception ex){
+            ApexPages.addMessages(ex);
+        }
+        return null;
+        
+    }
+    
+    public class WrapperClass{
+        public Boolean checked{get;set;}
+        public Beat__c psp{get;set;}
+        
+        public WrapperClass(Beat__c psp){
+            this.psp=psp;
+        }
+    }
+    
+    public void createBeat(){
+        system.debug('adasdasd');
+        Integer ii = 0;
+        lstBB.clear();
+        List<Beat__c> lstBeat = new List<Beat__c>();
+        for(WrapperClass wcl: listWrapper){
+            if(wcl.checked){
+                lstBeat.add(wcl.psp);
+                ii += 1;
+            }
+        }
+        if(ii > 1){
+            ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'You selected more than 1 retailer'));
+        }
+        if(lstBB.size() == 1){
+            system.debug('adasdasd');
+            insert lstBB;
+        }
+        
+    }
+    
+    public PageReference finalSave(){
+        list<Event> lstEvent = new list<Event>();
+        insert lstBB;
+        for(Beat__c a : lstBB){
+            String start = DateTime.newInstance(a.visit_date__c.year(),a.visit_date__c.month(),a.visit_date__c.day()).format('dd/MM/YY') +' ' + '12:00 PM';
+            String endtime = DateTime.newInstance(a.visit_date__c.year(),a.visit_date__c.month(),a.visit_date__c.day()).format('dd/MM/YY') +' ' +'1:00 PM';  
+            
+            Event e= new Event();
+            e.subject='Meeting';
+            
+            e.StartDateTime=DateTime.parse(start);
+            e.EndDateTime=DateTime.parse(endtime);
+            
+            e.whatid=a.id;
+            lstEvent.add(e);
+        }
+        insert lstEvent;
+        PageReference p = new PageReference('/a0v');
+        p.setRedirect(true);
+        return p;
+    }
+    
+}

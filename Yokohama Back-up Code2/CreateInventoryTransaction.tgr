@@ -1,0 +1,52 @@
+trigger CreateInventoryTransaction on Quote__c (After update) {
+    
+        TriggerDisabled__c bypassTrigger= TriggerDisabled__c.getInstance('DisableTrigger');
+    system.debug('bypassTrigger '+ bypassTrigger);
+    system.debug('bypassTrigger '+ bypassTrigger.Is_Disabled_Trigger__c);
+    
+    if(!bypassTrigger.Is_Disabled_Trigger__c){
+        
+    Set<id> st = new set<id>();
+    for(Quote__c ob :trigger.new){
+        if(ob.Order_Type__c == 'Retailer' && ob.Quote_Status__c == 'Invoiced' && ob.Quote_Status__c!= trigger.oldMap.get(ob.id).Quote_Status__c){
+            st.add(ob.id);
+        }
+    }
+    
+    if(!st.isEmpty()){
+        list<Stock_Transfer__c> lstInventoryTransactionHead = new list<Stock_Transfer__c>();
+        list<Inventory_Register_Line__c> lstInventoryTransactionLine = new list<Inventory_Register_Line__c>();
+        //Customer__r.SourceWarehouse__c,
+        for(Quote__c ship: [Select Id,  Customer__c,Order_To__c, (Select Product__c, quantity__c from Quote_Lines__r) from Quote__c where ID IN: st]){
+            Stock_Transfer__c newInventoryTransactionHead = new Stock_Transfer__c();
+            newInventoryTransactionHead.MovementType__c = 'Retailer Invoice';
+            newInventoryTransactionHead.Document_Type__c = 'Issue';
+           // newInventoryTransactionHead.Shipments__c = ship.Id;
+            //newInventoryTransactionHead.Invoice__c = ship.Invoice__c; 
+            newInventoryTransactionHead.Warehouse1__c = ship.Customer__c;
+            newInventoryTransactionHead.External_Id__c = ship.Id;
+            newInventoryTransactionHead.Date__c = system.today();
+            newInventoryTransactionHead.Retailer_Invoice__c = ship.Id;
+            lstInventoryTransactionHead.add(newInventoryTransactionHead);
+            for(Quote_Line__c shipLine: ship.Quote_Lines__r){
+                Inventory_Register_Line__c newInventoryTransactionLine = new Inventory_Register_Line__c();
+                Stock_Transfer__c newInventoryTransactionHead1 = new Stock_Transfer__c();
+                newInventoryTransactionHead1.External_Id__c = ship.Id;
+                newInventoryTransactionLine.Inventory_Register__r = newInventoryTransactionHead1;
+                newInventoryTransactionLine.Product__c = shipLine.Product__c;
+                newInventoryTransactionLine.Quantity__c = shipLine.Quantity__c;
+                newInventoryTransactionLine.Movement_Type__c = 'Retailer Invoice';
+                newInventoryTransactionLine.Document_Type__c = 'Issue';
+                newInventoryTransactionLine.Warehouse1__c = ship.Customer__c;
+                newInventoryTransactionLine.Map_Head_Id__c = ship.Id;
+                newInventoryTransactionLine.Map_Child_Id__c = shipLine.Id;
+                newInventoryTransactionLine.Map_retailer__c = ship.Order_To__c;
+                lstInventoryTransactionLine.add(newInventoryTransactionLine);
+            }
+        }
+        
+        insert lstInventoryTransactionHead;
+        insert lstInventoryTransactionLine;
+    }
+    }      
+}

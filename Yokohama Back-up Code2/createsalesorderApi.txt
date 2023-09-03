@@ -1,0 +1,210 @@
+@RestResource(urlMapping='/createsalesorderApi/')
+global class createsalesorderApi {
+    
+    @HttpPost
+    global static void doPost ()
+    {	
+        list<Sales_order__c> customer = new list<Sales_order__c>(); 
+        
+        restrequest req = RestContext.request; 
+        RequestBodyWrap reqBodywrap = parse(req.requestBody.toString());
+        List<Zone__c> acc= [select id, Zone_Name__c	 from Zone__c where Name =:reqBodywrap.Zoneid];
+        List<State__c> acc1= [select id,name from State__c where Name=:reqBodywrap.State];
+          List<Location_Master__c> acc2= [select id,name from Location_Master__c where Name=:reqBodywrap.Location_Code];
+         List<Shipping_Address__c> acc3= [select id,name from Shipping_Address__c where Name=:reqBodywrap.Ship_to_Code];
+          List<Account> acc4= [select id,name from Account where Name=:reqBodywrap.customer_Number];
+         List<Account> acc5= [select id,name from Account where Name=:reqBodywrap.BillToParty];
+        //List<account> acc= [select id,name from account where name=:reqBodywrap.CustomerNo];
+        // String DateStr;
+        //String DateStr1;
+        Sales_order__c cust = new Sales_order__c();
+       /* if(reqBodywrap.name1!=null){
+            cust.Name=reqBodywrap.name1;}*/
+        
+        if(acc2.size()>0){
+            cust.Location_Code__c=acc2[0].id;}
+            if(acc3.size()>0){
+            cust.Ship_to_Code__c=acc3[0].id;
+        }    
+        if(acc4.size()>0){
+            cust.customer_Number__c=acc4[0].id;
+        }        
+         if(acc5.size()>0){
+            cust.Bill_To_Party__c=acc5[0].id;
+        }        
+        if(reqBodywrap.Availablebalance!=null){
+            cust.Available_balance__c=reqBodywrap.Availablebalance;}
+        if(reqBodywrap.Currency_Code!=null){
+            cust.Currency_Code__c=reqBodywrap.Currency_Code;}
+        if(reqBodywrap.CustomerGSTRegNo!=null){
+            cust.Customer_GST_Reg_No__c=reqBodywrap.CustomerGSTRegNo;}
+        if(reqBodywrap.sales_order_no!=null){
+            cust.sales_order_no__c=reqBodywrap.sales_order_no;}
+       // if(reqBodywrap.customer_Number!=null){
+          //  cust.customer_Number__c=reqBodywrap.customer_Number;}
+        if(reqBodywrap.Discounttype!=null){
+            cust.Discount_type__c =reqBodywrap.Discounttype;}
+        if(reqBodywrap.Docket_No!=null){
+            cust.Docket_No__c=reqBodywrap.Docket_No;} 
+        if(reqBodywrap.Discount_Remarks!=null){
+            cust.Discount_Remarks__c=reqBodywrap.Discount_Remarks;} 
+        
+        if(reqBodywrap.Exchange_Rate!=null){
+            cust.Exchange_Rate__c=reqBodywrap.Exchange_Rate;}
+        
+        if(reqBodywrap.External_Document_No!=null){
+            cust.External_Document_No__c=reqBodywrap.External_Document_No;}
+        
+        if(reqBodywrap.GSTBilltoStateCode!=null){
+            cust.GST_Bill_to_State_Code__c=reqBodywrap.GSTBilltoStateCode;}
+        
+        if(reqBodywrap.GSTShiptoStateCode!=null){
+            cust.GST_Ship_to_State_Code__c=reqBodywrap.GSTShiptoStateCode;}
+        
+        if(reqBodywrap.GST_Customer_Type!=null){
+            cust.GST_Customer_Type__c =reqBodywrap.GST_Customer_Type;}
+        
+        if(reqBodywrap.GST_Register_No!=null){
+            cust.GST_Register_No__c=reqBodywrap.GST_Register_No;} 
+        
+        if(reqBodywrap.LocationGSTRegNo!=null){
+            cust.Location_GST_Reg_No__c=reqBodywrap.LocationGSTRegNo;} 
+        
+        if(reqBodywrap.LocationStateCode!=null){
+            cust.Location_State_Code__c=reqBodywrap.LocationStateCode;} 
+        
+       // if(reqBodywrap.Location_Code!=null){
+            //cust.Location_Code__c=reqBodywrap.Location_Code;} 
+        
+        if(reqBodywrap.Order_Date!=null){
+            cust.Order_Date__c=reqBodywrap.Order_Date;}  
+        
+        if(reqBodywrap.posting_date!=null){
+            cust.posting_date__c=reqBodywrap.posting_date;}  
+        
+        if(reqBodywrap.Promised_Delivery_Date!=null){
+            cust.Promised_Delivery_Date__c=reqBodywrap.Promised_Delivery_Date;}   
+        
+        if(reqBodywrap.Requested_Delivery_Date!=null){
+            cust.Requested_Delivery_Date__c=reqBodywrap.Requested_Delivery_Date;} 
+        
+        if(reqBodywrap.Remarks!=null){
+            cust.Remarks__c=reqBodywrap.Remarks;}
+        
+        //if(reqBodywrap.SalesorderName!=null){
+        // cust.Name=reqBodywrap.SalesorderName;}
+        
+        if(reqBodywrap.ShiptoGSTRegNo!=null){
+            cust.Ship_to_GST_Reg_No__c=reqBodywrap.ShiptoGSTRegNo;}
+        
+        if(acc.size()>0){
+            cust.Zones1__c=acc[0].id;
+        }
+        if(acc1.size()>0){
+            cust.State__c=acc1[0].id;
+        }
+        
+        
+        //if(reqBodywrap.Ship_to_Code!=null){
+           // cust.Ship_to_Code__c=reqBodywrap.Ship_to_Code;} 
+        
+        
+        
+        // if(reqBodywrap.State != null){
+        //    list  <State__c> code=[select id from State__c where name=:reqBodywrap.State];
+        //    if(code != null){
+        //   cust.State__c=code.Id;
+        // }
+        // }
+        
+        
+        if(reqBodywrap.Status!=null){
+            cust.Status__c=reqBodywrap.Status;}  
+        
+        
+        if(reqBodywrap.Structure!=null){
+            cust.Structure__c=reqBodywrap.Structure;} 
+        
+        // if(reqBodywrap.Zone != null){
+        //     Zone__c code=[select id from Zone__c where name=:reqBodywrap.Zone];
+        // if(code != null){
+        //   cust.Zone__c=code.Id;}}
+        
+        
+        customer.add(cust);
+        
+        responseWrap resWrap = new responseWrap();
+        list<cls_result> resultParaList = new List<cls_result>();
+        List<Database.SaveResult> saveResults = Database.Insert(customer, false);
+        for(Integer i=0;i<saveResults.size();i++){
+            
+            cls_result resultPara = new cls_result();
+            if (saveResults.get(i).isSuccess()){
+                resultPara.Status = 'Success';
+                resultPara.response_message = 'sales Order created successfully';
+                resultPara.SFID = saveResults.get(i).getId();
+                
+            }else if (!saveResults.get(i).isSuccess()){
+                
+                Database.Error error = saveResults.get(i).getErrors().get(0);
+                resultPara.Status = 'Failure';
+                resultPara.response_message = error.getMessage();
+                // resultPara.RelatedId = newActivityList.get(i).lead_Id_Backend__c;
+                resultPara.SFID = '';  
+            }
+            resultParaList.add(resultPara);
+        }
+        resWrap.result = resultParaList;
+        RestResponse res = RestContext.response;
+        res.statusCode = 200;
+        res.responseBody = Blob.valueof(JSON.serialize(resWrap));   
+    }                       
+    public class RequestBodyWrap{
+        public string name1;
+        public decimal Availablebalance;
+        public string Currency_Code;
+        public string CustomerGSTRegNo;
+        public string customer_Number;
+        public string Discounttype;
+        public string Discount_Remarks;
+        public string Docket_No;
+        public decimal Exchange_Rate;
+        public string External_Document_No;
+        public string GSTBilltoStateCode;
+        public string GSTShiptoStateCode;
+        public string GST_Customer_Type;
+        public string GST_Register_No;
+        public string LocationGSTRegNo;
+        public string LocationStateCode;
+        public string Location_Code;
+        public Date Order_Date;
+        public Date posting_date;                                  
+        public Date Promised_Delivery_Date;
+        public string Remarks;
+        public Date Requested_Delivery_Date;
+        // public string SalesorderName;
+        public string ShiptoGSTRegNo; 
+        public string Ship_to_Code;
+        public string State;
+        public string Status;
+        public string Structure;
+        public string Zoneid;
+        public string BillToParty;
+        public string sales_order_no;
+    }
+    
+    
+    public class responseWrap{
+        public cls_result[] result;
+    }
+    public class cls_result {
+        public String Status;	
+        public String response_message;	
+        public String SFID;	
+    }
+    public static RequestBodyWrap parse(String json) 
+    {
+        return (RequestBodyWrap) System.JSON.deserialize(json, RequestBodyWrap.class);
+    }
+    
+}

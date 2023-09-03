@@ -1,0 +1,20 @@
+trigger CalltoHttpCalloutforPayment on Payment__c (after insert, before update) {
+    
+        TriggerDisabled__c bypassTrigger= TriggerDisabled__c.getInstance('DisableTrigger');
+    system.debug('bypassTrigger '+ bypassTrigger);
+    system.debug('bypassTrigger '+ bypassTrigger.Is_Disabled_Trigger__c);
+    
+    if(!bypassTrigger.Is_Disabled_Trigger__c){
+        
+     if(Trigger.isAfter == True){
+        if(Trigger.isInsert == True){
+            for(Payment__c ship : Trigger.new){
+                if(ship.Payment_Status__c == 'Approved'){
+                    HttpCallOut.SFDCPayment(ship.Id);
+                    
+                }
+            }
+        }
+     }  
+   }
+}

@@ -1,0 +1,423 @@
+public class GenerateInvoices_controller {
+    
+    public  Integer invoicePercent{get;set;}
+    public  Integer quantity{get;set;}
+    public  String recordId{get;set;}
+    public  String radiostatus{get;set;}
+    public  boolean Yesflag{get;set;}
+    public  boolean Noflag{get;set;}   
+    public  String street {get;set;}
+    public  String city{get;set;}
+    public  String state{get;set;}
+    public  String country{get;set;}
+    public  String zip{get;set;}
+    
+    public  Boolean hasError { get { return ApexPages.hasMessages(); }set; }
+    
+    
+    public GenerateInvoices_controller(ApexPages.StandardController Controller){
+        Yesflag = true;
+        Noflag = false;
+        street = '';city = '';state = '';zip = '';country = '';
+        
+        recordId = ApexPages.currentPage().getParameters().get('id');
+        System.debug('hasError****'+hasError);
+    }
+    
+    public List<SelectOption> getItems() {
+        List<SelectOption> options = new List<SelectOption>(); 
+        options.add(new SelectOption('Yes','Yes')); 
+        options.add(new SelectOption('No','No')); 
+        return options; 
+    }
+    public void Checkstatus() {
+        String result = Apexpages.currentPage().getParameters().get('flagvalue');      
+        System.debug('in*****result '+result);
+        if(result == 'Yes'){
+            Yesflag = true;
+            Noflag = false;
+        }else{
+            Yesflag = false;
+            Noflag = true;
+        }
+    }
+    public  void onSubmit(){        
+        Savepoint sp = Database.setSavepoint();
+        try{
+            System.debug('street**in submit method '+ street +' city '+city+' state '+state+ ' country '+country);
+            recordId = ApexPages.currentPage().getParameters().get('id');
+            String radio =  Apexpages.currentPage().getParameters().get('flagvalue');
+            System.debug('radio'+radiostatus);           
+            System.debug('invoicePercent***'+invoicePercent);
+            System.debug('recordId***'+recordId);
+            //fetching records of Quote
+            
+            List<Quote__c> quote = new List<Quote__c>();
+            quote = [select id,Name,Street__c, City__c, Zip_Postal_Code__c, State_Province__c, Country__c, Invoice_Percent__c,Sales_Cycle__c,Customer__c,Billing_Street__c,Billing_City__c,Billing_State_Province__c,Billing_Zip__c,Billing_Country__c,Net_Value__c,CGST_Rollup__c,IGSTRollUp__c,SGST_UTGST_Rollup__c from Quote__c where id=:recordId];
+            // Customer__r.SourceWarehouse__c,
+            
+            
+            
+            //fetching Quote Line           
+            List<Quote_Line__c> Quoteline = new List<Quote_Line__c>();
+            Quoteline = [select id,Sales_KPI__c,Total_Billed_Quantity__c,Pending_Quantity__c,CGST__c,SGST_UTGST__c,IGST__c,Net_Cost__c,Quantity__c,Billed_Quantity__c,Billed_Amount__c,Quote__c,Product__c,Product_Group__c,Customer__c from Quote_Line__c where Quote__c =: recordId];
+            
+            // boolean stopflag = false;
+            set<string> oldInvoicesIds = new Set<String>();
+            set<string> newInvoicesIds = new Set<String>();
+            
+            //filtering ids of Quote_line_c 
+            if(!Quoteline.isEmpty()){               
+                
+                for(Quote_Line__c ql : Quoteline){
+                    if(ql.Billed_Quantity__c != null && ql.Billed_Quantity__c != 0  && invoicePercent == 0 ){
+                        oldInvoicesIds.add(ql.id); 
+                        
+                       // System.debug('>>>>>>'+invoicePercent+'>>>>>>'+ql.Billed_Quantity__c);
+                    }
+                    else if(invoicePercent !=0){                    
+                        newInvoicesIds.add(ql.id);
+                        //System.debug('>>>>>>'+invoicePercent);
+                    }
+                    else {
+                        ApexPages.addmessage(new ApexPages.message(ApexPages.severity.error,'Either Invoice % or Billed Quantity must be entered'));
+                        return;
+                        
+                    }
+                    
+                }
+                
+                
+                System.debug('oldInvoicesIds***'+oldInvoicesIds);
+                System.debug('newInvoicesIds***'+newInvoicesIds);
+                
+                //******************oldInvoice criteria start here********************************************
+                List<Invoice__c> oldinvoicetoinsert = new List<Invoice__c>();
+                
+                boolean flags = true;
+                for(Quote_Line__c ql : Quoteline){
+                    if(oldInvoicesIds.contains(ql.id) && flags){
+                        Invoice__c invo = new Invoice__c();
+                        invo.Customer__c = ql.Customer__c;
+                        if(ql.Billed_Quantity__c == null){
+                            ql.Billed_Quantity__c = 0;
+                        }
+                        
+                        if(ql.Billed_Quantity__c != 0 || ql.Billed_Quantity__c != null)
+                            invo.Net_Value__c = ql.Net_Cost__c*ql.Billed_Quantity__c/ql.Quantity__c;
+                        else
+                            invo.Net_Value__c = 0;
+                        
+                        if(radiostatus == 'No'){
+                            invo.Billing_Street__c = street;
+                            invo.Billing_City__c = city;
+                            invo.Billing_State_Province__c = state;
+                            invo.Billing_Zip_Postal_Code__c = zip;
+                            invo.Billing_Country__c = country ;
+                        }else{
+                            invo.Billing_Street__c = quote[0].Billing_Street__c;
+                            invo.Billing_City__c = quote[0].Billing_City__c;
+                            invo.Billing_State_Province__c = quote[0].Billing_State_Province__c;
+                            invo.Billing_Zip_Postal_Code__c = quote[0].Billing_Zip__c;
+                            invo.Billing_Country__c = quote[0].Billing_Country__c;
+                            invo.Street__c = quote[0].Street__c;
+                            invo.City__c = quote[0].City__c;
+                            invo.Country__c = quote[0].Country__c;
+                            invo.State_Province__c = quote[0].State_Province__c;
+                            invo.Zip_Postal_Code__c = quote[0].Zip_Postal_Code__c;
+                        }
+                        
+                        
+                        invo.CGST__c = ql.CGST__c;
+                        invo.IGST__c = ql.IGST__c;
+                        invo.SGST_UTGST__c = ql.SGST_UTGST__c;
+                        invo.Related_Quote__c = quote[0].id;
+                        invo.Sales_Cycle__c = quote[0].Sales_Cycle__c;
+                        oldinvoicetoinsert.add(invo);	
+                        flags = false;
+                    }
+                    
+                }
+                
+                if(!oldinvoicetoinsert.isEmpty()){
+                    System.debug('oldinvoicetoinsert******'+oldinvoicetoinsert);
+                    insert oldinvoicetoinsert;
+                }
+                
+                /*********************Inserting InvoiceLineItems for Old *********************************************/
+                List<String> idlist = new List<String>();
+                for(Invoice__c obj : oldinvoicetoinsert){
+                    idlist.add(obj.id);
+                }
+                //Generate Invoice Line from Quote Line
+                integer i=0, extrapercent = 0;
+                Decimal billedAmount = 0;
+                boolean pendingflag = true;
+                List<Invoice_Lines__c> ilist = new  list<Invoice_Lines__c>();
+                for(Quote_Line__c ql : Quoteline){                
+                    if(oldInvoicesIds.contains(ql.id) && pendingflag){
+                        Invoice_Lines__c involine= new Invoice_Lines__c();
+                        involine.Invoice__c = idlist.get(0);
+                        involine.IGST__c = ql.IGST__c;
+                        involine.CGST__c = ql.CGST__c;
+                        involine.SGST_UTGST__c = ql.SGST_UTGST__c;
+                        involine.Customer__c = ql.Customer__c;
+                        involine.Product__c = ql.Product__c;
+                        involine.Product_Group__c = ql.Product_Group__c;
+                        extrapercent += Integer.valueOf((ql.Billed_Quantity__c*ql.Net_Cost__c/ql.Quantity__c)*100/quote[0].Net_Value__c);
+                        involine.Billed_Quantity__c =  ql.Billed_Quantity__c;
+                        involine.Quote__c = quote[0].id;
+                        //involine.Invoice__c = invo.Related_Quote__c;
+                        involine.Quote_Line__c = ql.id;
+                        involine.Sales_KPI__c = ql.Sales_KPI__c;
+                        involine.Sales_Cycle__c = quote[0].Sales_Cycle__c;
+                        involine.Invoice_Amount__c = ql.Net_Cost__c*ql.Billed_Quantity__c/ql.Quantity__c;
+                        billedAmount += involine.Invoice_Amount__c;
+                        if(ql.Total_Billed_Quantity__c > ql.Quantity__c){
+                            pendingflag = false;
+                            
+                            ApexPages.addmessage(new ApexPages.message(ApexPages.severity.Error,'Total Billed Quantity cannot be greater than Total Quantity'));
+                            return;
+                        }
+                        if(pendingflag){
+                            ilist.add(involine);  
+                        }
+                        System.debug('pendingflag**'+pendingflag);                    
+                        i++;                    
+                    }            
+                    
+                }
+                //inserting Invoiceline
+                if(!ilist.isEmpty()){
+                    System.debug('ilist***'+ilist);
+                    insert ilist;
+                }
+                
+                List<Invoice__c> Updateoldinvoicetoinsert = new List<Invoice__c>();
+                for(Invoice__c obj : oldinvoicetoinsert){
+                    obj.Net_Value__c = billedAmount;
+                    Updateoldinvoicetoinsert.add(obj);
+                }
+                if(!Updateoldinvoicetoinsert.isEmpty()){
+                    update Updateoldinvoicetoinsert;
+                }
+                
+                
+                //******************oldInvoice criteria end here********************************************//
+                
+                //******************NewInvoice criteria start here********************************************//
+                boolean flag = true;
+                List<Invoice__c> newinvoicetoinsert = new List<Invoice__c>();
+                for(Quote_Line__c ql : Quoteline){
+                    if(newInvoicesIds.contains(ql.id) && flag){
+                        Invoice__c invo = new Invoice__c();
+                        invo.Customer__c = ql.Customer__c;
+                        invo.Invoice_Date__c = system.today();
+                        invo.Net_Value__c = quote[0].Net_Value__c*invoicePercent/100;   
+                        if(radiostatus == 'No'){
+                            invo.Billing_Street__c = street;
+                            invo.Billing_City__c = city;
+                            invo.Billing_State_Province__c = state;
+                            invo.Billing_Zip_Postal_Code__c = zip;
+                            invo.Billing_Country__c = country ;
+                        }else{
+                            invo.Billing_Street__c = quote[0].Billing_Street__c;
+                            invo.Billing_City__c = quote[0].Billing_City__c;
+                            invo.Billing_State_Province__c = quote[0].Billing_State_Province__c;
+                            invo.Billing_Zip_Postal_Code__c = quote[0].Billing_Zip__c;
+                            invo.Billing_Country__c = quote[0].Billing_Country__c;
+                            invo.Street__c = quote[0].Street__c;
+                            invo.City__c = quote[0].City__c;
+                            invo.Country__c = quote[0].Country__c;
+                            invo.State_Province__c = quote[0].State_Province__c;
+                            invo.Zip_Postal_Code__c = quote[0].Zip_Postal_Code__c;
+                        }
+                        
+                        invo.CGST_Value__c = quote[0].CGST_Rollup__c*invoicePercent/100;
+                        invo.IGST_Value__c = quote[0].IGSTRollUp__c*invoicePercent/100;
+                        invo.SGST_UTGST_Value__c = quote[0].SGST_UTGST_Rollup__c*invoicePercent/100;
+                        invo.Related_Quote__c = quote[0].id;
+                        invo.Sales_Cycle__c = quote[0].Sales_Cycle__c;
+                        newinvoicetoinsert.add(invo);
+                        flag = false;
+                    }
+                    
+                }
+                
+                if(!newinvoicetoinsert.isEmpty()){
+                    System.debug('newinvoicetoinsert******'+newinvoicetoinsert);
+                    insert newinvoicetoinsert;
+                }
+                
+                List<String> idlistnew = new List<String>();
+                for(Invoice__c obj : newinvoicetoinsert){
+                    idlistnew.add(obj.id);
+                }
+                System.debug('idlistnew******'+idlistnew);
+                
+                /*********************Inserting InvoiceLineItems for New *********************************************/
+                List<Invoice_Lines__c> newinvoiceline = new  list<Invoice_Lines__c>();
+                for(Quote_Line__c ql : Quoteline){                
+                    if(newInvoicesIds.contains(ql.id)){
+                        Invoice_Lines__c involine= new Invoice_Lines__c();
+                        involine.Invoice__c = idlistnew[0];
+                        involine.IGST__c = quote[0].IGSTRollUp__c*invoicePercent/100;
+                        involine.CGST__c = quote[0].CGST_Rollup__c*invoicePercent/100;
+                        involine.SGST_UTGST__c = quote[0].SGST_UTGST_Rollup__c*invoicePercent/100;
+                        involine.Customer__c = ql.Customer__c;
+                        involine.Product__c = ql.Product__c;
+                        involine.Product_Group__c = ql.Product_Group__c;
+                        involine.Billed_Quantity__c =  ql.Billed_Quantity__c;
+                        involine.Quote__c = quote[0].id;
+                        //involine.Invoice__c = invo.Related_Quote__c;
+                        involine.Quote_Line__c = ql.id;
+                        involine.Sales_KPI__c = ql.Sales_KPI__c;
+                        involine.Sales_Cycle__c = quote[0].Sales_Cycle__c;
+                        involine.Invoice_Amount__c = ql.Net_Cost__c*invoicePercent/100;
+                        newinvoiceline.add(involine);
+                    }
+                    
+                }
+                //inserting Invoiceline
+                if(!newinvoiceline.isEmpty()){
+                    System.debug('newinvoiceline***'+newinvoiceline);
+                    insert newinvoiceline;
+                }
+                
+                
+                /* ******************NewInvoice criteria End here********************************************
+
+*********************updating QuoteLine and Quote*********************************************/ 
+                List<Quote_Line__c> Quotelinetoupdate = new List<Quote_Line__c>();
+                for(Quote_Line__c ql : Quoteline){
+                    if(ql.Billed_Quantity__c == null){
+                        ql.Billed_Quantity__c = 0;
+                    }
+                    if(ql.Billed_Amount__c == null){
+                        ql.Billed_Amount__c = 0;
+                    }
+                    if(ql.Quantity__c == null){
+                        ql.Quantity__c = 0;
+                    }
+                    if(ql.Total_Billed_Quantity__c == null){
+                        ql.Total_Billed_Quantity__c = 0;
+                    }
+                    ql.Total_Billed_Quantity__c += ql.Billed_Quantity__c;
+                    // ql.Pending_Quantity__c = ql.Quantity__c - ql.Billed_Quantity__c;
+                    
+                    if(ql.Billed_Quantity__c != 0){
+                        ql.Billed_Amount__c += ql.Net_Cost__c*ql.Billed_Quantity__c/ql.Quantity__c;
+                        ql.Billed_Quantity__c = 0;
+                    }
+                    else{
+                        ql.Billed_Amount__c += ql.Net_Cost__c*invoicePercent/100;
+                    }
+                    ql.Pending_Quantity__c = ql.Quantity__c - ql.Total_Billed_Quantity__c;
+                    
+                    Quotelinetoupdate.add(ql);
+                }
+                if(!Quotelinetoupdate.isEmpty()){
+                    update Quotelinetoupdate;
+                }
+                
+                
+                //updating return Quote 
+                List<Quote__c> quotelist = new List<Quote__c>();
+                for(Quote__c qq : quote){
+                    if(qq.Invoice_Percent__c == null){
+                        
+                        qq.Invoice_Percent__c = 0;
+                    }
+                    
+                    if(invoicePercent == 0){
+                        qq.Invoice_Percent__c += extrapercent;
+                    }else{
+                        qq.Invoice_Percent__c += invoicePercent;
+                    }
+                    
+                    quotelist.add(qq);
+                }
+                update quotelist;
+                
+                System.debug('Quoteline***'+Quoteline);
+                
+                /*********************updating QuoteLine and Quote ends here*********************************************/
+                /*************Shipment Creation***************/
+                Shipments__c newShipment = new Shipments__c();
+                newShipment.Order_Ref_ord__c = quote[0].Id;
+                newShipment.Shipped_Date__c = system.today();
+                newShipment.Status__c = 'Shipped';
+                newShipment.Distributor__c = quote[0].Customer__c;
+                //newShipment.FromWarehouse__c = quote[0].Customer__r.SourceWarehouse__c;
+                newShipment.Bill_To__c = quote[0].Billing_Street__c +', '+quote[0].Billing_City__c+', '+quote[0].Billing_State_Province__c+', '+quote[0].Billing_Country__c+'-'+quote[0].Billing_Zip__c;
+               	newShipment.Ship_To__c = quote[0].Street__c +', '+quote[0].City__c+', '+quote[0].State_Province__c+', '+quote[0].Country__c+'-'+quote[0].Zip_Postal_Code__c;
+                newShipment.invoice__c =newinvoicetoinsert[0].Id; 
+                insert newShipment;
+                
+                Stock_Transfer__c newInventoryTransactionHead = new Stock_Transfer__c();
+                newInventoryTransactionHead.MovementType__c = 'Invoice';
+                newInventoryTransactionHead.Document_Type__c = 'Issue';
+                newInventoryTransactionHead.Shipments__c = newShipment.Id;
+                newInventoryTransactionHead.Invoice__c = newinvoicetoinsert[0].Id; 
+                //newInventoryTransactionHead.Warehouse1__c = quote[0].Customer__r.SourceWarehouse__c;
+                
+                //newInventoryTransactionLine.Map_Child_Id__c = shipLine.Id;
+                newInventoryTransactionHead.Date__c = system.today();
+                insert newInventoryTransactionHead;
+                list<Inventory_Register_Line__c> lstInventoryTransactionLine = new list<Inventory_Register_Line__c>();  
+                list<Shipment_Lines__c> lstShipment = new list<Shipment_Lines__c>();
+                for(Quote_Line__c ql : Quoteline){
+                    Shipment_Lines__c newShipline = new Shipment_Lines__c();
+                    newShipline.Shipments__c = newShipment.Id;
+                    newShipline.Product__c = ql.Product__c;
+                    newShipline.Product_Group__c = ql.Product_Group__c;
+                    newShipline.Quantity__c = ql.Quantity__c;
+                    lstShipment.add(newShipline);
+                    
+                    Inventory_Register_Line__c newInventoryTransactionLine = new Inventory_Register_Line__c();
+                    newInventoryTransactionLine.Inventory_Register__c = newInventoryTransactionHead.Id;
+                    newInventoryTransactionLine.Product__c = ql.Product__c;
+                    newInventoryTransactionLine.Movement_Type__c = 'Invoice';
+                    newInventoryTransactionLine.Quantity__c = ql.Quantity__c;
+                    newInventoryTransactionLine.Document_Type__c = 'Issue';
+                    newInventoryTransactionLine.Map_Head_Id__c = newShipment.Id;
+                   // newInventoryTransactionLine.Warehouse1__c = quote[0].Customer__r.SourceWarehouse__c;
+                    lstInventoryTransactionLine.add(newInventoryTransactionLine);
+                }
+                
+                insert lstShipment;
+                insert lstInventoryTransactionLine;
+                ApexPages.Message msg = new ApexPages.Message(ApexPages.severity.CONFIRM,'Records has been updated Successfully');
+                ApexPages.addMessage(msg);
+            }
+            else{
+                System.debug('***No QuoteLine******');
+                ApexPages.Message msg = new ApexPages.Message(ApexPages.severity.Error,'Invoice cannot be generated without Quote Lines.');
+                ApexPages.addMessage(msg);
+                return;
+            }
+            //  pagereload(recordId);
+            
+        }
+        catch(DMLException e){
+            haserror = true;
+            Database.rollback(sp);
+
+            System.debug('Error Occored'+e.getMessage()+' '+e.getLineNumber());
+            ApexPages.Message msg = new ApexPages.Message(ApexPages.Severity.Error, e.getMessage());
+            ApexPages.addMessage(msg);
+            
+        }
+        
+    }
+    
+    public PageReference pagereload(String recordId){
+        System.debug(System.Url.getSalesforceBaseUrl().toExternalForm());
+        PageReference pageref = new PageReference(System.Url.getSalesforceBaseUrl().toExternalForm()+'/'+recordId);
+        pageref.setRedirect(true);
+        return pageref;
+    }
+    
+    
+    
+}

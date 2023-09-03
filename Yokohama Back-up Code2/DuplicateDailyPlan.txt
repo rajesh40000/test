@@ -1,0 +1,70 @@
+trigger DuplicateDailyPlan on Daily_Plan__c (before insert) {
+        TriggerDisabled__c bypassTrigger= TriggerDisabled__c.getInstance('DisableTrigger');
+    system.debug('bypassTrigger '+ bypassTrigger);
+    system.debug('bypassTrigger '+ bypassTrigger.Is_Disabled_Trigger__c);
+    
+    if(!bypassTrigger.Is_Disabled_Trigger__c){
+    set<datetime> setd = new set<datetime>();
+    For(Daily_plan__c vv:Trigger.New)
+            
+    {
+       if(vv.Status__c =='Planned'){
+       //system.debug(trigger.new.size());
+       Date d = vv.Date__c; 
+                         
+                String start = DateTime.newInstance(d.year(),d.month(),d.day()).format('dd/MM/YY') +' ' +vv.Start_Time__c;
+                String endtime = DateTime.newInstance(d.year(),d.month(),d.day()).format('dd/MM/YY') +' ' +vv.End_Time__c;  
+                datetime startddd=DateTime.parse(start);
+                datetime endddd=DateTime.parse(endtime);
+                Integer offset = UserInfo.getTimezone().getOffset(startddd);
+                Datetime local = startddd.addSeconds(offset/1000);
+                Integer offset1 = UserInfo.getTimezone().getOffset(endddd);
+                Datetime local1 = endddd.addSeconds(offset1/1000);
+                //system.debug(local);
+                //system.debug(local1);
+                datetime j=local;
+                            
+       if(vv.Visit_Plan__c != null ){
+           list<daily_plan__c> dp=[select name, start_date_time__c, end_date_time__c from daily_plan__c where Visit_Plan__c =: vv.Visit_Plan__c and ownerid=:UserInfo.getUserId() and Daily_Plan_Status__c != 'cancelled' ];
+           if(dp.size() > 0 || Test.isRunningTest()){
+               for(Daily_plan__c vv1: dp){
+                    Integer offset2 = UserInfo.getTimezone().getOffset(vv1.start_date_time__c);     Datetime local2 = vv1.start_date_time__c.addSeconds(offset2/1000);           Integer offset3 = UserInfo.getTimezone().getOffset(vv1.end_date_time__c);     Datetime local3 = vv1.end_date_time__c.addSeconds(offset3/1000);    datetime j1=local2;      while(j1 < local3){     setd.add(j1);    j1=j1.addMinutes(30);
+                        //system.debug(setd);
+               
+                    }
+                    system.debug(setd);
+               }  
+           } 
+       }
+        if(vv.Tour_Plan__c != null ){
+            system.debug(vv.Tour_Plan__c);
+            list<daily_plan__c> dp=[select name, start_date_time__c, end_date_time__c from daily_plan__c where Tour_Plan__c =: vv.Tour_Plan__c and ownerid=:UserInfo.getUserId() and Daily_Plan_Status__c != 'cancelled']; 
+            
+            if(dp.size() > 0 || Test.isRunningTest()){
+               for(Daily_plan__c vv1: dp){
+                    Integer offset2 = UserInfo.getTimezone().getOffset(vv1.start_date_time__c);     Datetime local2 = vv1.start_date_time__c.addSeconds(offset2/1000);  Integer offset3 = UserInfo.getTimezone().getOffset(vv1.end_date_time__c);       Datetime local3 = vv1.end_date_time__c.addSeconds(offset3/1000);     datetime j1=local2;   while(j1 < local3){        setd.add(j1);      j1=j1.addMinutes(30);
+                        //system.debug(setd);
+               
+                    }               
+                    system.debug(setd);
+               }  
+           } 
+        }
+       if(setd.contains(local) || setd.contains(local1))
+        {
+            vv.addError('There are two meetings scheduled during same time interval: Please make necessary changes and then click on save.');
+        } 
+        else{
+            while(j < local1){
+                     
+                     setd.add(j);
+                     j=j.addMinutes(30);
+                     //system.debug(setd);
+               
+            }
+
+        }
+        }
+    } 
+    }
+}

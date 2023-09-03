@@ -1,0 +1,16 @@
+trigger ABC on ContentVersion (after insert) {
+    list<string> jk=new list<string>();
+    for(ContentVersion con:trigger.new){
+        jk.add(con.FirstPublishLocationId);
+    }
+    list<Balance_Confirmation__c> bcc=[select Id,Dealer__c from Balance_Confirmation__c where Id=:jk];
+	System.debug('jk::::::::::::::::::::::::::::'+jk);
+    if(trigger.IsInsert && trigger.IsAfter){
+    for(Balance_Confirmation__c bcc1:bcc){
+        system.debug('bcc1.Dealer__c:::::::'+bcc1.Dealer__c);
+        //EsignatureBalanceConfirmation.dopostAadhaarDetail(bcc1.Dealer__c);
+    }
+    }     
+    
+
+}

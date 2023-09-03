@@ -1,0 +1,133 @@
+public class ImportDataFromCSVController {
+    public Blob csvFileBody{get;set;}
+    public string csvAsString{get;set;}
+    public String[] csvFileLines{get;set;}
+    public Dealer_Stock__c cc{get;set;}
+    public boolean pb1{get;set;}
+    public string renderAsExcel{get;set;}
+    Public List<String> selectedFieldsList {get;set;}
+    String idvalue;
+    String idvalue1;
+    public List<Dealer_Stock__c> customerlist{get;set;}
+    public Map<String, Id> productMap {get;set;}
+    public List<User> lstUser{get;set;}
+    public Map<String, Id> stockMap{get;set;}
+    
+    public ImportDataFromCSVController(ApexPages.StandardController stdController) {
+        this.cc = (Dealer_Stock__c)stdController.getRecord();
+        productMap = new Map<String, Id>();
+        stockMap = new Map<String, Id>();
+        csvFileLines = new String[]{};
+        customerlist = New List<Dealer_Stock__c>();
+        lstUser = [Select ContactId,Contact.accountId from User where Id = :UserInfo.getUserId() limit 1];
+        List<Product__c> pro= new List<Product__c>();
+        pro=[Select id,name from Product__c];
+        for(Product__c value : pro){
+            productMap.put(value.name, value.Id);
+        }
+        List<Dealer_Stock__c> stock = [Select Product_c__r.name, Id from Dealer_Stock__c where Dealer__c =: lstUser[0].Contact.accountId];
+        for(Dealer_Stock__c value : stock){
+            stockMap.put(value.Product_c__r.name, value.Id);
+        }
+    }
+    
+    public ImportDataFromCSVController(){
+        csvFileLines = new String[]{};
+        customerlist = New List<Dealer_Stock__c>();
+        System.debug('@@customerlist' +customerlist);
+        
+        customerlist = [Select name,Dealer__c,Product_c__c,Quantity__c from Dealer_Stock__c];
+        pb1=true;
+
+    }    
+ 
+  /*    Public PageReference ExportToCSV(){
+         
+
+        //Dealer_Stock__c customerlist = new Dealer_Stock__c(); 
+        selectedFieldsList = New List<string>();
+        selectedFieldsList.add('Dealer__c'); 
+        selectedFieldsList.add('Product_c__c');
+        selectedFieldsList.add('Quantity__c');
+        customerlist = [Select Dealer__r.name,Product_c__r.name,Quantity__c from Dealer_Stock__c limit 1];
+        PageReference pgRef = New Pagereference('/apex'+'/apex/ImportVf');
+        pgRef.setRedirect(false); 
+        return pgRef; 
+    } */
+
+    
+
+    /*public id accvalue(String accName){
+        id accvalue;
+        List<Account> acc= new List<Account>();
+        acc=[Select id from Account WHERE name =:accName];
+        System.debug(acc);
+        for(Account value : acc){
+            accvalue = value.id; 
+            System.debug(accvalue);
+        }
+        return accvalue;
+    
+    }*/
+      public id provalue(String proName){
+        id provalue;
+        List<Product__c> pro= new List<Product__c>();
+        pro=[Select id,name from Product__c WHERE name =:proName];
+        for(Product__c value : pro){
+            provalue = value.id; 
+            System.debug(provalue);
+        }
+        return provalue;
+    
+    } 
+    public PageReference downloadTemplate(){
+        PageReference orderPage = new PageReference('/apex/printStockCSV');
+        orderPage.setRedirect(false);
+        return orderPage;
+    }
+        
+    public void importCSVFile(){
+       try{
+           csvAsString = csvFileBody.toString();
+           System.debug('@@csvAsString' +csvAsString);
+           csvFileLines = csvAsString.split('\n'); 
+           
+           system.debug('**lstUser'+lstUser);
+           for(Integer i=1;i<csvFileLines.size();i++){
+               Dealer_Stock__c ccObj = new Dealer_Stock__c() ;
+               string[] csvRecordData = csvFileLines[i].split(',');
+               System.debug(csvRecordData);
+               //idvalue=csvRecordData[0].trim();
+               System.debug(idvalue);
+               if(stockMap.get(csvRecordData[0].trim()) != null){
+                   ccObj.Dealer__c = lstUser[0].Contact.accountId;
+                   System.debug(ccObj.Dealer__c);
+                   ccObj.Product_c__c = productMap.get(csvRecordData[0].trim());
+                   System.debug(ccObj.Product_c__c);
+                   ccObj.Id = stockMap.get(csvRecordData[0].trim());
+                  System.debug(ccObj.Id);
+                   ccObj.Quantity__c  = csvRecordData[1].trim();
+                   customerlist.add(ccObj); 
+               }
+               else{
+                   ccObj.Dealer__c = lstUser[0].Contact.accountId;  //accvalue(idvalue);
+                   ccObj.Product_c__c = productMap.get(csvRecordData[0].trim());
+                   ccObj.Quantity__c  = csvRecordData[1].trim(); 
+                   customerlist.add(ccObj);  
+               }
+               
+               
+               
+               
+                
+           }
+           upsert customerlist;
+        }
+        catch (Exception e)
+        {
+            ApexPages.Message errorMessage = new ApexPages.Message(ApexPages.severity.ERROR,'An error has occured while importin data Please make sure input csv file is correct');
+            ApexPages.addMessage(errorMessage);
+        }  
+  }
+
+}

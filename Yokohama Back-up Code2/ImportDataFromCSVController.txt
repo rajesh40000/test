@@ -1,0 +1,498 @@
+<apex:page standardController="Dealer_Stock__c" extensions="ImportDataFromCSVController" tabStyle="Dealer_Stock__c" lightningStylesheets="true"  sidebar="false" showHeader="false" >
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">
+        <head>
+            <meta charset="utf-8" />
+            <meta http-equiv="x-ua-compatible" content="ie=edge" />
+            <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0" />
+            <title>Salesforce Lightning Design System Trailhead Module</title>
+            
+            
+            <style>
+                .cssForAD {
+                overflow-x:auto;width:100%;border:0px solid blue;margin:0 5px;display:block;
+                }
+                
+                .cssForAD3 {
+                overflow-x:auto;width:100%;border:0px solid green;display:block;
+                } 
+                <!-- Import the Design System style sheet -->
+                .bPageBlock.apexDefaultPageBlock, body .bPageBlock.bDetailBlock, body .bPageBlock.bEditBlock, .slds-scope .bPageBlock.apexDefaultPageBlock, .slds-scope .bPageBlock.bDetailBlock, .slds-scope .bPageBlock.bEditBlock {
+                padding: 1rem;
+                }
+                
+                body .bPageBlock, body #bodyCell .bResource .secondaryPalette, body .secondaryPalette.bPageBlock, body .individualPalette .secondaryPalette.bPageBlock, body .bodyDiv .genericTable, body .genericPageBlockTable, body .bodyDiv .bSubBlock, body .bComponentBlock .bPageBlock, body .bMyDashboard .bPageBlock, body.rlHoverFrame .bPageBlock, body.subjectSelectionPopup div.choicesBox, body.lookupTab .secondaryPalette.bPageBlock, body.popupTab .secondaryPalette.bPageBlock, body.UserTagStatsPage .secondaryPalette.bPageBlock {
+                margin-bottom: 1rem;
+                border: 1px solid #dddbda;
+                border-radius: .25rem;
+                background: white;
+                -webkit-box-shadow: 0 2px 0 0 rgba(0,0,0,.1);
+                box-shadow: 0 2px 0 0 rgba(0,0,0,.1);
+                background-clip: padding-box;
+                
+                }
+                input[type="submit"], body .pbButton .btn, body .pbButtonb .btn, body input.btn, .slds-scope input[type="submit"], .slds-scope .pbButton .btn, .slds-scope .pbButtonb .btn, .slds-scope input.btn {
+                -webkit-appearance: none;
+                position: relative;
+                display: inline-block;
+                border: 1px solid transparent;
+                padding: 0;
+                font-size: 11px;
+                font-weight:none;
+                line-height: 1.875rem;
+                text-decoration: none;
+                white-space: normal;
+                border-radius: .25rem;
+                background: transparent;
+                background-clip: border-box;
+                color: #0070d2;
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+                -webkit-transition: color .05s linear,background-color .05s linear;
+                transition: color .05s linear,background-color .05s linear;
+                padding-left: 1rem;
+                padding-right: 1rem;
+                text-align: center;
+                vertical-align: middle;
+                border: 1px solid #dddbda;
+                -webkit-transition: border .15s linear;
+                transition: border .15s linear;
+                border-color: #dddbda;
+                background-color: white;
+                float:right;
+                }
+                body select, body select[size='0'], body select[size='1'], .slds-scope select, .slds-scope select[size='0'], .slds-scope select[size='1'] {
+                border: 1px solid #dddbda;
+                max-width: 100%;
+                border-radius: .25rem;
+                background-color: white;
+                color: #16325c;
+                -webkit-transition: border .1s linear,background-color .1s linear;
+                transition: border .1s linear,background-color .1s linear;
+                height: calc(1.875rem+(1px * 2));
+                
+                }
+                body label, .slds-scope label {
+                display: inline-block;
+                margin-right: .75rem;
+                font-size: .75rem;
+                line-height: 1.5;
+                color: #706e6b;
+                }
+                body .bPageTitle .pageDescription, .slds-scope .bPageTitle .pageDescription {
+                font-size: 1.25rem;
+                line-height: 1.25;
+                }
+                
+                body .bPageTitle .pageType, body .bPageTitle .pageDescription, .slds-scope .bPageTitle .pageType, .slds-scope .bPageTitle .pageDescription {
+                margin: 0;
+                padding: 0;
+                font-weight: 400;
+                }
+                
+                h2 {
+                display: block;
+                font-size: 1.5em;
+                -webkit-margin-before: 0.83em;
+                -webkit-margin-after: 0.83em;
+                -webkit-margin-start: 0px;
+                -webkit-margin-end: 0px;
+                font-weight: bold;
+                }
+                body .slds-vf-data-table, .slds-scope .slds-vf-data-table {
+                background-color: white;
+                font-size: inherit;
+                }
+                body .list th, body .list td, .slds-scope .list th, .slds-scope .list td {
+                border: 0;
+                border-top:1px solid #ccc !important;
+                }
+                .apexp .detailList .list .headerRow th {
+                border-bottom: 0px solid #ccc;
+                white-space: nowrap;
+                }
+                body .apexp .pbBody table.list {
+                border:0px solid #e0e3e5;
+                }
+                
+                body .pbBody table.list {
+                background-color: #fff;
+                border-top:0px solid #e0e3e5;
+                }
+                .apexp .detailList .list td, .apexp .detailList .list th, .apexp .editPage .bPageBlock .detailList .list tr td, .apexp .editPage .bPageBlock .detailList .list tr th {
+                padding: 4px 2px 4px 5px;
+                color: #333;
+                border-bottom:0px solid #e3deb8;
+                }
+                
+                body .pbBody table.list tr th, body .pbBody table.list tr td {
+                border:0px solid #ededed;
+                color: #000;
+                }
+                body .pbBody table.list tr.dataRow th, body .pbBody table.list tr.dataRow td {
+                border-width: 0 0 0px 0;
+                vertical-align: middle;
+                }
+                
+                body .bEditBlock .pbBody .pbSubheader, body .bWizardBlock .pbBody .pbSubheader {
+                -webkit-box-align: center;
+                -ms-flex-align: center;
+                align-items: center;
+                
+                padding: 0 .5rem;
+                width: 100%;
+                overflow: hidden;
+                
+                line-height: 1.875rem;
+                background: #fafaf9 !important;
+                }
+                body .bPageBlock .pbSubheader h3, .slds-scope .bPageBlock .pbSubheader h3 {
+                margin: 0;
+                font-weight: inherit;
+                font-size: inherit;
+                }
+                body .dateInput input[type='text'], .slds-scope .dateInput input[type='text'] {
+                display: inline-block;
+                margin-right: .5rem;
+                width: auto;
+                min-width: auto;
+                }
+                body input[type="text"], .slds-scope input[type="text"] {
+                border: 1px solid #dddbda;
+                max-width: 100%;
+                border-radius: .25rem;
+                background-color: white;
+                color: #16325c;
+                -webkit-transition: border .1s linear,background-color .1s linear;
+                transition: border .1s linear,background-color .1s linear;
+                display: inline-block;
+                padding: 0 1rem 0 .75rem;
+                min-height: calc(1.875rem+(1px * 2));
+                line-height: 1.875rem;
+                }
+                .bEditBlock .pbHeader>table, .apexp .bPageBlock.apexDefaultPageBlock .pbHeader>table, #ep.bLayoutBlock .pbHeader>table {
+                border-bottom: 0px solid #dbdbdb;
+                }
+                body .bPageBlock .pbSubheader h3, .slds-scope .bPageBlock .pbSubheader h3 {
+                margin: 0;
+                font-weight: initial;
+                font-size: initial;
+                }
+                body .pbTitle .mainTitle, .slds-scope .pbTitle .mainTitle {
+                font-weight: 700;
+                }
+                
+                .slds-scope h1, .slds-scope h2, .slds-scope h3, .slds-scope h4, .slds-scope h5, .slds-scope h6, .slds-scope td, .slds-scope th {
+                font-family: "Salesforce Sans",Arial,sans-serif;
+                }
+                body .bPageTitle .ptBody .pageDescription {
+                font-size: 1.25rem;
+                line-height: 1.25;
+                }
+                body .pbBody table.list {
+                background-color: #fff;
+                border-top: 0px solid #e0e3e5;
+                }
+                .Custom33Tab .tertiaryPalette, .individualPalette .Custom33Block .tertiaryPalette, .layoutEdit .individualPalette .Custom33Block .tertiaryPalette {
+                background-color: #fff;
+                border-color: #fff
+                
+                }
+                .bRelatedList .relatedProcessHistory .extraRow td.actionColumn .actionLink, .bRelatedList .relatedProcessHistory .extraRow td, .bRelatedList .relatedProcessHistory .extraRow th {
+                color:#0070d2;
+                }
+                
+                #custLables table.detailList th {
+                font-weight:bolder !important;
+                color:#514cc1 !important;
+                font-size:13px !important;
+                line-height:25px !important;
+                }
+                
+                
+                
+                
+                #btnHide input.btn {
+                display:none;
+                }
+                body .bDetailBlock.bPageBlock .pbBody .labelCol, body .bDetailBlock.bPageBlock .pbBody .dataCol, body .bDetailBlock.bPageBlock .pbBody .data2Col, body .bPageBlock.bEditBlock .pbBody .labelCol, body .bPageBlock.bEditBlock .pbBody .dataCol, body .bPageBlock.bEditBlock .pbBody .data2Col {
+                padding-top: 3px;
+                padding-bottom: 3px;
+                
+                white-space: nowrap;
+                }
+                .slds-scope textarea {
+                overflow: auto;
+                min-width: 186px;
+                max-width: 186px;
+                min-height: 85px;
+                max-height: 85px;
+                }
+                .message {
+                background-color: #c23934;
+                border-style: solid;
+                border-width: 1px;
+                color: #fff !important;
+                padding: 6px 8px 6px 6px;
+                margin: 4px 20px;
+                }
+                .message .messageText h4 {
+                
+                color: white;
+                }
+                
+                
+                .message .messageTable .messageCell {
+                
+                color: white;
+                }
+                .slds-scope table {
+                width: 30%;
+                }
+                
+                body .bPageBlock.bEditBlock .pbBody .labelCol, body .bPageBlock.bEditBlock .pbBody .dataCol, body .bPageBlock.bEditBlock .pbBody .data2Col {
+                padding-top: 3px;
+                padding-bottom: 3px;
+                text-align: left !important;
+                white-space: nowrap;
+                width:16.6% !important;
+                }
+                .confirmM3 .msgIcon, .confirmMedium {
+                background-image: url(/img/msg_icons/confirm24.png);
+                background-position: 0 0;
+                width: 40px;
+                height: 24px;
+                }
+                .confirmM6, .confirmM4, .confirmM3, .confirmM2, .confirmS1 {
+                border-color: #390;
+                background: #66c770;
+                }
+                
+                @media print {
+                a[href]:after {
+                content: none !important;
+                }
+                }
+                .h-btn {
+                visibility: visible;
+                }
+                
+                
+                
+                @media only screen 
+                and (min-device-width:0px) 
+                and (max-device-width:320px) 
+                and (orientation: portrait) 
+                {
+                /*
+                .cssForAD {
+                overflow-x:scroll;width:215px;border:0px solid red;margin:0 5px;
+                }
+                
+                .cssForAD3 {
+                overflow-x:scroll;width:245px;border:0px solid green;
+                }
+                */ 
+                body .pbTitle .mainTitle, .slds-scope .pbTitle .mainTitle {
+                
+                white-space: nowrap;
+                }
+                body .bRelatedList .pbTitle h3, body .bPageBlock .pbTitle h2, body .bPageBlock .pbTitle h3, body .bSubBlock h3.lbHeader {
+                
+                white-space: nowrap;
+                }
+                .bRelatedList .relatedProcessHistory .extraRow td.actionColumn .actionLink, .bRelatedList .relatedProcessHistory .extraRow td, .bRelatedList .relatedProcessHistory .extraRow th {
+                
+                margin: 0 0 0 25px;
+                }
+                
+                td.actionColumn a {
+                margin-left: 25px;
+                }
+                .bPageBlock.apexDefaultPageBlock, body .bPageBlock.bDetailBlock, body .bPageBlock.bEditBlock, .slds-scope .bPageBlock.apexDefaultPageBlock, .slds-scope .bPageBlock.bDetailBlock, .slds-scope .bPageBlock.bEditBlock {
+                padding:1rem 0px !important;
+                }
+                
+                .h-btn {
+                visibility: hidden;
+                }
+                }     
+                
+                @media only screen 
+                and (min-device-width:321px) 
+                and (max-device-width:360px) 
+                and (orientation: portrait) 
+                {
+                /*
+                .cssForAD {
+                overflow-x:scroll;width:290px;border:0px solid green;
+                }
+                .cssForAD3 {
+                overflow-x:scroll;width:320px;border:0px solid green;
+                }
+                */
+                body .pbTitle .mainTitle, .slds-scope .pbTitle .mainTitle {
+                
+                white-space: nowrap;
+                }
+                body .bRelatedList .pbTitle h3, body .bPageBlock .pbTitle h2, body .bPageBlock .pbTitle h3, body .bSubBlock h3.lbHeader {
+                
+                white-space: nowrap;
+                }
+                .bRelatedList .relatedProcessHistory .extraRow td.actionColumn .actionLink, .bRelatedList .relatedProcessHistory .extraRow td, .bRelatedList .relatedProcessHistory .extraRow th {
+                
+                margin: 0 0 0 25px;
+                }
+                
+                td.actionColumn a {
+                margin-left: 25px;
+                }
+                .bPageBlock.apexDefaultPageBlock, body .bPageBlock.bDetailBlock, body .bPageBlock.bEditBlock, .slds-scope .bPageBlock.apexDefaultPageBlock, .slds-scope .bPageBlock.bDetailBlock, .slds-scope .bPageBlock.bEditBlock {
+                padding:1rem 0px !important;
+                }
+                
+                .h-btn {
+                visibility: hidden;
+                }
+                } 
+                
+                
+                
+                @media only screen 
+                and (min-device-width:361px) 
+                and (max-device-width:480px) 
+                and (orientation: portrait) 
+                {
+                /*
+                .cssForAD {
+                overflow-x:scroll;width:300px;border:0px solid red;margin:0 5px;
+                }
+                
+                .cssForAD3 {
+                overflow-x:scroll;width:330px;border:0px solid green;
+                } 
+                */
+                body .pbTitle .mainTitle, .slds-scope .pbTitle .mainTitle {
+                
+                white-space: nowrap;
+                }
+                body .bRelatedList .pbTitle h3, body .bPageBlock .pbTitle h2, body .bPageBlock .pbTitle h3, body .bSubBlock h3.lbHeader {
+                
+                white-space: nowrap;
+                }
+                .bRelatedList .relatedProcessHistory .extraRow td.actionColumn .actionLink, .bRelatedList .relatedProcessHistory .extraRow td, .bRelatedList .relatedProcessHistory .extraRow th {
+                
+                margin: 0 0 0 25px;
+                }
+                
+                td.actionColumn a {
+                margin-left: 25px;
+                }
+                .bPageBlock.apexDefaultPageBlock, body .bPageBlock.bDetailBlock, body .bPageBlock.bEditBlock, .slds-scope .bPageBlock.apexDefaultPageBlock, .slds-scope .bPageBlock.bDetailBlock, .slds-scope .bPageBlock.bEditBlock {
+                padding:1rem 0px !important;
+                }
+                
+                .h-btn {
+                visibility: hidden;
+                }
+                }    
+                
+                @media only screen 
+                and (min-device-width:481px) 
+                and (max-device-width:720px) 
+                and (orientation: portrait) 
+                {
+                /*
+                .cssForAD {
+                overflow-x:scroll;width:500px;border:0px solid blue;margin:0 5px;
+                }
+                
+                .cssForAD3 {
+                overflow-x:scroll;width:530px;border:0px solid green;
+                }  
+                */
+                
+                body .pbTitle .mainTitle, .slds-scope .pbTitle .mainTitle {
+                
+                white-space: nowrap;
+                }
+                body .bRelatedList .pbTitle h3, body .bPageBlock .pbTitle h2, body .bPageBlock .pbTitle h3, body .bSubBlock h3.lbHeader {
+                
+                white-space: nowrap;
+                }
+                .bRelatedList .relatedProcessHistory .extraRow td.actionColumn .actionLink, .bRelatedList .relatedProcessHistory .extraRow td, .bRelatedList .relatedProcessHistory .extraRow th {
+                
+                margin: 0 0 0 25px;
+                }
+                
+                td.actionColumn a {
+                margin-left: 25px;
+                }
+                .bPageBlock.apexDefaultPageBlock, body .bPageBlock.bDetailBlock, body .bPageBlock.bEditBlock, .slds-scope .bPageBlock.apexDefaultPageBlock, .slds-scope .bPageBlock.bDetailBlock, .slds-scope .bPageBlock.bEditBlock {
+                padding:1rem 0px !important;
+                }
+                
+                .h-btn {
+                visibility: hidden;
+                }
+                } 
+                
+                } 
+                
+                
+            </style>
+            <style type="text/css">
+                @page { size: landscape; }
+                @media print {
+                body * {
+                visibility: hidden;
+                }
+                #printPage, #printPage * {
+                visibility: visible;
+                }
+                #printPage {
+                position: absolute;
+                left: 0;
+                top: 0;
+                }
+                
+                }
+                
+                
+
+                
+            </style>
+            <apex:slds />      
+            
+            
+            <apex:includeScript value="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" />
+            <apex:includeScript value="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/jquery-ui.min.js" />
+            <apex:styleSheet value="{!$Resource.AjaxCSS}" />   
+        </head>
+        <body>
+            <apex:form >
+                <apex:pagemessages />
+                <apex:pageBlock >
+                    <apex:pageBlockSection columns="2" title="Upload File" collapsible="false"> 
+                       <apex:inputFile value="{!csvFileBody}"  filename="{!csvAsString}" id="file" styleclass="fileType"/>
+                       <!--<apex:outputLink value="{!$Resource.CSV}">DownloadTemplate</apex:outputLink>-->
+                       <apex:commandLink action="{!downloadTemplate}">DownloadTemplate</apex:commandLink>
+                 <!--      <Apex:commandButton value="Export Data" action="{!fetch}" /> -->
+                        <apex:pageBlockSectionItem >
+                        <apex:commandButton value="Import & Update Stock" action="{!importCSVFile}" style="float: none;"/>
+                   <!--     <Apex:commandButton value="DownloadTemplate" action="{!ExportToCSV}" />     -->
+                            </apex:pageBlockSectionItem>
+                    </apex:pageBlockSection>
+                </apex:pageBlock>
+                <apex:pageBlock >
+                    <apex:pageblocktable value="{!customerlist}" var="acc">
+                        <apex:column value="{!acc.Dealer__c}" />
+                        <apex:column value="{!acc.Product_c__c}" />
+                        <apex:column value="{!acc.Quantity__c}" />
+                    </apex:pageblocktable>
+                </apex:pageBlock>
+            </apex:form>
+        </body>
+    </html>
+</apex:page>

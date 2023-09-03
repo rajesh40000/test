@@ -1,0 +1,132 @@
+trigger DocketCreationandAPI on Claim__c (after insert, after update) {
+    
+    TriggerDisabled__c bypassTrigger= TriggerDisabled__c.getInstance('DisableTrigger');
+    system.debug('bypassTrigger '+ bypassTrigger);
+    system.debug('bypassTrigger '+ bypassTrigger.Is_Disabled_Trigger__c);
+    
+   if(!bypassTrigger.Is_Disabled_Trigger__c)
+     {
+        system.debug('triggerrrr '+ trigger.new);
+        Claim__c Claim =[Select Article_No__c,Shipped__c,Discount_Amount__c, Discount_Percentage_Calculate__c, Sales_Price_at_Uploaded_Time__c , Id,Item_Master__c, Service_Team_Approval__c,Dispatch_Confirmation_of_Old_Tyre__c,Dealer__c,Createddate, Dealer__r.Location_Code__c, Dealer__r.Location_Code__r.Name, Name from Claim__c where id =: trigger.New limit 1];
+        String response;
+        
+        if(trigger.isUpdate)
+        {
+            
+            system.debug('Update ');
+            
+          /*  if(Claim.Service_Team_Approval__c == 'Approved' && trigger.oldmap.get(Claim.id).Service_Team_Approval__c == Claim.Service_Team_Approval__c)        
+            {  
+                system.debug('Inside Condition 1');
+                system.debug('Service_Team_ApprovalValll '+ trigger.oldmap.get(Claim.id).Service_Team_Approval__c);
+                system.debug('Service_Team_ApprovalValll '+ Claim.Service_Team_Approval__c);
+                
+                if( Claim.Service_Team_Approval__c != trigger.oldmap.get(Claim.id).Service_Team_Approval__c)
+                { 
+                    system.debug('Inside Condition 1');
+                    HttpCallOut.SFDCCustomerdocket2(Claim.Id);
+                    system.debug('responsee '+ response);
+                    Claim.Claim_Approval_Date__c =String.valueOf(system.today());
+                    update Claim;
+                }
+            } */
+            
+          /*  if(Claim.Shipped__c == true )  
+            {    
+                system.debug('Inside Condition 2');
+                if(Claim.Shipped__c != trigger.oldmap.get(Claim.id).Shipped__c)   
+                {
+                    system.debug('Inside Condition 2');
+                    HttpCallOut.SFDCCustomerdocket2(Claim.Id);
+                    system.debug('responsee '+ response);
+                }    
+            }*/
+            
+        }
+        
+         if(trigger.isInsert)
+         {
+             try{
+                   
+            Integer DateVal = System.today().Day();
+            Integer MonthVal = System.today().Month();
+            Integer Year = Claim.Createddate.Year();
+            Decimal SerialNo ;
+            Id ClaimId = Claim.Id;
+            
+            Decimal RunningSrNo; 
+            if( Claim.Sales_Price_at_Uploaded_Time__c  != null && Claim.Discount_Percentage_Calculate__c != null)
+                Claim.Discount_Amount__c= Claim.Sales_Price_at_Uploaded_Time__c -  ( Claim.Discount_Percentage_Calculate__c * Claim.Sales_Price_at_Uploaded_Time__c * 0.01 );
+            
+            
+             RunningSrNo =[Select Id,Running_Serial_No__c, Item_Master__c, Service_Team_Approval__c,Dispatch_Confirmation_of_Old_Tyre__c,Dealer__c,Createddate, Dealer__r.Location_Code__c, Dealer__r.Location_Code__r.Name, Name from Claim__c where id !=: ClaimId  order by Createddate desc limit 1].Running_Serial_No__c;
+            system.debug('ClaimId::::::'+ClaimId);
+            system.debug('RunningSrNo '+ RunningSrNo);
+            if(RunningSrNo == null) {               SerialNo = 10001;           }
+            else
+            { 
+                if(DateVal == 1 || MonthVal == 4)
+                {
+                    system.debug('DateVal '+ DateVal);
+                    system.debug('MonthVal '+ MonthVal);
+                    list<Claim__c> firstClaimlist = New List<Claim__c>();
+                    firstClaimlist = [Select Id, Createddate from Claim__c where Createddate = today ];
+                    if(firstClaimlist.size() == 0)
+                    {
+                        SerialNo = 10001; 
+                    }
+                }
+                else
+                {
+                    if(  RunningSrNo != null)  // SerialNo != null &&
+                    {
+                        system.debug('NotNullBoth');
+                        SerialNo = RunningSrNo + 1;
+                    }
+                }
+                
+            }
+            system.debug('claims item value>>>'+Claim.Item_Master__c);
+                
+           
+            Price_List__c pp =[ Select Id,Unit_Price__c,Item_Code__c, Name, SalesType__c from Price_List__c where (SalesType__c =: 'All Customers' AND Ending_date__c>=:system.today()) AND Item_Code__c=: Claim.Article_No__c  AND Item_Code__c!=null  order by Ending_date__c desc limit 1 ];   
+            system.debug('pp value'+pp);
+            
+            if(pp.Unit_Price__c != null)
+                Claim.Sales_Price_at_Uploaded_Time__c= pp.Unit_Price__c;
+           
+            
+            String location=  Claim.Dealer__r.Location_Code__r.Name;  
+            String LocationVal1 = location.substringAfter('-');
+            String LocationVal = LocationVal1.substringAfter('-');
+            system.debug('LocationVal '+ LocationVal);
+            String YearCode;
+            
+            system.debug('Createddate '+ Claim.Createddate);
+            
+            
+            if(Year == 2022)            {                YearCode = 'A';
+            }
+            else if(Year == 2023)
+            {
+                YearCode = 'B';            }            else if(Year == 2024)            {               YearCode = 'C';            }            else if(Year == 2025)            {                YearCode = 'D';            }            else if(Year == 2026)            {                YearCode = 'E';            }            else if(Year == 2027)            {                YearCode = 'F';            }            else if(Year == 2028)            {                YearCode = 'G';            }            else if(Year == 2029)            {                YearCode = 'H';            }            else if(Year == 2030)            {                YearCode = 'I';            }            else if(Year == 2031)            {                YearCode = 'J';            }            else if(Year == 2032)            {               YearCode = 'K';            }           else if(Year == 2033)            {                YearCode = 'L';            }            else if(Year == 2034)            {                YearCode = 'M';            }            else if(Year == 2035)            {                YearCode = 'N';            }           else if(Year == 2036)           {                YearCode = 'O';            }           else if(Year == 2037)           {                YearCode = 'P';            }            else if(Year == 2038)   {                YearCode = 'Q';            }            else if(Year == 2039)            {                YearCode = 'R';            }            else if(Year == 2040)            {                YearCode = 'S';            }            else if(Year == 2041)            {                YearCode = 'T';            }            else if(Year == 2042)            {                YearCode = 'U';            }            else if(Year == 2043)           {                YearCode = 'V';            }            else if(Year == 2044)            {                YearCode = 'W';            }            else if(Year == 2045)         {                YearCode = 'X';            }            else if(Year == 2046)            {                YearCode = 'Y';            }            else if(Year == 2047)            {                YearCode = 'Z';            }
+            
+            system.debug('YearCode '+ YearCode);
+            
+            String Finaldocket = LocationVal +'/' +YearCode+'/'+ SerialNo ;
+            
+            if(SerialNo != null )
+                Claim.Running_Serial_No__c = SerialNo;
+            
+            
+            if(Finaldocket != '' && SerialNo != null  && LocationVal != null && YearCode != '')
+                Claim.Docket_No__c =Finaldocket;
+            update Claim;
+        }
+             
+             catch(exception e){
+                 
+             }
+         }
+     }
+}

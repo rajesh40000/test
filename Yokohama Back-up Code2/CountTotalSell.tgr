@@ -1,0 +1,27 @@
+trigger CountTotalSell on Invoice_Line__c (after insert) {
+    List<id> InvoList=new List<id>();
+    List<id> AccList=new List<id>();
+    Date today = System.today();
+    Date last_n_month = today.addMonths(-6);
+   /* last_n_month = CALENDAR_MONTH(last_n_month);
+    Invoice_Line__c inn=trigger.new;
+    List<Invoice_Line__c> invLine = [SELECT ID,Name,CreatedDate
+                                        FROM Invoice_Line__c
+                                        WHERE CreatedDate<=:last_n_month AND Dealer__c=: inn.Dealer__c ];
+    //Account acc = [SELECT id, Name,Last_6_months_invoice_line_qty__c FROM Account WHERE id=: trigger.new.Dealer__c];
+    
+    for(Invoice_Line__c inn:trigger.new){
+        InvoList.add(inn.Invoice__c);
+        AccList.add(inn.Invoice__r.Dealer__c);
+        
+        // To calculate total qty of last 6 months invoice lines.
+        
+        System.debug('last_n_month:6 '+last_n_month);
+        System.debug('invLine '+invLine);
+        
+        //acc.Last_6_months_invoice_line_qty__c = quant;
+        //System.debug('aggregatedlist.quant '+quant);
+        System.debug('acc '+acc);
+    }
+    */
+}

@@ -1,0 +1,26 @@
+trigger Avgmonthlyrunning on Warranty_Registration__c (after insert) {
+        TriggerDisabled__c bypassTrigger= TriggerDisabled__c.getInstance('DisableTrigger');
+    system.debug('bypassTrigger '+ bypassTrigger);
+    system.debug('bypassTrigger '+ bypassTrigger.Is_Disabled_Trigger__c);
+    
+    if(!bypassTrigger.Is_Disabled_Trigger__c){
+        
+    if(trigger.isInsert){
+         for(Warranty_Registration__c wyrt:trigger.new){
+            if(wyrt.Total_KM__c > 5000){
+                String message='Dear'+ wyrt.Name+'Invoice No 98542 dated fdgh for Rs. 89 issued by Yokohama India. Thanks.Please do not reply' ;
+                //String message='Dear '+ wrc.Name +' Your Warranty Registration No. '+ wrc.Name+' ,issued by Yokohama India on successfully Warranty Registration. Thanks. Please do not reply';
+                SendsmsinWarrentyRegistration.send(wyrt.Total_KM__c, message);     
+            } 
+        } 
+       /* if( trigger.isUpdate){
+        for(Warranty_Registration__c wyrt:trigger.new){
+                if(wyrt.Total_KM__c > 5000){
+                    String message='Dear'+ wyrt.Name+'Invoice No 98542 dated fdgh for Rs. 84 issued by Yokohama India. Thanks. Please do not reply' ;
+                    SendsmsinWarrentyRegistration.send(wyrt.Total_KM__c, message);
+                }     
+            }
+        }*/
+    }
+    }
+}

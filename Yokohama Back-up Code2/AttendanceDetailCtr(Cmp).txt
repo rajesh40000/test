@@ -1,0 +1,51 @@
+<aura:component   controller="AttendanceDetailCtr" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes" access="global" >
+	 	 <aura:attribute name="acc" type="Attendance__c" default="{'sObjectType':'Attendance__c'}"/>
+       	   <aura:attribute name="recordId" type="String"/>
+
+  		     <aura:attribute name="flagMap" type="map"></aura:attribute>
+     <aura:handler name="init" value="{!this}" action="{!c.doInit}"/> 
+	
+    
+    <div style="position:absolute;
+                height: 850px;
+                width: 100%;
+                left:0px;right:0px;
+                background: linear-gradient(148.84deg, #FFFFFF 0%, #E9E9E9 109.16%);">  
+
+        <c:header></c:header>
+          <div Style="position: absolute;
+							 width: 360px;
+                             height: 755px;
+                             
+							 top: 50.03px;
+							 background: #FFFFFF;
+							 box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.05);
+							 border-radius: 10px;">
+              <table>
+                  <tr>
+     <td><p style="position:absolute;margin-left:50px;margin-top:50px;">Today's Attendance :</p></td>   
+        <td><div class="slds-select_container" style="position:absolute;margin-left:30px;margin-top:50px;">
+          <!--  <ui:inputSelect class="dynamic" aura:id="InputAccountIndustry"  />  -->
+                 <ui:inputSelect class="test" aura:id="InputAccountIndustry" value="{!v.acc.Attendance_Type__c}"  label="">
+                <option value="" class="field1">-none-</option>
+                <aura:iteration items="{!v.flagMap}" var="ind" indexVar="key">
+                    <option class="field1" text="{!ind.value}" value="{!ind.key}" selected="{!v.acc.Attendance_Type__c==ind.key}" />
+                </aura:iteration>
+            </ui:inputSelect>  
+        </div></td>
+              </tr>
+                   </table>
+    </div>
+        <div>
+    	  <button onclick="{!c.attenSave}" style="position:absolute;margin-left:120px;margin-top:180px;
+                                                              background-color:#F37A21;border:1px solid #F37A21;border-radius:35px;color:white;height:35px;width:110px;">Submit</button></div>
+        
+        <div style="position:absolute; width: 320px;margin-top:250px;background-color:#F37A21;left:20px;height:30px;"><h1 Style="text-align:center;color:white;margin-top:5px;">This Month's Attendance</h1></div>
+        <div Style="margin-top:300px;
+                    margin-left:30px;
+                    position: absolute;
+					width: 300px;">
+        <c:LightningDatatableAtten></c:LightningDatatableAtten>
+            </div>
+    </div>
+</aura:component>

@@ -1,0 +1,201 @@
+<apex:page standardController="Quote__c" extensions="GenerateInvoices_controller" showQuickActionVfHeader="false" lightningStylesheets="true" sidebar="false" showHeader="false" docType="html-5.0" >
+    <apex:slds />
+    <apex:form id="form_id"> 
+        <apex:actionstatus id="counterStatus">
+            <apex:facet name="start">
+                <div class="waitingSearchDiv" id="el_loading" style="background-color: #fbfbfb; height:100%;opacity:0.65;width:100%;">
+                    <div class="waitingHolder" style="top: 100px; width: 91px;">
+                        <img class="waitingImage" src="/img/loading.gif" title="Please Wait..." />
+                        <span class="waitingDescription">Loading...</span>
+                    </div>
+                </div>
+            </apex:facet>
+        </apex:actionstatus>
+        <style>
+            .Invoice{
+            display: none;
+            }
+            
+        </style>
+        
+        <script> 
+        
+        function selectedRadio(thread) { 
+            //alert('test');
+            paraFunction(thread.value);
+        }	
+        
+        function reload(QuoteId){
+            console.log('inside console****'+QuoteId);
+            //alert(QuoteId);
+            var uiTheme = '{!$User.UIThemeDisplayed}';
+            console.log('UI theme display**'+uiTheme);
+            
+            if(uiTheme == 'Theme3'){
+                //classic code
+                console.log('Classic theme');
+                if(QuoteId != null){
+                    window.opener.location.href="/{!$CurrentPage.parameters.id}";
+                    window.top.close();
+                }
+            }
+            else if(uiTheme == 'Theme4d'){
+                // LEX code
+                console.log('Lightning  theme');
+                sforce.one.navigateToURL('/lightning/r/Quote__c/'+QuoteId+'/view');
+                console.log(sforce.one.navigateToURL('/lightning/r/Quote__c/'+QuoteId+'/view'));
+                window.top.close();
+            }
+        }
+        
+        
+        function validateInput(){  
+            
+            var e = document.getElementById('{!$Component.form_id.PageBlock_Id.panel3.invoice_id}');
+            
+            e.value = e.value.replace(/[^0-9\.]/g,'');
+            if(e.value.split('.').length>2) e.value = e.value.replace(/\.+$/,"");
+            if(e.value > 100){
+                console.log('value is ' + e.value);
+                document.getElementById("Invoice").style.display = "block";
+                document.getElementById('Invoice').style.color = "red";
+                return false;
+            }
+            else{
+                document.getElementById("Invoice").style.display = "none";
+                return true;
+            }
+        }
+        </script> 
+        
+        <apex:PageBlock id="PageBlock_Id">
+            
+            <apex:pageMessages id="showmsg"></apex:pageMessages> 
+            <apex:pageBlockSection title="Generate Invoice" columns="3"> 
+                
+                Is Billing Address Same?
+                <apex:selectRadio value="{!radiostatus}"  onchange="selectedRadio(this)" required="true">
+                    <apex:selectOptions value="{!items}"></apex:selectOptions>  
+                    <apex:actionFunction name="paraFunction" action="{!Checkstatus}" rerender="form_id">     
+                        <apex:param id="name" name="flagvalue" value="" />
+                    </apex:actionFunction>
+                </apex:selectRadio>
+            </apex:pageBlockSection>
+            
+            
+            
+            <apex:pageBlockSection >
+                
+                <apex:outputPanel id="yespanel" rendered="{!Yesflag}">
+                    
+                    <h1>
+                        <b>Billing Address</b>
+                    </h1>
+                    <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+                        <tbody>
+                            <tr class="slds-line-height_reset">
+                                <th class="" scope="col">
+                                    <div class="slds-truncate" title="Customer">Customer</div>
+                                </th>
+                                <th class="" scope="col">
+                                    <div class="slds-truncate" title="Account Name"><apex:outputField value="{!Quote__c.Customer__c}" /></div>
+                                </th>
+                            </tr>
+                            
+                            <tr class="slds-line-height_reset">
+                                <th class="" scope="col">
+                                    <div class="slds-truncate" title="Billing Street">Billing Street</div>
+                                </th>
+                                <th class="" scope="col">
+                                    <div class="slds-truncate" title="Account Name"><apex:outputField value="{!Quote__c.Billing_Street__c}" /></div>
+                                </th>      
+                            </tr>
+                            
+                            <tr class="slds-line-height_reset">
+                                <th class="" scope="col">
+                                    <div class="slds-truncate" title="Billing City">Billing City</div>
+                                </th>
+                                <th class="" scope="col">
+                                    <div class="slds-truncate" title="Account Name"><apex:outputField value="{!Quote__c.Billing_City__c}" /></div>
+                                </th>
+                            </tr>
+                            
+                            <tr class="slds-line-height_reset">
+                                <th class="" scope="col">
+                                    <div class="slds-truncate" title="Billing Zip/Postal Code">Billing Zip/Postal Code</div>
+                                </th>
+                                <th class="" scope="col">
+                                    <div class="slds-truncate" title="Billing Zip/Postal Code"><apex:outputField value="{!Quote__c.Billing_Zip__c}" /></div>
+                                </th>
+                            </tr>
+                            
+                            <tr class="slds-line-height_reset">
+                                <th class="" scope="col">
+                                    <div class="slds-truncate" title="Billing State/Province">Billing State/Province</div>
+                                </th>
+                                <th class="" scope="col">
+                                    <div class="slds-truncate" title="Billing State/Province"><apex:outputField value="{!Quote__c.Billing_State_Province__c}" /></div>
+                                </th>
+                            </tr>
+                            
+                            
+                            <tr class="slds-line-height_reset">
+                                <th class="" scope="col">
+                                    <div class="slds-truncate" title="Billing Country">Billing Country</div>
+                                </th>
+                                <th class="" scope="col">
+                                    <div class="slds-truncate" title="Billing Country"><apex:outputField value="{!Quote__c.Billing_Country__c}" /></div>
+                                </th>
+                            </tr>
+                            
+                        </tbody>
+                    </table>
+                    
+                </apex:outputPanel>
+            </apex:pageBlockSection>
+            
+            <apex:outputPanel id="nopanel"  rendered="{!Noflag}">
+                
+                <apex:pageBlockSection id="No_pageBlockSection_id" collapsible="true" columns="2">
+                    
+                    <b>Edit details :-</b><apex:inputField value="{!Quote__c.Customer__c}"  />
+                    Billing Street : <apex:inputText value="{!street}" id="streetId" styleClass="slds-input"/>
+                    Billing City : <apex:inputText value="{!city}" id="cityid" styleClass="slds-input"/>
+                    Billing Zip/Postal Code: <apex:inputText value="{!zip}" id="zipid" styleClass="slds-input"/>
+                    Billing State : <apex:inputText value="{!state}" id="stateid" styleClass="slds-input"/>  
+                    Billing Country : <apex:inputText value="{!country}" id="countryid" styleClass="slds-input"/>
+                    
+                </apex:pageBlockSection>
+                
+            </apex:outputPanel>
+            
+            
+            
+            <apex:pageBlockSection id="panel3">
+                
+                <apex:outputPanel >
+                    
+                    <div class="slds-form-element" >
+                        <label class="slds-form-element__label" for="text-input-id-1">Invoice %</label>
+                        <div class="slds-form-element__control">
+                            <apex:input type="number" html-min="0" value="{!invoicePercent}" id="invoice_id"  styleClass="slds-input"/><span id="Invoice" class = "Invoice">Invoice % can't be greater than 100</span>
+                        </div>
+                    </div><br/>
+                    
+                    
+                    
+                    <div class="slds-form-element">
+                        Net Cost : <br/><apex:outputField value="{!Quote__c.Net_Value__c}"/> 
+                    </div><br/>
+                    
+                    <apex:commandButton styleClass="slds-button slds-button_brand" value="Submit"  id="theButton" action="{!onSubmit}"  onclick="return validateInput();" status="counterStatus"/>
+                    
+                </apex:outputPanel>  
+                
+            </apex:pageBlockSection>
+            
+        </apex:PageBlock>
+        
+    </apex:form>
+    
+</apex:page>

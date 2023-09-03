@@ -1,0 +1,65 @@
+global class BatchToCreatePayout implements Database.Batchable<sObject>{
+    List<Distributor_Payout_info__c> payoutList=new List<Distributor_Payout_info__c>();
+    List<Target_Vs_Achievement__c> targetList=new List<Target_Vs_Achievement__c>();
+    List<AggregateResult> invoLineList=new List<AggregateResult>();
+    List<AggregateResult> invoLineListQtr=new List<AggregateResult>();
+    Map<string,string> totalTar=new Map<string,string>();
+    Map<string,string> totalTarQtr=new Map<string,string>();
+    
+    global Database.QueryLocator start(Database.BatchableContext bc){
+        String allDealer='Select id,Total_Month__c from Account where Onboarding_Date__c!=null';
+        return Database.getQueryLocator(allDealer);
+    }
+    
+    global void execute(Database.BatchableContext bc, List<Account> scope){
+        system.debug('djhgahkdjaw '+scope.size());
+        List<Scheme__c> sc=[select id from Scheme__c where Dealer_Name__c IN:scope AND End_Date__c>:date.today() limit 1];
+        //List<Invoice__c> InvoList=[select id, Invoice_Amount__c,Dealer__c,Invoice_Date__c from Invoice__c where Dealer__c IN:scope AND Invoice_Date__c>:date.today()];
+       
+        invoLineList=[select Dealer__c, SUM(Quantity__c) cc from Invoice_Line__c where Dealer__c in:scope group by Dealer__c /*Invoice__r.Dealer__c*/];
+        system.debug('sahgdjahfkaef '+invoLineList.size());
+        invoLineListQtr=[select Dealer__c, SUM(Quantity__c) cc from Invoice_Line__c where Dealer__c in:scope AND CreatedDate = THIS_QUARTER group by Dealer__c];
+        
+        for(AggregateResult i:InvoLineList){
+            totalTar.put(string.valueOf(i.get('Dealer__c')),string.valueOf(i.get('cc')));
+            system.debug('ayushshsshs '+totalTar);
+         
+        }
+        for(AggregateResult i:invoLineListQtr){
+            totalTarQtr.put(string.valueOf(i.get('Dealer__c')),string.valueOf(i.get('cc')));
+            system.debug('ayushshsshs '+totalTarQtr);
+         
+        }
+        
+        for(Account acc:scope){
+            Target_Vs_Achievement__c targ=new Target_Vs_Achievement__c();
+            targ.Dealer_Name__c=acc.id;
+            //targ.Month__c=month(date.today());
+            system.debug('ASALFNLKNF '+acc.Total_Month__c);
+            system.debug('ayuiyjhdkf '+Decimal.valueof(totalTar.get(acc.id))+' sdsasdfgdsds '+acc.Total_Month__c);
+            targ.Dealer_Target__c=Decimal.valueof(totalTar.get(acc.id))/acc.Total_Month__c;
+            targetList.add(targ);
+            
+            Distributor_Payout_info__c payout=new Distributor_Payout_info__c();
+            payout.Distributor__c=acc.id;
+            payout.Scheme__c=sc[0].id;
+            payout.Monthly_Target__c=Decimal.valueof(totalTar.get(acc.id))/acc.Total_Month__c;
+            payout.Quarterly_Target__c=Decimal.valueof(totalTarQtr.get(acc.id));
+            payoutList.add(payout);
+        }
+        if(targetList.size()>0){
+            list<database.SaveResult> save=database.insert(targetList,false);
+        }
+        
+        if(payoutList.size()>0){
+        	list<database.SaveResult> save=database.insert(payoutList,false);
+        }
+        //insert payoutList;
+    }
+    
+    global void finish(Database.BatchableContext bc){
+        system.debug('test');
+        
+    }
+
+}

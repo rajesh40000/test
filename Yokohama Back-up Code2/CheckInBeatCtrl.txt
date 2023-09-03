@@ -1,0 +1,39 @@
+public with sharing class CheckInBeatCtrl {
+	public Double valueLong { get; set; }
+    public Double valueLat { get; set; }
+    
+    public Beat__c retailer{get;set;}
+    public CheckInBeatCtrl(ApexPages.StandardController controller){
+        retailer= [Select id,Location__c,Date_Time__c,Check_Out_Date_Time__c,Check_Out_Location__c from Beat__c where id=: apexpages.currentpage().getparameters().get('id')];
+    }
+    public void iFoundYou() {
+       if(retailer.Location__c ==null )
+       {
+        retailer.Location__Latitude__s= valueLat;
+        retailer.Location__Longitude__s= valueLong;
+        retailer.Date_Time__c = system.now();  
+        update retailer;
+           ApexPages.addmessage(new ApexPages.message(ApexPages.severity.CONFIRM,'Location Captured successfully'));
+       }
+        else{
+            ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'Location Already Captured'));
+        }
+    } 
+    
+    public void iFoundYou1() {
+        if(retailer.Date_Time__c == null){
+            ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'Please Check In First...!!'));
+        }
+       else if(retailer.Check_Out_Location__c ==null )
+       {
+        retailer.Check_Out_Location__Latitude__s= valueLat;
+        retailer.Check_Out_Location__Longitude__s= valueLong;
+        retailer.Check_Out_Date_Time__c = system.now();  
+        update retailer;
+           ApexPages.addmessage(new ApexPages.message(ApexPages.severity.CONFIRM,'Location Captured successfully'));
+       }
+        else{
+            ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'Location Already Captured'));
+        }
+    } 
+}

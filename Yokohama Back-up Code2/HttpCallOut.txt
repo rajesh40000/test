@@ -1,0 +1,919 @@
+public class HttpCallOut {
+    
+    public static String call(String soapAction, String body, String Username, String Password, String Endpoint){
+        Api_Details__c obj = Api_Details__c.getvalues('SalesPeople'); 
+        String Domain='';
+        String username1 = Domain +'\\'+Username;
+        String password1 = Password;
+        system.debug('tese'+username1); 
+        system.debug('tese'+password1);
+        system.debug('tese'+soapAction);
+        system.debug('tese'+body);
+        HttpClient httpObj = new HttpClient(username1,password1,True);    
+        system.debug('tese'+httpObj);
+        HttpRequest req = new HttpRequest(); 
+        Map<String,String> headerMap = new Map<String,String>();
+        
+        headerMap.put('SOAPAction',soapAction);
+        headerMap.put('Content-Type','text/xml;charset=UTF-8');
+        headerMap.put('Accept-Encoding','gzip,deflate');
+        
+        req.setEndpoint(EndPoint);
+        req.setMethod('POST');
+        req.setTimeout(120000);
+        req.setBody(body);
+        system.debug('body: '+body);
+        Httpresponse res = new Httpresponse();
+        res = httpObj.send(req,headerMap);
+        system.debug('### status: '+res.getStatus());
+        System.debug('Response*:' + req);
+        System.debug('Response*:' + res);
+        ExceptionHandler.logApexCalloutError('HttpCallOut', 'call', '26', res);
+        System.debug('Response' + res.getBody());
+        return res.getBody();
+    }
+    
+    //@future(callout=true)
+    public static void SFDCCustomer(String ids) {
+        try{
+        Account acc = [select id,Name,Blocked__c,Country_Region_Code__r.name,Credit_Days_Calculation__c,X1H__c,AGM__r.Employee_Code__c,SD_Balance__c,Ratio__c,Revival_Date__c,Dealer_Status__c,Original_Credit_Limit__c,Credit_Limit__c,Additional_Credit_Limit__c,Fixed_Add_Credit_Amount__c,Balance1__c,Available_Balance__c,VirtualAccICICI__c,Virtual_Account__c,PaymentTermsCode__c,Customer_No__c,Bussiness_Type__c,Name2__c,Address__c,Address2__c,City_y__c,Country_Region_Code__c,State_c__c,Contact_Person__c,Phone,Territory_y__c,EMail__c,HomePage__c,PAN_No__c,GST_Registration_No__c,Sub_District__c,YCN_Customer__c,OEM_Customer__c,GST_Customer_Type__c,Channel_Master__c,Zone_y__c,Sales_In_charge__c,Sales_In_charge__r.Employee_Code__c,DSM_y__c,DSM_y__r.Employee_Code__c ,RSM_y__c,RSM_y__r.Employee_Code__c,ZM__c,ZM__r.Employee_Code__c,AGM__c,Location_Code__c,Primary_Contact__c,Address_line_1__c,Address_line_2__c,Pincode_y__c,Aadhar_No__c,District__c,Corr_City__c,CorrPostCode__c,Created_Date__c,SFDC_Dealer__c from Account where id =: ids];
+        SYSTEM.debug('TESTHARJEET'+ACC.Territory_y__c);
+        
+        string pincode='';
+        if(acc.Pincode_y__c!=null){  pincode=[select id, name from Pincode__c where id=:acc.Pincode_y__c].name;
+        }
+        string city='';
+        if(acc.City_y__c!=null){   city=[select id,name from City__c where ID=:acc.City_y__c].name; 
+        }
+        
+        string PaymentTermsCode='';
+        if(acc.PaymentTermsCode__c!=null){  PaymentTermsCode=[select id,name from Payment_Term_Code__c where ID=:acc.PaymentTermsCode__c].name; 
+        }
+        
+        string subdistrict='';  
+        if( ACC.Sub_District__c !=null){ subdistrict=[select id, name from Sub_District_Master__c where ID=:acc.Sub_District__c].name;}
+        
+        string channelmaster='';  
+        if( ACC.Channel_Master__c !=null){    channelmaster=[select id, name from Channel_Master__c	 where ID=:acc.Channel_Master__c].name;}
+        
+        string loc='';  
+        if( ACC.Location_Code__c !=null){          loc=[select id, name from Location_Master__c where ID=:acc.Location_Code__c].name;}
+        
+        string state='';  
+        if( ACC.State_c__c !=null){          state=[select id, name from State__c where ID=:acc.State_c__c].name;}
+        
+        string count='';
+        if( ACC.Country_Region_Code__c !=null){         count=[select id, name from Country__c where ID=:acc.Country_Region_Code__c].name;}
+        system.debug('count'+acc.Country_Region_Code__r.name);
+        string trr='';  
+        if( ACC.Territory_y__c !=null){         trr=[select id, name from Territory_Y__c where ID=:acc.Territory_y__c].name;}
+        
+        string dis='';
+        if( ACC.District__c !=null){           dis=[select id, name from District_Master__c where ID=:ACC.District__c].name;}
+        Api_Details__c obj = Api_Details__c.getvalues('SalesPeople'); 
+        system.debug('testsmriti'+acc.Country_Region_Code__c);
+        String requestString = '<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/"><Body><GetCustomerDetails xmlns="urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer"><requestMsg>{ "CustomerNo":"'+acc.Customer_No__c+'","1H":"'+acc.X1H__c+'","CreditDaysCalculation" : "'+acc.Credit_Days_Calculation__c+'","SDBalance" : "'+acc.SD_Balance__c+'","RevivalDate" : "'+acc.Revival_Date__c+'","DealerStatus" : "'+acc.Dealer_Status__c+'","Create_Date" : "'+acc.Created_Date__c+'","FixedAddCreditAmt" : "'+acc.Fixed_Add_Credit_Amount__c+'","BalanceLCY" : "'+acc.Balance1__c+'","AvailableBalance" : "'+acc.Available_Balance__c+'","OriginalCreditLimit" : "'+acc.Original_Credit_Limit__c+'","CreditLimitLCY" : "'+acc.Credit_Limit__c+'","AdditionalCreditLimit" : "'+acc.Additional_Credit_Limit__c+'","Ratio" : "'+acc.Ratio__c+'","GSTCustomerType" : "'+acc.GST_Customer_Type__c+'","Corr_City" : "'+acc.Corr_City__c+'","City" : "'+city+'","PaymentTermsCode" : "'+PaymentTermsCode+'","VirtualAccICICI" : "'+acc.VirtualAccICICI__c+'","VirtualAccNo" : "'+acc.Virtual_Account__c+'","Bussiness_Type" : "'+acc.Bussiness_Type__c+'","Name" : "'+acc.Name+'","Customer_No" : "'+acc.Customer_No__c+'","Name2" : "'+acc.Name2__c+'","Address" : "'+acc.Address__c+'","Address2" : "'+acc.Address2__c+'","PostCode" : "'+pincode+'","Country_Region_Code" : "'+count+'","StateCode" : "'+state+'","Contact_Person" : "'+acc.Contact_Person__c+'","PhoneNo" : "'+acc.Phone+'","EMail" : "'+acc.Email__c+'","HomePage" : "'+acc.HomePage__c+'","PANNo" : "'+acc.PAN_No__c+'","GSTRegistrationNo" : "'+acc.GST_Registration_No__c+'","YCN_Customer" : "'+acc.YCN_Customer__c+'","OEM_Customer" : "'+acc.OEM_Customer__c+'","Channel_Code" : "'+channelmaster+'","Zone" : "'+acc.Zone_y__c+'","Sales_In_charge" : "'+acc.Sales_In_charge__r.Employee_Code__c+'","Dsm" : "'+acc.DSM_y__r.Employee_Code__c +'","Rsm" : "'+acc.RSM_y__r.Employee_Code__c+'","Agm" : "'+acc.AGM__r.Employee_Code__c+'","Contact_No_Alternate_Number" : "'+acc.Primary_Contact__c+'","Corr_Add_1" : "'+acc.Address_line_1__c+'","Corr_Add_2" : "'+acc.Address_line_2__c+'","Corr_PostCode" : "'+acc.CorrPostCode__c+'","AadharNo" : "'+acc.Aadhar_No__c+'","SubDistrict" : "'+SubDistrict+'","Zm" : "'+acc.ZM__r.Employee_Code__c+'","Territory" : "'+trr+'","District" : "'+dis+'","LocationCode" : "'+loc+'","SFDC_DealerNo":"'+acc.SFDC_Dealer__c+'","Blocked":"'+acc.Blocked__c+'"}</requestMsg></GetCustomerDetails></Body></Envelope>';
+        
+        String response = call('urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer', requestString, obj.Username__c, obj.Password__c, obj.End_Point_URL__c);
+        system.debug('****response'+response);
+        DOM.Document doc=new DOM.Document();
+        
+            
+            doc.load(response);
+            String json = XmlToJson1.parseDocumentToJson(doc);
+            integer start98=json.indexof('0000');
+            system.debug('start--'+start98);
+            
+            string customer98=json.substring(start98);
+            system.debug('start--'+customer98);
+            
+            
+            string  customers98 = customer98.replaceAll('"}}}','');
+            System.debug(customers98);
+            acc.Customer_No__c=customers98.substringBefore(',');
+            update acc;
+            system.debug('**json'+json);
+            if(!response.contains('{"success":true}')){
+                Logs__c log = new Logs__c(Name = 'SFDCCustomer',Request__c = requestString,Response__c=response,status__c = 'Failure');
+                Insert log; 
+            }
+        }
+        catch(exception e){
+            system.debug(e.getMessage());
+        }
+        
+    }
+    
+    
+    
+    @future(callout=true)
+    public static void SFDCCustomer2(String ids) {
+        string Name;
+        string code;
+        string email;
+        string Phone_No;
+        string job;
+        string Employee_Code;
+        
+        User uss=[select id,First_Name__c, Name,Employee_Code__c,Code__c,Job_Title__c,Phone,E_Mail__c from User where id=:ids limit 1];
+        Name=uss.Name;
+        Employee_Code=uss.Employee_Code__c;
+        code=uss.Code__c;
+        email=uss.E_Mail__c;
+        Phone_No=uss.Phone;
+        job=uss.Job_Title__c;
+        
+        Api_Details__c obj = Api_Details__c.getvalues('SalesPeople'); 
+        String requestString = '<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/"><Body><GetSalesPeopleDetails xmlns="urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer"><requestMsg>{"Name" : "'+Name+'","Employee_Code" : "'+Employee_Code+'","Code" : "'+code+'","Email":"'+email+'","Phone_No":"'+Phone_No+'","Job":"'+job+'"}</requestMsg></GetSalesPeopleDetails></Body></Envelope>';
+        try{
+            String response = call('urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer', requestString, obj.Username__c, obj.Password__c, obj.End_Point_URL__c);
+            system.debug('****response'+response);
+            if(!response.contains('{"success":true}')){
+                if (!Schema.sObjectType.Logs__c.isCreateable() ) {
+                    System.debug('Error');
+                }
+                Logs__c log = new Logs__c();
+                
+                log.Name = 'SFDCCustomer2';
+                log.Request__c = requestString; 
+                log.Response__c=response;
+                log.status__c = 'Failure';
+                
+                Insert log; 
+            }
+        }catch(exception e){}
+        /*DOM.Document doc=new DOM.Document();
+try{
+
+doc.load(response);
+String json = XmlToJson1.parseDocumentToJson(doc);
+system.debug('**json'+json);}
+catch(exception e){
+system.debug(e.getMessage());
+}*/
+    }
+    
+    
+    /* @future(callout=true)
+public static void SFDCCustomerclaim(String ids) {
+
+Scheme_Claim__c schemeclaim=[select Amount__c,Scheme__c,Scheme__r.name,Scheme__r.Scheme_Description__c,Credit_Note__c,Dealer__c,Dealer__r.Customer_No__c,Name from Scheme_Claim__c  where id =: ids  limit 1];
+decimal Amount=0;
+Amount=schemeclaim.Amount__c;
+
+Api_Details__c obj = Api_Details__c.getvalues('SalesPeople'); 
+
+String requestString = '<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/"><Body><GetSchemeClaim xmlns="urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer"><requestMsg>{"SchemeID" : "'+schemeclaim.Scheme__r.name+'","SchemeDescription" : "'+schemeclaim.Scheme_Description__c+'","Amount" : "'+Amount+'","CustomerCode" : "'+schemeclaim.Dealer__r.Customer_No__c+'"}</requestMsg></GetSchemeClaim></Body></Envelope>';
+String response = call('urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer', requestString, obj.Username__c, obj.Password__c, obj.End_Point_URL__c);
+system.debug('****response'+response);
+DOM.Document doc=new DOM.Document();
+try{
+
+doc.load(response);
+String json = XmlToJson1.parseDocumentToJson(doc);
+system.debug('**json'+json);}
+catch(exception e){
+system.debug(e.getMessage());
+}
+
+}
+*/ 
+    
+    @future(callout=true)
+    public static void SFDCPersonaluse(String ids) {
+        
+        Personal_Use_Tyre__c persnluse  =[Select Dealer__r.Name ,Item_Master__r.Name,RSM__r.Name,id, Name, Dealer__c ,Dealer__r.RSM_y__c ,Dealer__r.RSM_y__r.Name  from Personal_Use_Tyre__c where id =: ids  limit 1 ];
+        
+        Api_Details__c obj = Api_Details__c.getvalues('SalesPeople'); 
+        
+        String requestString = '<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/"><Body><GetSchemeClaim xmlns="urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer"><requestMsg>{"Dealer" : "'+ persnluse.Dealer__r.Name +'","Item_Master" : "'+ persnluse.Item_Master__r.Name +'","RSMs" : "'+ persnluse.RSM__r.Name  + '"}</requestMsg></GetSchemeClaim></Body></Envelope>';
+        String response = call('urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer', requestString, obj.Username__c, obj.Password__c, obj.End_Point_URL__c);
+        system.debug('****response'+response);
+        if(!response.contains('{"success":true}')){
+            if (!Schema.sObjectType.Logs__c.isCreateable() ) {
+                System.debug('Error');
+            }
+            Logs__c log = new Logs__c();
+            
+            log.Name = 'Personaluse';
+            log.Request__c = requestString; 
+            log.Response__c=response;
+            log.status__c = 'Failure';
+            
+            Insert log; 
+        }
+        /* DOM.Document doc=new DOM.Document();
+try{
+
+doc.load(response);
+String json = XmlToJson1.parseDocumentToJson(doc);
+system.debug('**json'+json);}
+catch(exception e){
+system.debug(e.getMessage());
+}*/
+        
+    }     
+    
+    
+    //  @future(callout=true)
+    
+    public static String SFDCCustomerdocket(String ids) {
+        
+        Claim__c Cm=[select id,Uploaded_Date__c,Tyre_Serial_No__c,Place_Order__c,Discount_Percentage__c,Actual_Discount_Amount__c,Discount_Percentage_Calculate__c,Name,Docket_No__c,Discount_Amount__c,Article_No__c,Article_No__r.name,Dealer__c,Dealer__r.Customer_No__c,Scrap_In__c,Sales_Price_at_Uploaded_Time__c,Sales_Order_Created__c,Invoiced__c, Changed_Article__c,Claim_Approval_Date__c,Shipped__c,Shipping_Remarks__c from Claim__c where id=:ids limit 1];
+        Api_Details__c obj = Api_Details__c.getvalues('SalesPeople'); 
+        
+        String requestString = '<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/"><Body><GetServiceDocket xmlns="urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer"><requestMsg>{"PlaceOrder":"'+cm.Place_Order__c+'","DotNumber":"'+cm.Tyre_Serial_No__c+'","DocketNo" : "'+cm.Docket_No__c+'","CustomerNo":"'+cm.Dealer__r.Customer_No__c+'","ArticleNo":"'+cm.Article_No__r.name+'","SalesPriceUplodTime":"'+cm.Sales_Price_at_Uploaded_Time__c+'","ScrapIn":"'+cm.Scrap_In__c+'","SalesOrderCreated":"'+cm.Sales_Order_Created__c+'","Invoiced":"'+cm.Invoiced__c+'","DiscountAmount":"'+cm.Actual_Discount_Amount__c+'","DiscountPer":"'+cm.Discount_Percentage_Calculate__c+'","UploadedDate":"'+cm.Uploaded_Date__c+'","Shipped":"'+cm.Shipped__c+'","ShippingRemarks":"'+cm.Shipping_Remarks__c+'"}</requestMsg></GetServiceDocket></Body></Envelope>';
+        String response='';
+        try{
+        response = call('urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer', requestString, obj.Username__c, obj.Password__c, obj.End_Point_URL__c);
+        system.debug('responseeeee  '+response);
+        if(!response.contains('{"success":true}')){
+            if (!Schema.sObjectType.Logs__c.isCreateable() ) {
+                System.debug('Error');
+            }
+            Logs__c log = new Logs__c();
+            
+            log.Name = 'Customerdocket1';
+            log.Request__c = requestString; 
+            log.Response__c=response;
+            log.status__c = 'Failure';
+            
+            Insert log; 
+        }
+        }   catch(exception e){}
+        /* DOM.Document doc=new DOM.Document();
+
+try{
+
+doc.load(response);
+String json = XmlToJson1.parseDocumentToJson(doc);
+system.debug('**json'+json);}
+catch(exception e){
+system.debug(e.getMessage());
+}*/
+        return response; 
+    }
+    
+    @future(callout=true)
+    public static void SFDCCustomerdocket2(String ids) {
+        
+        Claim__c Cm=[select id,Uploaded_Date__c,Discount_Percentage_Calculate__c,Place_Order__c,Actual_Discount_Amount__c,Tyre_Serial_No__c,Discount_Percentage__c,Name,Docket_No__c,Discount_Amount__c,Article_No__c,Article_No__r.name,Dealer__c,Dealer__r.Customer_No__c,Scrap_In__c,Sales_Price_at_Uploaded_Time__c,Sales_Order_Created__c,Invoiced__c, Changed_Article__c,Claim_Approval_Date__c,Shipped__c,Shipping_Remarks__c from Claim__c where id=:ids limit 1];
+        Api_Details__c obj = Api_Details__c.getvalues('SalesPeople'); 
+        
+        String requestString = '<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/"><Body><GetServiceDocket xmlns="urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer"><requestMsg>{"PlaceOrder":"'+cm.Place_Order__c+'","DotNumber":"'+cm.Tyre_Serial_No__c+'","DocketNo" : "'+cm.Docket_No__c+'","CustomerNo":"'+cm.Dealer__r.Customer_No__c+'","ArticleNo":"'+cm.Article_No__r.name+'","SalesPriceUplodTime":"'+cm.Sales_Price_at_Uploaded_Time__c+'","ScrapIn":"'+cm.Scrap_In__c+'","SalesOrderCreated":"'+cm.Sales_Order_Created__c+'","Invoiced":"'+cm.Invoiced__c+'","DiscountAmount":"'+cm.Actual_Discount_Amount__c+'","DiscountPer":"'+cm.Discount_Percentage_Calculate__c+'","UploadedDate":"'+cm.Uploaded_Date__c+'","Shipped":"'+cm.Shipped__c+'","ShippingRemarks":"'+cm.Shipping_Remarks__c+'"}</requestMsg></GetServiceDocket></Body></Envelope>';
+        try{
+        String response = call('urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer', requestString, obj.Username__c, obj.Password__c, obj.End_Point_URL__c);
+        system.debug('responseeeee  '+response);
+        if(!response.contains('{"success":true}')){
+            if (!Schema.sObjectType.Logs__c.isCreateable() ) {
+                System.debug('Error');
+            }
+            Logs__c log = new Logs__c();
+            
+            log.Name = 'Customerdocket';
+            log.Request__c = requestString; 
+            log.Response__c=response;
+            log.status__c = 'Failure';
+            
+            Insert log; 
+        }
+        }  catch(exception e){}
+        /* DOM.Document doc=new DOM.Document();
+
+try{
+
+doc.load(response);
+String json = XmlToJson1.parseDocumentToJson(doc);
+system.debug('**json'+json);}
+catch(exception e){
+system.debug(e.getMessage());
+}*/
+        // return response; 
+    }
+    
+    @future(callout=true)
+    public static void SFDCCustomershippingaddress(String ids) {
+        
+        
+        Shipping_Address__c SP=[select id,Customer__c,Customer__r.Customer_No__c,Name__c,Name_2__c,Address__c,Address2__c,City__c,City__r.Name,
+                                Contact__c,Phone_no__c,Location_Code__c,Location_Code__r.Name,E_Mail__c,State__c,State__r.Name,Post_Code__c,Post_Code__r.name,
+                                GST_Registration_No__c,Home_Page__c,Country_Region_Code__r.Name,Country_Region_Code__c,Ship_to_Code__c from Shipping_Address__c where id=:ids limit 1];  
+        
+        Api_Details__c obj = Api_Details__c.getvalues('SalesPeople'); 
+        
+        String requestString = '<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/"><Body><GetShipToAddress xmlns="urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer"><requestMsg>{"CustomerNo":"'+SP.Customer__r.Customer_No__c+'","Name":"'+SP.Name__c+'","Name2":"'+SP.Name_2__c+'","Address":"'+SP.Address__c+'","Address2":"'+SP.Address2__c+'","City":"'+SP.City__r.name+'","Contact":"'+SP.Contact__c+'","PhoneNo":"'+SP.Phone_no__c+'","CountryRegionCode":"'+SP.Country_Region_Code__r.name+'","LocationCode":"'+SP.Location_Code__r.Name+'","Email":"'+SP.E_Mail__c+'","HomePage":"'+SP.Home_Page__c+'","State":"'+SP.State__r.name+'","GSTRegistrationNo":"'+Sp.GST_Registration_No__c+'","PostCode":"'+SP.Post_Code__r.name+'","shiptocode":"'+SP.Ship_to_Code__c+'"}</requestMsg></GetShipToAddress></Body></Envelope>';
+        try{
+        String response = call('urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer', requestString, obj.Username__c, obj.Password__c, obj.End_Point_URL__c);
+        system.debug('****response'+response);
+        DOM.Document doc=new DOM.Document();
+        
+            
+            doc.load(response);
+            String json = XmlToJson1.parseDocumentToJson(doc);
+            integer start98=json.indexof('SHIP');
+            system.debug('start--'+start98);
+            string customer98=json.substring(start98);
+            system.debug('start--'+customer98);
+            string  customers98 = customer98.replaceAll('}"}}}','');
+            System.debug(customers98);
+            SP.Ship_to_Code__c=customers98.substringBefore(',');
+            update SP;
+            if(!response.contains('"success":true')){
+                
+                Logs__c log = new Logs__c(Name = 'shippingaddress',Request__c = requestString,Response__c=response,status__c = 'Failure');
+                
+                Insert log; 
+            }
+            system.debug('**json'+json);}
+        catch(exception e){
+            system.debug(e.getMessage());
+        }
+        
+        
+    }
+    
+    @future(callout=true)
+    public static void SFDCCustomerSecuritydeposit(String ids) {
+        Security_Deposite__c sd=[select id,Name,Currency__c,Overall_Status__c,Bank_Name__c,Current_SD__c,Dealer__c,Dealer__r.Customer_No__c,Request_Type__c,Sales_Director__c,SD_Decrease_Amount__c,SD_Increase_Amount__c,Total_SD__c,ZM__c,UTR__c,UTR__r.name from Security_Deposite__c where id=:ids limit 1];  
+        Api_Details__c obj = Api_Details__c.getvalues('SalesPeople'); 
+        String requestString = '<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/"><Body><GetSecurityDeposit xmlns="urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer"><requestMsg>{"SecurityDepositNo":"'+sd.Name+'","Amount":"'+Sd.Currency__c+'","OverallStatus":"'+sd.Overall_Status__c+'","BankName":"'+sd.Bank_Name__c+'","CurrentSD":"'+sd.Current_SD__c+'","Dealer":"'+sd.Dealer__r.Customer_No__c+'","RequestType":"'+sd.Request_Type__c+'","SDIncreaseAmt":"'+sd.SD_Increase_Amount__c+'","SDDecreaseAmt":"'+sd.SD_Decrease_Amount__c+'","TotalSD":"'+sd.Total_SD__c+'","UTRNo":"'+sd.UTR__r.name+'"}</requestMsg></GetSecurityDeposit></Body></Envelope>';
+        try{
+        String response = call('urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer', requestString, obj.Username__c, obj.Password__c, obj.End_Point_URL__c);
+        system.debug('****response'+response);
+        if(!response.contains('{"success":true}')){
+            if (!Schema.sObjectType.Logs__c.isCreateable() ) {
+                System.debug('Error');
+            }
+            Logs__c log = new Logs__c();
+            
+            log.Name = 'Securitydeposit';
+            log.Request__c = requestString; 
+            log.Response__c=response;
+            log.status__c = 'Failure';
+            
+            Insert log; 
+        }
+        }       catch(exception e){}
+        /*DOM.Document doc=new DOM.Document();
+try{
+
+doc.load(response);
+String json = XmlToJson1.parseDocumentToJson(doc);
+system.debug('**json'+json);}
+catch(exception e){
+system.debug(e.getMessage());
+}*/
+    } 
+    
+    public static string SFDCstockAvailablity(String ItemNo,string LocationCode,string VariantCode ) {
+        Api_Details__c obj = Api_Details__c.getvalues('SalesPeople'); 
+        string customers1;
+        String requestString = '<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/"><Body><GetInventory xmlns="urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer"><requestMsg>{"ItemNo":"'+ItemNo+'","LocationCode":"'+LocationCode+'","VariantCode":"'+VariantCode+'"}</requestMsg></GetInventory></Body></Envelope>';
+        String response = call('urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer', requestString, obj.Username__c, obj.Password__c, obj.End_Point_URL__c);
+        system.debug('****response'+response);
+        DOM.Document doc=new DOM.Document();
+        try{
+            doc.load(response);
+            String json = XmlToJson1.parseDocumentToJson(doc);
+            system.debug('**json'+json);
+            
+            integer starts=json.indexof('0');
+            system.debug('start--'+starts);
+            
+            string customers=json.substring(61);
+            customers1 = customers.replaceAll('}"}}}','');
+            System.debug(customers1+' customers1');
+            
+            
+        }
+        
+        catch(exception e){
+            system.debug(e.getMessage());
+        }
+        
+        return   customers1;     
+    }
+    
+    public static String SFDCNormalOrder(string LocationCode , String ItemNo ) {
+        
+        Api_Details__c obj = Api_Details__c.getvalues('SalesPeople'); 
+        string customers1;
+        String requestString = '<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/"><Body><GetInventoryNormalOrder xmlns="urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer"><requestMsg>{"ItemNo":"'+ItemNo+'","LocationCode":"'+LocationCode+'"}</requestMsg></GetInventoryNormalOrder></Body></Envelope>';
+        String response='';
+        try{
+         response = call('urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer', requestString, obj.Username__c, obj.Password__c, obj.End_Point_URL__c);
+        
+        system.debug('har'+response);
+        
+        String response2='<Soap:Envelope xmlns:Soap="http://schemas.xmlsoap.org/soap/envelope/"> <Soap:Body><GetInventoryNormalOrder_Result xmlns="urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer"> <requestMsg>{"totalinventory": "18", "variantwise": [{"variant": "2020","inventory": 15.0 },{"variant": "2021", "inventory": 3.0}, {"variant": "2022","inventory": 0.0 }] }</requestMsg></GetInventoryNormalOrder_Result> </Soap:Body></Soap:Envelope>';
+        }
+        catch(exception e){}
+            return response;    }
+    
+    
+    @future(callout=true)
+    public static void SFDCNormalOrderTrigger(string LocationCode , String ItemNo , Id cartId) {
+        
+        system.debug('cartIddd  '+ cartId);
+        system.debug('LocationCodeee  '+ LocationCode);
+        system.debug('ItemNooo  '+ ItemNo);
+        
+        Api_Details__c obj = Api_Details__c.getvalues('SalesPeople'); 
+        string customers1;
+        String requestString = '<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/"><Body><GetInventoryNormalOrder xmlns="urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer"><requestMsg>{"ItemNo":"'+ItemNo+'","LocationCode":"'+LocationCode+'"}</requestMsg></GetInventoryNormalOrder></Body></Envelope>';
+        String response = call('urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer', requestString, obj.Username__c, obj.Password__c, obj.End_Point_URL__c);
+        
+        system.debug('har'+response);
+        String response2='<Soap:Envelope xmlns:Soap="http://schemas.xmlsoap.org/soap/envelope/"> <Soap:Body><GetInventoryNormalOrder_Result xmlns="urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer"> <requestMsg>{"totalinventory": "18", "variantwise": [{"variant": "2020","inventory": 15.0 },{"variant": "2021", "inventory": 3.0}, {"variant": "2022","inventory": 0.0 }] }</requestMsg></GetInventoryNormalOrder_Result> </Soap:Body></Soap:Envelope>';
+        Add_to_cart__c cart = [Select Id,Current_Stock__c,Product_type__c,Createddate, Final_quantity__c, Dealer__r.Location_Code_Text__c , Item_Master__r.Name  from Add_to_cart__c where id=:cartId ];
+        
+        String Inventorydata2=response.deleteWhitespace();
+        String Inventorydata3=Inventorydata2.substringBetween('{\"',',\"');
+        String Inventorydata5=Inventorydata3.replace('totalinventory\":\"','');
+        String Inventorydata6=Inventorydata5.remove('"');
+        System.debug('Inventorydata1:::'+Inventorydata6);
+       // if(Schema.SObjectType.Add_to_cart__c.fields.Current_Stock__c.isUpdateable()==true){
+            cart.Current_Stock__c =Decimal.valueOf(Inventorydata6) ;
+       // }
+        
+        
+        system.debug(' UpdateddValuee '+ Decimal.valueOf(Inventorydata6) );
+       // if(Schema.SObjectType.Add_to_cart__c.isUpdateable()==true){
+        update cart;
+       // }
+        system.debug(' UpdateddValuee '+ cart.Current_Stock__c);
+        //   return response;          
+    }
+    
+    
+    public static String SFDCNormalOrderMobile(string LocationCode , String ItemNo ) {
+        
+        Api_Details__c obj = Api_Details__c.getvalues('SalesPeople'); 
+        string customers1;
+        String requestString = '<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/"><Body><GetInventoryNormalOrder xmlns="urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer"><requestMsg>{"ItemNo":"'+ItemNo+'","LocationCode":"'+LocationCode+'"}</requestMsg></GetInventoryNormalOrder></Body></Envelope>';
+        String response = call('urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer', requestString, obj.Username__c, obj.Password__c, obj.End_Point_URL__c);
+        
+        system.debug('har'+response);
+        String response2='<Soap:Envelope xmlns:Soap="http://schemas.xmlsoap.org/soap/envelope/"> <Soap:Body><GetInventoryNormalOrder_Result xmlns="urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer"> <requestMsg>{"totalinventory": "18", "variantwise": [{"variant": "2020","inventory": 15.0 },{"variant": "2021", "inventory": 3.0}, {"variant": "2022","inventory": 0.0 }] }</requestMsg></GetInventoryNormalOrder_Result> </Soap:Body></Soap:Envelope>';
+        String Inventorydata2=response.deleteWhitespace();
+        String Inventorydata3=Inventorydata2.substringBetween('{\"',',\"');
+        String Inventorydata5=Inventorydata3.replace('totalinventory\":\"','');
+        String Inventorydata6=Inventorydata5.remove('"');
+        return Inventorydata6; 
+    }
+    
+    public static String SFDCAvailableBalance(string CustomerNo  ) {
+        Account acc=[select id, Virtual_Account__c,Aadhar_Card_1_y__c,Customer_No__c, name from Account Where Customer_No__c=:CustomerNo LIMIT 1];
+        
+        Api_Details__c obj = Api_Details__c.getvalues('SalesPeople'); 
+        string customers1;
+        String requestString = '<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/"><Body><GetAvailableBalance xmlns="urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer"><requestMsg>{"CustomerNo":"'+CustomerNo+'"}</requestMsg></GetAvailableBalance></Body></Envelope>';
+        try{
+        String response = call('urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer', requestString, obj.Username__c, obj.Password__c, obj.End_Point_URL__c);
+        system.debug('****response'+response); 
+        DOM.Document doc=new DOM.Document();
+        
+            doc.load(response);
+            String json = XmlToJson1.parseDocumentToJson(doc);
+            system.debug('**json'+json);
+            
+            integer starts=json.indexof('0');
+            system.debug('start--'+starts);
+            
+            string customers=json.substring(61);
+            customers1 = customers.replaceAll('}"}}}','');
+            System.debug(customers1+' customers1');
+            
+            
+            integer Available_Balance=json.indexof('Available_Balance');
+            
+            string customer98=json.substring(Available_Balance);
+            
+            string  customers98 = customer98.replaceAll('}"}}}','');
+            String invalidNumbers ='[a-zA-Z]{1,}';  
+            String Availablebalance =customers98 ;  
+            system.debug( 'Available Balance:::' + Availablebalance.replaceAll( invalidNumbers, '' ) );
+            System.debug('Available Balance1:::'+Availablebalance.replaceAll('[^\\-|\\d]',''));
+          //  if(Schema.SObjectType.Account.fields.Available_Credit_Limit__c.isUpdateable()==true){
+                acc.Available_Credit_Limit__c =Decimal.ValueOf(Availablebalance.replaceAll('[^\\-|\\d]',''))/100;
+           // }
+            
+            System.debug('acc::::'+acc.Available_Credit_Limit__c);
+          //  if(Schema.SObjectType.Account.isUpdateable()){
+                update acc;
+          //  }
+            
+            
+        }
+        
+        catch(exception e){
+            system.debug(e.getMessage());
+        }
+        
+        return   customers1;
+        
+    }
+    
+    public static String SFDCAvailableBalance1(string CustomerNo  ) {
+        Account acc=[select id, Virtual_Account__c,Aadhar_Card_1_y__c,Customer_No__c, name from Account Where Customer_No__c=:CustomerNo LIMIT 1];
+        
+        Api_Details__c obj = Api_Details__c.getvalues('SalesPeople'); 
+        string customers1;
+        string customers2;
+        String requestString = '<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/"><Body><GetAvailableBalance xmlns="urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer"><requestMsg>{"CustomerNo":"'+CustomerNo+'"}</requestMsg></GetAvailableBalance></Body></Envelope>';
+        String response = call('urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer', requestString, obj.Username__c, obj.Password__c, obj.End_Point_URL__c);
+        system.debug('****response'+response); 
+        DOM.Document doc=new DOM.Document();
+        try{
+            doc.load(response);
+            String json = XmlToJson1.parseDocumentToJson(doc);
+            system.debug('**json'+json);
+            
+            integer starts=json.indexof('0');
+            system.debug('start--'+starts);
+            
+            string customers=json.substring(61);
+            customers1 = customers.replaceAll('}"}}}','');
+            System.debug(customers1+' customers1');
+            integer Available_Balance=json.indexof('Available_Balance');
+            
+            string customer98=json.substring(Available_Balance);
+            
+            string  customers98 = customer98.replaceAll('}"}}}','');
+            String invalidNumbers ='[a-zA-Z]{1,}';  
+            String Availablebalance =customers98 ;  
+            system.debug( 'Available Balance:::' + Availablebalance.replaceAll( invalidNumbers, '' ) );
+            System.debug('Available Balance1:::'+Availablebalance.replaceAll('[^\\-|\\d]',''));
+            acc.Available_Credit_Limit__c =Decimal.ValueOf(Availablebalance.replaceAll('[^\\-|\\d]',''));
+            customers2=Availablebalance.replaceAll('[^\\-|\\d]','');
+            System.debug('acc::::'+acc.Available_Credit_Limit__c);
+            update acc;
+            
+        }
+        
+        catch(exception e){
+            system.debug(e.getMessage());
+        }
+        
+        return   customers2;
+        
+    }
+    
+    @future(callout=true)
+    public static void SFDCPayment(String ids) {
+        
+        //ID contactId = [Select contactid from User where id =: Userinfo.getUserid()].contactId;
+        //String RecordId =[Select AccountID from Contact where id =: contactid].AccountId;
+        //String Acc =[Select Customer_No__c from Account where id =: RecordId].Customer_No__c;
+        UTR__c utr=[Select Address__c,Amount__c,Amount_refunded__c,Bank_Acc_No__c,Bank_Transction_Type__c, Bank__c,Card_id__c,Contact__c, CREATEDBYID, CREATEDDATE,Created_at__c,CUSTOMER_NAME__C,CUSTOMER_NO__C,DATE__C, DATE_OF_PAYMENT__C,EMAIL__C,ENTITIY__C,ERROR_CODE__C,ERROR_DESCRIPTION__C,ERROR_REASON__C,ERROR_SOURCE__C,ERROR_STEP__C,FEE__C,ID,INTERNATIONAL__C,INVOICE__C,Customer_No__r.Customer_No__c,INVOICE_ID__C,ISDELETED,NAME,ORDER_ID__C,PAYMENT_ID__C,PAYMENT_STATUS__C, PAYMENT_TYPE__C ,PLATFORM__C,RAZOR_PAY_ID__C,RECIEVED_DATE__C,REFUND_STATUS__C,SALES_ORDER__C,SENDER_TO_RECEIVED_DATE__C,SIGNATURE_ID__C,STATUS__C,TAX__C, UPI_TRANSACTION_ID__C,VIRTUAL_ACC__C,VPA__C,Wallet__c,captured__c,currency__c,DESCRIPTION__C,RRN__C,Type__c from UTR__c where id=:ids limit 1];
+        string cust='';  
+        Api_Details__c obj = Api_Details__c.getvalues('SalesPeople'); 
+        String requestString = '<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/"><Body><GetPayment xmlns="urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer"><requestMsg>{"PaymentType":"'+utr.Payment_Type__c+'","CustomerNo":"'+utr.CUSTOMER_NO__r.Customer_No__c+'","UTRNo":"'+utr.Name+'","ReceivedDate":"'+utr.Recieved_Date__c+'","Amount":"'+utr.Amount__c+'","RemittersName":"'+utr.Customer_No__r.Customer_No__c+'","RazorpayPaymentID":"'+utr.Payment_Id__c+'","RazorpayOrderID":"'+utr.Razor_Pay_Id__c+'","RazorpaySignature":"'+utr.Signature_ID__c+'","BankTransType":"'+utr.Bank_Transction_Type__c+'","BankAccNo":"'+utr.Bank_Acc_No__c+'","VirtualAcc":"'+utr.Virtual_Acc__c+'","RegisteredTime":"'+utr.CreatedDate+'","SenderToRecvInfo":"'+utr.Sender_To_Received_Date__c+'","id":"'+utr.Payment_Id__c+'","order_id":"'+utr.Order_id__c+'","rrn":"'+utr.rrn__c+'","upi_transaction_id":"'+utr.UPI_Transaction_id__c+'","created_at":"'+utr.Created_at__c+'","fee":"'+utr.Fee__c+'","tax":"'+utr.Tax__c+'","card_id":"'+utr.Card_id__c+'","bank":"'+utr.Bank__c+'","wallet":"'+utr.Wallet__c+'","vpa":"'+utr.Vpa__c+'","email":"'+utr.Email__c+'","contact":"'+utr.Contact__c+'","amount_refunded":"'+utr.Amount_refunded__c+'","refund_status":"'+utr.Refund_Status__c+'","Type" : "'+utr.Type__c+'"}</requestMsg></GetPayment></Body></Envelope>';
+        try{
+        String response = call('urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer', requestString, obj.Username__c, obj.Password__c, obj.End_Point_URL__c);
+        system.debug('****response'+response);
+        /*utr.Error_in_Nav__c=true;
+update utr;*/
+        /*DOM.Document doc=new DOM.Document();
+try{
+
+doc.load(response);
+String json = XmlToJson1.parseDocumentToJson(doc);
+system.debug('**json'+json);}
+catch(exception e){
+system.debug(e.getMessage());
+}*/
+        if(!response.contains('{"success":true}')){
+            
+            Logs__c log = new Logs__c();
+            
+            log.Name = 'RazorpayorderAPI';
+            log.Request__c = requestString; 
+            log.Response__c=response;
+            log.status__c = 'Failure';
+            
+            Insert log; 
+        }
+        }
+        catch(exception e){}
+        
+        
+    }
+    @future(callout=true)
+    public static void SFDCCustomerorder(String ids) {
+        string salesorder;
+        
+        Sales_order__c sales =[Select ownerid,id,Name,sales_order_no__c,Order_Date__c,Customer_Number__c,Customer_Number__r.customer_No__c, Status__c,External_Document_No__c,Requested_Delivery_Date__c,Promised_Delivery_Date__c,Ship_to_Code__c,Ship_to_Code__r.name , Remarks__c  from Sales_Order__c where id=:ids ]; 
+        String Orderdate1=String.valueOf(sales.Order_Date__c);
+        String Orderdate=Orderdate1.substring(0, 10);
+        String Requested_Delivery_Date1=String.valueOf(sales.Requested_Delivery_Date__c);
+        String Requested_Delivery_Date;
+        if(Requested_Delivery_Date1 !=null){
+            Requested_Delivery_Date=Requested_Delivery_Date1.substring(0, 10);
+        }
+        
+        // Date vardate=date.valueOf(Orderdate);
+        /*string shipcode='';  
+if( sales.Ship_to_Code__c !=null ){
+shipcode=[select id, name,Ship_to_Code__c from Shipping_Address__c   where Name=:sales.Ship_to_Code__c].Ship_to_Code__c;}
+system.debug('shipcode::'+shipcode);*/
+        string shipcode='';
+        if( sales.Ship_to_Code__c !=null){
+            shipcode=[select id, name,Ship_to_Code__c from Shipping_Address__c where ID=:sales.Ship_to_Code__c].Ship_to_Code__c;}
+       // system.debug('shipcode'+sales.Ship_to_Code__r.name);
+        List<Sales_Order_Line__c> linelist=new List<Sales_Order_Line__c>();
+        restrequest req = RestContext.request;
+        List<RequestBodyWrap> reqBodywrap = new List<RequestBodyWrap>();
+        system.debug('reqBodywrap'+reqBodywrap);
+        for(Sales_Order_Line__c sal:[Select id,Name,Discount_Remarks__c,Variant_Code__r.Name,No__r.Name,Discount_type__c,line_no__c,Line_Discount_Per__c,Line_Discount_Amount__c,Type__c,TDS_TCS_Per__c,TDS_TCS_Amount__c,TDS_TCS_Base_Amount__c,No__c,Quantity__c,Unit_Price__c,Unit_of_Measure_Code__c,Customer_Price_Group__c ,Customer_Price_Group__r.Name,Variant_Code__c,Docket_No__c  from Sales_Order_Line__c  where Order__c=:sales.id]){
+            RequestBodyWrap lineData=new RequestBodyWrap();
+            sal.Order__c=sales.id;
+            lineData.Type=sal.Type__c;
+            lineData.No=sal.No__r.Name;
+            lineData.Quantity =sal.Quantity__c;
+            lineData.Unit_Price=sal.Unit_Price__c;
+            lineData.Line_Discount_Per=sal.Line_Discount_Per__c;
+            lineData.Line_Discount_Amount =sal.Line_Discount_Amount__c;
+            lineData.line_No=sal.Name;
+            lineData.Customer_Price_Group=sal.Customer_Price_Group__r.Name;
+            lineData.Variant_Code=sal.Variant_Code__r.Name;
+            lineData.TDS_TCS_Per=sal.TDS_TCS_Per__c;
+            lineData.TDS_TCS_Amount=sal.TDS_TCS_Amount__c;
+            lineData.TDS_TCS_Base_Amount=sal.TDS_TCS_Base_Amount__c;
+            lineData.Docket_No=sal.Docket_No__c;
+            lineData.Discount_Type=sal.Discount_type__c;
+            lineData.Discount_Remarks=sal.Discount_Remarks__c;
+            
+            reqBodywrap.add(lineData);
+        }
+        
+        system.debug('harj'+JSON.serialize(reqBodywrap));  
+        Api_Details__c obj = Api_Details__c.getvalues('SalesPeople'); 
+        List<Account> upsertAccount = new List<Account>();
+        Map<String, String > mapSPC = new Map<String, String >();
+        String requestString = '<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/"><Body><GetOrderDetails xmlns="urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer"><requestMsg>{ "header": {"SFDC_Order_No":"'+sales.Name+'","sales_order_no" : "'+sales.sales_order_no__c+'","customer_Number":"'+sales.Customer_Number__r.customer_No__c+'","Order_Date":"'+Orderdate+'","External_Document_No":"'+sales.External_Document_No__c+'","Status":"'+sales.Status__c+'","Requested_Delivery_Date":"'+Requested_Delivery_Date+'","Ship_to_Code":"'+shipcode+'","Remarks":"'+sales.Remarks__c+'"},"lines":'+JSON.serialize(reqBodywrap)+'}</requestMsg></GetOrderDetails></Body></Envelope>';
+        system.debug('requestString--'+reqBodywrap.size());
+        try{
+            String response = call('urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer',requestString, obj.Username__c, obj.Password__c, obj.End_Point_URL__c);
+            system.debug('responseeee '+ response);
+            if(!response.contains('"success":true')){
+                if (!Schema.sObjectType.Logs__c.isCreateable() ) {
+                    System.debug('Error');
+                }
+                Logs__c log = new Logs__c();
+                
+                log.Name = 'SFDCCustomerorder';
+                log.Request__c = requestString; 
+                log.Response__c=response;
+                log.status__c = 'Failure';
+                
+                Insert log; 
+            }
+        }
+        catch(exception e ){}
+        /* DOM.Document doc=new DOM.Document();
+try{
+
+doc.load(response);
+String json = XmlToJson1.parseDocumentToJson(doc);
+integer start98=json.indexof('SFSO');
+system.debug('start--'+start98);
+string customer98=json.substring(start98);
+system.debug('start--'+customer98);
+string  customers98 = customer98.replaceAll(', TotalLines:1}"}}}','');
+System.debug(customers98);
+sales.sales_order_no__c=customers98 ;
+sales.Status__c='Invoiced';
+update sales;
+}
+catch(exception e){
+system.debug(e.getMessage());
+}*/}
+    
+    public class RequestBodyWrap {
+        Public String Type;
+        Public String line_no;
+        public String No;
+        public decimal Quantity;
+        public decimal Unit_Price;
+        public decimal Line_Discount_Per;
+        public decimal Line_Discount_Amount;
+        public String Customer_Price_Group;
+        public String Variant_Code;
+        public decimal TDS_TCS_Per;
+        public decimal TDS_TCS_Amount;
+        public decimal TDS_TCS_Base_Amount;
+        public String Docket_No;
+        public String Discount_Type;
+        public String Discount_Remarks;
+    }
+    @future(callout=true)
+    public static void SFDCReturnorder(String ids){
+        Return_Order_Header__c returnorder=[Select id,Name,Invoice__c,Invoice__r.Name,Ship_to_Name__c,Ship_to_Name_2__c,No__c,Ship_to_Contact__c,Customer_Posting_Group__c,Currency_Factor__c,Gen_Bus_Posting_Group__c,Amount__c,Salesperson_Code__c,Transport_Method__c,Paid__c,Shipment_Date__c,Ship_to_Country_Region_Code__r.Name,Due_Date__c,Campaign_No__c,Remaining_Amount__c,Cust_Ledger_Entry_No__c,Responsibility_Center__c,Invoice_Discount_Amount__c,Return_Order_No__c,Ship_to_County__r.Name,Assessee_Code__c,Canceled__c,Payment_Method_Code__c,Pre_Assigned_No__c,Ship_to_Post_Code__r.Name,Document_Date__c,Customer_Disc_Group__c,Customer_Price_Group__c,Shipment_Method_Code__c,Payment_Terms_Code__c,On_Hold__c,Return_Order_Date__c,Amount_to_Customer__c,Reason_for_rejection__c,Vehicle_No__c,GST_Ship_to_State_Code__c,Ship_to_Address__c,Dealer__r.Customer_No__c,NAV_return_Order_ref_No__c,Ship_to_Address_2__c,Return_Order_status__c,Vehicle_Type__c,Sales_Return_Type__c,Invoice_Type__c,Ship_to_City__r.City_Name__c,Location_GST_Reg_No__c,Customer_GST_Reg_No__c,Referance_ID__c,Ship_to_GST_Reg_No__c,e_Invoice_Created__c,Distance_Km__c,Territory__c,Reference_Invoice_No__c,Cancelling_IRN_Date__c,E_Way_Bill_No__c,Ledger_Type__c,IRN_Hash__c,Location_State_Code__r.Name,SCM__r.Name,ZSM__r.Name,Sales_Director__r.Name,Credit_Team__r.Name,Cancel_Referance_ID__c,Cancelling_IRN__c,Sell_to_Contact_No__c,Sell_to_Customer_Name__c,Sell_to_Customer_No__r.Customer_No__c,Sell_to_Customer_Name_2__c,Sell_to_City__c,Sell_to_Post_Code__r.Name,Sell_to_Address__c,Sell_to_Country_Region_Code__c,Sell_to_Address_2__c,Sell_to_Contact__c,Bill_to_Customer_No__r.Customer_No__c,Bill_to_Name__c,Bill_to_Name_2__c,Bill_to_Address__c,Bill_to_Address_2__c,Bill_to_Contact__c,Bill_to_Contact_No__c,Bill_to_Customer_State__r.Name,Bill_to_City__c,GST_Bill_to_State_Code__c,Bill_to_Post_Code__r.Name,Bill_to_Country_Region_Code__r.Name,Posting_Date__c,Location_Code__r.Location_Code__c,State__r.name,Structure__c,Currency_Code__c,External_Document_No__c,Retrun_Order_Status__c,Ship_to_Code__c,GST_Customer_Type__c,Discount_Remarks__c,Remarks__c,Docket_No__c from Return_Order_Header__c where id=:ids];
+        List<RequestBodyWrapreturnorder> reqBodywrap = new List<RequestBodyWrapreturnorder>();
+        String postingDate1;
+        String PostingDate;
+        if(returnorder.Posting_Date__c!=null){
+             postingDate1=String.valueOf(returnorder.Posting_Date__c);
+             PostingDate=postingDate1.substring(0, 10);
+        }
+        String Orderdate1;
+        String OrderDate;
+        if(returnorder.Return_Order_Date__c !=null){
+             Orderdate1=String.valueOf(returnorder.Return_Order_Date__c);
+            
+             OrderDate=Orderdate1.substring(0, 10);
+        }
+        //Date PostingDate=Date.valueOf(trimdate[0]);
+        for(Return_Order_Line__c line:[Select id,Net_Weight__c,Docket_No__c,Charges_To_Customer__c,Concessional_Code__c,Gen_Bus_Posting_Group__c,Gen_Prod_Posting_Group__c,Gross_Weight__c,GST_Group_Type__c,GST_Jurisdiction_Type__c,GST_Place_of_Supply__c,Inv_Discount_Amount__c,Invoice_Type__c,Product_Group_Code__c,Bin_Code__c,Bill_to_Customer_No1__c,Assessable_Value__c,Document_No__c,RSM__r.Name,Line_No__c,Type__c,Item_No__c,Location_Code__r.Location_Code__c,Description__c,Quantity__c,Unit_Price__c,Line_Discount__c,Line_Discount_Amount__c,Amount__c,Customer_Price_Group__c,Line_Amount__c,Posting_Date__c,Variant_Code__r.Name,Unit_of_Measure_Code__c,Item_Category_Code__c,Assessee_Code__c,TDS_TCS__c,State__r.Name,TDS_TCS_Amount__c,TDS_TCS_Base_Amount__c,Amount_To_Customer__c,TCS_Nature_of_Collection__c,GST_Group_Code__c,GST_Base_Amount__c,GST__c,HSN_SAC_Code__c,Sales_In_charge__r.Name,DSM__r.Name,AGM_Code__r.Name,Territory__r.Name,ZM__r.Name,Return_Order_Header__c from Return_Order_Line__c where Return_Order_Header__c=:returnorder.Id]){
+            RequestBodyWrapreturnorder orderline=new RequestBodyWrapreturnorder();
+            orderline.document_no=line.Document_No__c;
+            orderline.line_no=String.valueOf(line.Line_No__c);
+            if(line.Type__c!=null){
+                orderline.Type= line.Type__c; }
+            else{
+                orderline.Type='null';
+            }
+            orderline.No=line.Item_No__c;
+            orderline.Location_Code=line.Location_Code__r.Location_Code__c;
+            if(line.Description__c!=null){
+                orderline.Description=line.Description__c;
+            }
+            else
+            {orderline.Description='null';}
+            orderline.Quantity=Integer.valueOf(line.Quantity__c);
+            orderline.Unit_Price=line.Unit_Price__c;
+            orderline.Line_Discount_Per=line.Line_Discount__c;
+            orderline.Line_Discount_Amount=line.Line_Discount_Amount__c;
+            orderline.Amount=Integer.valueOf(line.Amount__c);
+            orderline.Customer_Price_Group=line.Customer_Price_Group__c;
+            orderline.Line_Amount=line.Line_Amount__c;
+            orderline.Posting_Date=line.Posting_Date__c;
+            orderline.Variant_Code=line.Variant_Code__r.Name;
+            if(line.Unit_of_Measure_Code__c!=null){
+                orderline.Unit_of_Measure_Code= line.Unit_of_Measure_Code__c; }
+            else{
+                orderline.Unit_of_Measure_Code='null';
+            }
+            
+            
+            orderline.Item_Category_Code=line.Item_Category_Code__c;
+            orderline.Assessee_Code=line.Assessee_Code__c;
+            orderline.RSM=line.RSM__r.Name;
+            orderline.TDS_TCS_Per=line.TDS_TCS__c;
+            orderline.State=line.State__r.Name;
+            orderline.TDS_TCS_Amount=line.TDS_TCS_Amount__c;
+            orderline.Amount_To_Customer=line.Amount_To_Customer__c;
+            orderline.TDS_TCS_Base_Amount=line.TDS_TCS_Base_Amount__c;
+            orderline.TCS_Nature_of_Collection=line.TCS_Nature_of_Collection__c;
+            orderline.GST_Group_Code=line.GST_Group_Code__c;
+            orderline.GST_Base_Amount=line.GST_Base_Amount__c;
+            orderline.GST_Per=line.GST__c;
+            orderline.HSN_SAC_Code=line.HSN_SAC_Code__c;
+            orderline.Stock_In_Hand='';
+            orderline.Zone='';
+            orderline.Sales_In_charge=line.Sales_In_charge__r.Name;
+            orderline.DSM=line.DSM__r.Name;
+            orderline.AGM=line.AGM_Code__r.Name;
+            orderline.Territory=line.Territory__r.Name;
+            if(line.Docket_No__c!=null){
+                orderline.Docket_No=line.Docket_No__c;
+            }
+            else{
+                orderline.Docket_No='null';
+            }
+            orderline.ZM=line.ZM__r.Name;
+            orderline.billtocustomer=line.Bill_to_Customer_No1__c;
+            orderline.InvoiceType=line.Invoice_Type__c;
+            orderline.InvDisAmount=line.Inv_Discount_Amount__c;
+            orderline.netweight=line.Net_Weight__c;
+            
+            
+            
+            reqBodywrap.add(orderline);
+        }
+        System.debug('reqBodywrap'+reqBodywrap);
+        Api_Details__c obj = Api_Details__c.getvalues('SalesPeople');
+        List<Account> upsertAccount = new List<Account>();
+        Map<String, String > mapSPC = new Map<String, String >();
+        String requestString = '<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/"><Body><GetCreditMemoOrderDetails xmlns="urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer"><requestMsg>{ "header": {"Return_Order_Name":"'+returnorder.Name+'","Invoice_No" : "'+returnorder.Invoice__r.Name+'","Ship_to_Name":"'+returnorder.Ship_to_Name__c+'","Ship_to_Name2":"'+returnorder.Ship_to_Name_2__c+'","Document_No":"'+returnorder.No__c+'","Ship_to_Contact":"'+returnorder.Ship_to_Contact__c+'","Customer_Posting_Group":"'+returnorder.Customer_Posting_Group__c+'","Currency_Factor":"'+returnorder.Currency_Factor__c+'","Gen_Bus_Posting_Group":"'+returnorder.Gen_Bus_Posting_Group__c+'","Amount":"'+returnorder.Amount__c+'","Salesperson_Code":"'+returnorder.Salesperson_Code__c+'","Transport_Method":"'+returnorder.Transport_Method__c+'","Paid":"'+returnorder.Paid__c+'","Shipment_Date":"'+returnorder.Shipment_Date__c+'","Ship_to_Country_Region_Code":"'+returnorder.Ship_to_Country_Region_Code__r.Name+'","Due_Date":"'+returnorder.Due_Date__c+'","Campaign_No":"'+returnorder.Campaign_No__c+'","Remaining_Amount":"'+returnorder.Remaining_Amount__c+'","Cust_Ledger_Entry_No":"'+returnorder.Cust_Ledger_Entry_No__c+'","Responsibility_Center":"'+returnorder.Responsibility_Center__c+'","Invoice_Discount_Amount":"'+returnorder.Invoice_Discount_Amount__c+'","Return_Order_No":"'+returnorder.Return_Order_No__c+'","Ship_to_County":"'+returnorder.Ship_to_County__r.Name+'","Assessee_Code":"'+returnorder.Assessee_Code__c+'","Canceled":"'+returnorder.Canceled__c+'","Payment_Method_Code":"'+returnorder.Payment_Method_Code__c+'","Pre_Assigned_No":"'+returnorder.Pre_Assigned_No__c+'","Ship_to_Post_Code":"'+returnorder.Ship_to_Post_Code__r.Name+'","Document_Date":"'+returnorder.Document_Date__c+'","Customer_Disc_Group":"'+returnorder.Customer_Disc_Group__c+'","Customer_Price_Group":"'+returnorder.Customer_Price_Group__c+'","Shipment_Method_Code":"'+returnorder.Shipment_Method_Code__c+'","Payment_Terms_Code":"'+returnorder.Payment_Terms_Code__c+'","On_Hold":"'+returnorder.On_Hold__c+'","Return_Order_Date":"'+OrderDate+'","Amount_to_Customer":"'+returnorder.Amount_to_Customer__c+'","Reason_for_rejection":"'+returnorder.Reason_for_rejection__c+'","Vehicle_No":"'+returnorder.Vehicle_No__c+'","GST_Ship_to_State_Code":"'+returnorder.GST_Ship_to_State_Code__c+'","customer_Number":"'+returnorder.Sell_to_Customer_No__r.Customer_No__c+'","Ship_to_Address":"'+returnorder.Ship_to_Address__c+'","NAV_return_Order_ref_No":"'+returnorder.NAV_return_Order_ref_No__c+'","Ship_to_Address_2":"'+returnorder.Ship_to_Address_2__c+'","Return_Order_status":"'+returnorder.Return_Order_status__c+'","Vehicle_Type":"'+returnorder.Vehicle_Type__c+'","Sales_Return_Type":"'+returnorder.Sales_Return_Type__c+'","Invoice_Type":"'+returnorder.Invoice_Type__c+'","Ship_to_City":"'+returnorder.Ship_to_City__r.City_Name__c+'","Location_GST_Reg_No":"'+returnorder.Location_GST_Reg_No__c+'","Customer_GST_Reg_No":"'+returnorder.Customer_GST_Reg_No__c+'","Referance_ID":"'+returnorder.Referance_ID__c+'","Ship_to_GST_Reg_No":"'+returnorder.Ship_to_GST_Reg_No__c+'","e_Invoice_Created":"'+returnorder.e_Invoice_Created__c+'","Distance_Km":"'+returnorder.Distance_Km__c+'","Territory":"'+returnorder.Territory__c+'","Reference_Invoice_No":"'+returnorder.Reference_Invoice_No__c+'","Cancelling_IRN_Date":"'+returnorder.Cancelling_IRN_Date__c+'","E_Way_Bill_No":"'+returnorder.E_Way_Bill_No__c+'","Ledger_Type":"'+returnorder.Ledger_Type__c+'","IRN_Hash":"'+returnorder.IRN_Hash__c+'","Location_State_Code":"'+returnorder.Location_State_Code__r.Name+'","SCM":"'+returnorder.SCM__r.Name+'","ZSM":"'+returnorder.ZSM__r.Name+'","Sales_Director":"'+returnorder.Sales_Director__r.Name+'","Credit_Team":"'+returnorder.Credit_Team__r.Name+'","Cancel_Referance_ID":"'+returnorder.Cancel_Referance_ID__c+'","Cancelling_IRN":"'+returnorder.Cancelling_IRN__c+'","Sell_to_Contact_No":"'+returnorder.Sell_to_Contact_No__c+'","Sell_to_Customer_Name":"'+returnorder.Sell_to_Customer_Name__c+'","Sell_to_Customer_No":"'+returnorder.Sell_to_Customer_No__r.Customer_No__c+'","Sell_to_Customer_Name_2":"'+returnorder.Sell_to_Customer_Name_2__c+'","Sell_to_City":"'+returnorder.Sell_to_City__c+'","Sell_to_Post_Code":"'+returnorder.Sell_to_Post_Code__r.Name+'","Sell_to_Address":"'+returnorder.Sell_to_Address__c+'","Sell_to_Country_Region_Code":"'+returnorder.Sell_to_Country_Region_Code__c+'","Sell_to_Address_2":"'+returnorder.Sell_to_Address_2__c+'","Sell_to_Contact":"'+returnorder.Sell_to_Contact__c+'","Bill_to_Customer_No":"'+returnorder.Bill_to_Customer_No__r.Customer_No__c+'","Bill_to_Name":"'+returnorder.Bill_to_Name__c+'","Bill_to_Name_2":"'+returnorder.Bill_to_Name_2__c+'","Bill_to_Address":"'+returnorder.Bill_to_Address__c+'","Bill_to_Address_2":"'+returnorder.Bill_to_Address_2__c+'","Bill_to_Contact":"'+returnorder.Bill_to_Contact__c+'","Bill_to_Contact_No":"'+returnorder.Bill_to_Contact_No__c+'","Bill_to_Customer_State":"'+returnorder.Bill_to_Customer_State__r.Name+'","Bill_to_City":"'+returnorder.Bill_to_City__c+'","GST_Bill_to_State_Code":"'+returnorder.GST_Bill_to_State_Code__c+'","Bill_to_Post_Code":"'+returnorder.Bill_to_Post_Code__r.Name+'","Bill_to_Country_Region_Code":"'+returnorder.Bill_to_Country_Region_Code__r.Name+'","posting_date":"'+PostingDate+'","Order_Date":"'+OrderDate+'","Location_Code":"'+returnorder.Location_Code__r.Location_Code__c+'","State":"'+returnorder.State__r.name+'","Structure":"'+returnorder.Structure__c+'","Currency_Code":"'+returnorder.Currency_Code__c+'","External_Document_No":"'+returnorder.External_Document_No__c+'","Status":"'+returnorder.Retrun_Order_Status__c+'","Ship_to_Code":"'+returnorder.Ship_to_Code__c+'","GST_Customer_Type":"'+returnorder.GST_Customer_Type__c+'","Discount_Remarks":"'+returnorder.Discount_Remarks__c+'","Remarks":"'+returnorder.Remarks__c+'","Docket_No":"'+returnorder.Docket_No__c+'"},"lines":'+JSON.serialize(reqBodywrap)+'}</requestMsg></GetCreditMemoOrderDetails></Body></Envelope>';
+        System.debug('requestString'+requestString);
+        System.debug(reqBodywrap.size());
+        String response = call('urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer',requestString, obj.Username__c, obj.Password__c, obj.End_Point_URL__c);
+        system.debug('responseeee '+ response);
+        if(!response.contains('{"success":true}')){
+            
+            Logs__c log = new Logs__c();
+            
+            log.Name = 'SFDCReturnorder';
+            log.Request__c = requestString; 
+            log.Response__c=response;
+            log.status__c = 'Failure';
+            
+            Insert log; 
+        }
+        /* DOM.Document doc=new DOM.Document();
+
+try{
+
+doc.load(response);
+String json = XmlToJson1.parseDocumentToJson(doc);
+integer start98=json.indexof('SFSO');
+system.debug('start--'+start98);
+
+}
+catch(exception e){
+system.debug(e.getMessage());
+}*/
+        
+    }
+    public class RequestBodyWrapreturnorder {
+        Public String document_no;
+        Public String line_no;
+        public String Type;
+        public String No;
+        public String Location_Code;
+        public String Description;
+        public Integer Quantity;
+        public decimal netweight;
+        //public Integer Qty_to_Ship;
+        public decimal Unit_Price;
+        public decimal Line_Discount_Per;
+        public decimal Line_Discount_Amount;
+        public decimal Amount;
+        public String Customer_Price_Group;
+        public decimal Line_Amount;
+        public Date Posting_Date;
+        public String Variant_Code;
+        public String Unit_of_Measure_Code;
+        public String Item_Category_Code;
+        public String Assessee_Code;
+        public String RSM;
+        public decimal TDS_TCS_Per;
+        public String State;
+        public decimal TDS_TCS_Amount;
+        public decimal Amount_To_Customer;
+        public decimal TDS_TCS_Base_Amount;
+        public String TCS_Nature_of_Collection;
+        public String GST_Group_Code;
+        public decimal GST_Base_Amount;
+        public decimal GST_Per;
+        public String HSN_SAC_Code;
+        public String Stock_In_Hand;
+        public String Zone;
+        public String Sales_In_charge;
+        public String DSM;
+        public String AGM;
+        public String Territory;
+        public String Docket_No;
+        public String ZM;
+        public string billtocustomer;
+        public string InvoiceType;
+        public decimal InvDisAmount;
+        
+    }
+    
+    @future(callout=true)
+    public static void SFDCLimitProposal(String ids) {
+        
+        proposal__c pro=[select id,Name,Amount__c,Status__c,Approval_Status__c,Ratio__c,Bank_Name__c,Credit_Days__c,Expiry_Date__c,Dealer__c,Dealer__r.Customer_No__c,Remarks__c,Type__c  from proposal__c where id=:ids limit 1];
+        String Expirydate1='';
+        String Expirydate='';
+        if(pro.Expiry_Date__c !=null){
+            Expirydate1=String.valueOf(pro.Expiry_Date__c);
+            Expirydate=Expirydate1.substring(0, 10);
+        }
+        
+        Api_Details__c obj = Api_Details__c.getvalues('SalesPeople'); 
+        
+        String requestString = '<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/"><Body><GetCreditLimitProposal xmlns="urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer"><requestMsg>{"Amount":"'+pro.Amount__c+'","Ratio":"'+pro.Ratio__c+'","Type":"'+pro.Type__c+'","BankName":"'+pro.Bank_Name__c+'","AdditionalCreditLimitExp":"'+Expirydate+'","CreditDays":"'+pro.Credit_Days__c+'","Status":"'+pro.Status__c+'","Dealer":"'+pro.Dealer__r.Customer_No__c+'","ProposalId":"'+pro.Name+'","Remarks":"'+pro.Remarks__c+'","Type":"'+pro.Type__c+'"}</requestMsg></GetCreditLimitProposal></Body></Envelope>';
+        String response = call('urn:microsoft-dynamics-schemas/codeunit/SFDCCustomer', requestString, obj.Username__c, obj.Password__c, obj.End_Point_URL__c);
+        system.debug('****response'+response);
+        if(response.contains('{"success":true}')/* && Schema.SObjectType.Proposal__c.fields.Status__c.isUpdateable()==true*/){
+            pro.Status__c='Updated';
+            update pro;
+        }
+        else{
+            if (!Schema.sObjectType.Logs__c.isCreateable() ) {
+                System.debug('Error');
+            }
+            Logs__c log = new Logs__c();
+            
+            log.Name = 'SFDCLimitProposal';
+            log.Request__c = requestString; 
+            log.Response__c=response;
+            log.status__c = 'Failure';
+            
+            Insert log; 
+        }
+        /*  DOM.Document doc=new DOM.Document();
+try{
+
+doc.load(response);
+String json = XmlToJson1.parseDocumentToJson(doc);
+system.debug('**json'+json);}
+catch(exception e){
+system.debug(e.getMessage());
+}*/
+    }
+}

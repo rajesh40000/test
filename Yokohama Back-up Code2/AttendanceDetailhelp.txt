@@ -1,0 +1,23 @@
+({
+	helperMethod : function() {
+		
+	},
+     leaveType : function(component, event) {
+        var action = component.get("c.getFreight3");
+        action.setCallback(this, function(response) {
+            var state = response.getState();
+            if (state === "SUCCESS") {
+                var result = response.getReturnValue();
+                console.log(result);
+                var flagMap = [];
+                for(var key in result){
+                    flagMap.push({key: key, value: result[key]});
+                    
+                    //alert(result[key]);
+                }
+                component.set("v.flagMap", flagMap);
+            }
+        });
+          $A.enqueueAction(action);
+      },
+})

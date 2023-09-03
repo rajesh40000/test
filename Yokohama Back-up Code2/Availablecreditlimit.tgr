@@ -1,0 +1,23 @@
+trigger Availablecreditlimit on Invoice__c (after insert) {
+    
+      TriggerDisabled__c bypassTrigger= TriggerDisabled__c.getInstance('DisableTrigger');
+    system.debug('bypassTrigger '+ bypassTrigger);
+    system.debug('bypassTrigger '+ bypassTrigger.Is_Disabled_Trigger__c);
+    
+    if(!bypassTrigger.Is_Disabled_Trigger__c){
+
+        
+           List<Invoice__c> invList=new List<Invoice__c>();
+    for(Invoice__c inv:trigger.new){
+        invList.add(inv);
+    }
+    for(Invoice__c inv:invList){
+        if(invList.size()>0){
+            HttpCallOut.SFDCAvailableBalance(inv.id); 
+            
+            
+            system.debug('im here');
+        }
+    }
+  }
+}

@@ -1,0 +1,79 @@
+@RestResource(urlMapping='/checkclaimcustomerAPI/')
+global class checkclaimcustomerAPI {
+
+global class Response {     
+        global string message;
+    }
+    @HttpPost
+    global static void doPost(){
+        restrequest req = RestContext.request;
+        RequestBodyWrap reqBodywrap = parse(req.requestBody.toString());
+        responseWrap resWrap = new responseWrap();
+        List<cls_result> resultParaList = new List<cls_result>();
+        list<Claim__c> warRegList = new list<Claim__c>();
+        cls_result resultPara = new cls_result();
+        for(cls_warReg lineData: reqBodywrap.line)
+        {
+            Claim__c lines = new Claim__c();
+list<Claim__c> rec = [select id,customer_mobile__c,Phone_no__c from Claim__c where id =:lineData.teamid and customer_mobile__c =:lineData.phoneNo];   
+              
+       if(rec.size()>0){
+                
+                resultPara.Status = 'Success';
+                resultPara.response_message = 'Successfully match found';
+                integer rndnum=Math.round(Math.random()*9999);
+            system.debug('Random OTP:::'+rndnum);
+                rec[0].Phone_no__c=String.valueOf(rndnum);
+
+                resultParaList.add(resultPara);
+        system.debug('resultParaList----'+resultParaList);
+                String message='Dear ANKIT SHARMA '+rndnum+' Invoice No 98542 dated fdgh for Rs. 89 issued by Yokohama India. Thanks. Please do not reply' ;
+
+                SendBulkSMS.send(lineData.phoneNo, message);
+                resWrap.result = resultParaList;
+        RestResponse res = RestContext.response;
+        res.statusCode = 200;
+        res.responseBody = Blob.valueof(JSON.serialize(resWrap));
+                
+                system.debug('successfull');
+            } else{
+                resultPara.Status = 'Failure';  
+                resultPara.response_message = 'failed no match found';
+                resultParaList.add(resultPara);
+        system.debug('resultParaList----'+resultParaList);
+                resWrap.result = resultParaList;
+        RestResponse res = RestContext.response;
+        res.statusCode = 400;
+        res.responseBody = Blob.valueof(JSON.serialize(resWrap));
+                
+                system.debug('failed');
+            }
+        }
+    }
+    
+    public class RequestBodyWrap{
+        public cls_warReg[] line;
+        
+    }
+    
+    public class cls_warReg {
+        public String  teamid;
+        Public String phoneNo;
+      // Public Decimal Otp;
+        
+       
+    }
+    public class responseWrap{
+        public cls_result[] result;
+    }
+    public class cls_result {
+        public String Status;
+        public String response_message;
+        
+        
+    }
+    public static RequestBodyWrap parse(String json){
+        return (RequestBodyWrap) System.JSON.deserialize(json, RequestBodyWrap.class);
+        
+    }
+}

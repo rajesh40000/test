@@ -1,0 +1,18 @@
+trigger AttachmentIDUpdate on Attachment (After insert) {
+  /*  Set<String> clid=new Set<String>();
+    for(Attachment att:trigger.new){
+        clid.add(att.ParentID);
+        System.debug('att.id:::'+att.ParentID);
+    }
+    System.debug('att.id:::'+clid);
+    List<Claim__c> cmlisttoUpdate=new List<Claim__c>();
+    
+    List<Attachment> attlist=[Select id from Attachment where id=:trigger.new];
+    List<Claim__c> cllist=[Select id,Name,AttachmentID__c from Claim__c where id =:attlist[0].ParentID  limit 1];
+    if(attlist.size()>0){
+    for(Attachment att:attlist){
+        cllist[0].AttachmentID__c=att.Id;
+    }
+    }
+    Update cllist;*/
+}

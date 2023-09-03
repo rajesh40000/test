@@ -1,0 +1,99 @@
+public with sharing class CampaignRequisitionLocation {
+    @AuraEnabled
+    public static string getSuggestions(String input) {
+        String url = 'https://maps.googleapis.com/maps/api/place/autocomplete/json?'
+            + 'input=' + EncodingUtil.urlEncode(input, 'UTF-8')
+           + getKey();
+        String response = getResponse(url);
+        return response;
+    }
+    @AuraEnabled
+    public static string getPlaceDetails(String placeId) {
+        String url = 'https://maps.googleapis.com/maps/api/place/details/json?'
+            + 'placeid=' + EncodingUtil.urlEncode(placeId, 'UTF-8')
+            + getKey();
+        String response = getResponse(url);
+        return response;
+    }
+    
+    public static string getResponse(string strURL){
+        Http h = new Http();
+        HttpRequest req = new HttpRequest();
+        HttpResponse res = new HttpResponse();
+        req.setMethod('GET');
+        req.setEndpoint(strURL);
+        req.setTimeout(120000);
+        res = h.send(req);
+        String responseBody = res.getBody();
+        return responseBody;
+    }
+    public static string getKey(){
+        string key = 'AIzaSyAX45iK-vY21o8i1unOgHY6ywNk49EoS7o';
+        string output = '&key=' + key;
+        return output;
+    }
+    
+    @AuraEnabled
+    public static void abc(String street, Decimal Lati, Decimal Longi,String zip ,String CampId){
+       // Id CampId='a129D000000mqIoQAI';
+       	system.debug('testharje'+CampId);
+        Campaign__c campp = new Campaign__c(id = CampId);
+      //  campp= [Select Pin_Code__c,Street__c,id from Campaign__c where id =: CampId];
+        system.debug('CampID'+ campp.Id);
+        campp.Street__c= street;
+        campp.Pin_Code__c=zip;
+        campp.New_Location__longitude__s=Longi;
+        campp.New_Location__latitude__s=Lati;
+        system.debug('camppp '+campp.Street__c+' '+ campp.Pin_Code__c+'   '+ campp.New_Location__Latitude__s+'   '+ campp.New_Location__Longitude__s );
+    Upsert campp;  
+       
+    }
+    
+    @AuraEnabled
+    public static string getAddress(String Location,Decimal  Lati, Decimal Longi,String street,String zip,String campId){
+        system.debug('GaytriTest');
+        system.debug('GaytriTest'+ Location +  Lati +  Longi);
+        system.debug('valuess '+ Location );
+        system.debug('valuess '+ Lati );
+        system.debug('valuess '+ Longi);
+        system.debug('valuess '+ street);
+        system.debug('valuess '+ zip);
+        system.debug('valuess '+ campId);
+        
+        warpper wrap = new warpper();
+        try{
+            Campaign__c camp =New Campaign__c();
+            
+            String[] LocationStr = Location.split(',');
+            system.debug('LocationStr '+ LocationStr);
+            system.debug('LocationStrfrst '+ LocationStr[0]);
+            camp.New_Location__longitude__s=Longi;
+            camp.New_Location__latitude__s=Lati;
+            camp.Street__c = street;
+            camp.Pin_Code__c = zip;
+            
+            Update camp;
+            system.debug('CAMPAIGN REQUISITION ID '+ camp.Id);
+            system.debug('CampaignRequisitionInsertedSucessfully');
+            
+            wrap.CampaignId =camp.Id; wrap.isSuccess = true;
+            
+        }catch(Exception e){
+            wrap.isSuccess = false;
+            wrap.errormessage = e.getMessage().substringAfter(',');
+            system.debug('Exception**' + wrap.errormessage);
+            system.debug('Exception**'+e.getLinenumber());
+        }
+        return JSON.serialize(wrap);
+    }
+    public class warpper{
+        @AuraEnabled
+        public boolean isSuccess{get;set;}
+        
+        @AuraEnabled
+        public String errormessage{get;set;}
+        
+        @AuraEnabled
+        public String CampaignId{get;set;}
+    }
+}

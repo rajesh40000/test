@@ -1,0 +1,13 @@
+trigger ContentDocumentBalanceTrigger on ContentVersion (after insert) {
+    
+   /* map<Id,string> maplist=new map<Id,string>();
+    for(ContentVersion uploadImage:trigger.new){
+        maplist.put(uploadImage.FirstPublishLocationId,uploadImage.Title);
+        
+    }
+    list<Balance_Confirmation__c> bcc=[select Dealer__c,Id from Balance_Confirmation__c where Id=:maplist.keySet()];
+    for(Balance_Confirmation__c blist:bcc){
+        EsignatureBalanceConfirmation.dopostAadhaarDetail(blist.Dealer__c);
+    }*/
+         
+}

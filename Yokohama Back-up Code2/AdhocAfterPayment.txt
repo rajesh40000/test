@@ -1,0 +1,111 @@
+trigger AdhocAfterPayment on UTR__c (after update) {
+    
+   /* TriggerDisabled__c bypassTrigger= TriggerDisabled__c.getInstance('DisableTrigger');
+    system.debug('bypassTrigger '+ bypassTrigger);
+    system.debug('bypassTrigger '+ bypassTrigger.Is_Disabled_Trigger__c);
+    
+    if(!bypassTrigger.Is_Disabled_Trigger__c){
+        
+    }*/
+    
+    public static string price;
+    List<Invoice__c> Invoicelist = new List<Invoice__c>();
+    List<Invoice__c> InvoiceUpdateList = new List<Invoice__c>();
+    List<SD_Ledger__c> SecurityDepositeList = new List<SD_Ledger__c>();
+    //system.debug('trigger.new[0] '+ trigger.new[0]);
+    UTR__c utrr ;
+    for(UTR__c ut:trigger.new){
+        utrr=ut;
+    }
+    Decimal Amount= utrr.Amount__c;
+    public static Decimal Remaining;
+    
+    Remaining=Amount;
+    
+    Invoicelist =  [Select Name, Id,Unpaid_Amount__c , Invoice_Status__c, Amount__c, UTR__c,Dealer__c,Bill_to_Customer_No__c from Invoice__c where Invoice_Status__c != 'Paid' AND Bill_to_Customer_No__c =: trigger.new[0].Customer_No__c order by Createddate desc ];
+    
+    SecurityDepositeList =  [Select Id,Customer_No__c, Amount__c, Createddate ,Status__c from SD_Ledger__c  where Customer_No__c =:trigger.new[0].Customer_No__c AND Status__c =: 'Open' order by Createddate desc ];
+    
+    if(trigger.oldMap.get(utrr.Id).Signature_ID__c != utrr.Signature_ID__c)  
+    {
+        system.debug('changed ');    
+        if(Invoicelist.size() != 0)
+        {
+            system.debug('sizeegreater');
+            for(Invoice__c inv: Invoicelist)
+            {
+                if(Remaining != 0)
+                { 
+                    system.debug('invoiceee '+ inv.Id + '    '+ inv.Name);
+                    
+                    if( inv.Invoice_Status__c != 'Partially Paid')
+                    {
+                        system.debug('Partially Paid ');
+                        if( Remaining> inv.Amount__c) 
+                        {
+                            system.debug(' If '+ inv.Name );
+                            inv.Invoice_Status__c='Paid';
+                            Remaining =   Remaining - inv.Amount__c;
+                            inv.Unpaid_Amount__c = 0;
+                            InvoiceUpdateList.add(inv);
+                        }
+                        else
+                        {
+                            system.debug(' Else '+ inv.Name );
+                            inv.Invoice_Status__c= 'Partially Paid';
+                            system.debug(Remaining+'test'+inv.Amount__c);
+                            if(inv.Amount__c !=null){
+                                inv.Unpaid_Amount__c=inv.Amount__c - Remaining;}
+                            else{
+                                inv.Unpaid_Amount__c=Remaining;
+                            }
+                            Remaining = 0;
+                            InvoiceUpdateList.add(inv);
+                        }
+                        
+                    }
+                    else
+                    {
+                        system.debug('Partially Paid NOttttt');
+                        if( Remaining> inv.Unpaid_Amount__c) 
+                        {
+                            inv.Invoice_Status__c='Paid';
+                            Remaining =   Remaining - inv.Unpaid_Amount__c;
+                            inv.Unpaid_Amount__c = 0;
+                            InvoiceUpdateList.add(inv);
+                        }
+                        else
+                        {
+                            decimal unpaid =  inv.Unpaid_Amount__c;
+                            inv.Unpaid_Amount__c= unpaid -Remaining ;
+                            Remaining = 0 ;
+                            InvoiceUpdateList.add(inv);
+                        }
+                    }
+                }
+                
+            }
+            Update InvoiceUpdateList;
+        }
+        
+        if(SecurityDepositeList.size() != 0)
+        {
+            for(SD_Ledger__c SecDep: SecurityDepositeList)
+            {
+                if(Remaining != 0)
+                { 
+                    
+                    if( Remaining> SecDep.Amount__c) 
+                    { 
+                        
+                    }
+                    else
+                    {
+                        
+                    }
+                    
+                }
+            }
+        }   
+    }
+}

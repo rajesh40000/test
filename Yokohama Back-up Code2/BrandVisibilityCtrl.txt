@@ -1,0 +1,39 @@
+public class BrandVisibilityCtrl {
+	public Beat__c beat{get;set;}
+    public Attachment attachment{get;set;}
+    public Attachment attachment1{get;set;}
+    
+    public BrandVisibilityCtrl(ApexPages.StandardController controller){
+        attachment = new attachment();
+        attachment1 = new attachment();
+        beat =[Select Id, name, Competitor_1__c,Coverage__c, Send_Marketing_Material__c, Marketing_Material_Summary__c, Visibility_Level__c, Pricing_Scheme_Info__c, Competitor_Summary__c,My_summary__c, Competitor_2__c, Competitor_3__c, Summary_of_Discussion__c from Beat__c where Id =: ApexPages.currentPage().getParameters().get('id')];    
+    }
+    
+    Public PageReference Save1(){
+        PageReference pgr=null;
+        try{
+            update beat;
+            if(attachment.name != null && attachment.name.length()>0){
+                attachment.OwnerId = UserInfo.getUserId();
+                attachment.ParentId = beat.id; // the record the file is attached to
+                attachment.IsPrivate = false;
+                insert attachment;
+            }
+            if(attachment1.name != null && attachment1.name.length()>0){
+                attachment1.OwnerId = UserInfo.getUserId();
+                attachment1.ParentId = beat.id; // the record the file is attached to
+                attachment1.IsPrivate = false;
+                insert attachment1;
+            }
+            pgr=new PageReference('/'+beat.Id);
+            pgr.setRedirect(true);
+            //return pgr;
+            
+            
+        }
+        catch(Exception e){
+            Apexpages.addMessages(e);
+        }
+        return pgr;
+    }
+}

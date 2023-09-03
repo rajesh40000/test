@@ -1,0 +1,18 @@
+trigger CheckingTypedistributor on User (before insert) {
+    String mailid = '';
+    String profileid = '00eO0000000JT5Z';
+    List<contact> conlist = new List<contact>();
+    for(user usr : trigger.new){
+        mailid = usr.Email;
+    }
+    conlist = [select id, Account.Type, Email from contact where email =: mailid];
+    List<profile> profilelist = new List<profile>([select id,name from profile where name = 'Customer Community User']);
+    System.debug('conlist '+conlist);
+    for(contact con : conlist){
+        if(con.Account.Type != 'Distributor' && profilelist[0].name =='Customer Community User'){
+            for(user usr : trigger.new){
+                usr.addError('Unable to create user');
+            }
+        }
+    }
+}

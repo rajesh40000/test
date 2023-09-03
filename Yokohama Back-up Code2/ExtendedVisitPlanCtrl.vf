@@ -1,0 +1,314 @@
+<apex:page standardController="Visit_Plan__c" extensions="ExtendedVisitPlanCtrl" standardStylesheets="true" lightningStylesheets="true">
+<html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="x-ua-compatible" content="ie=edge" />
+  <title>Salesforce Lightning Design System Trailhead Module</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  <!-- Import the Design System style sheet -->
+  .bPageBlock.apexDefaultPageBlock, body .bPageBlock.bDetailBlock, body .bPageBlock.bEditBlock, .slds-scope .bPageBlock.apexDefaultPageBlock, .slds-scope .bPageBlock.bDetailBlock, .slds-scope .bPageBlock.bEditBlock {
+    padding: 1rem;
+}
+
+body .bPageBlock, body #bodyCell .bResource .secondaryPalette, body .secondaryPalette.bPageBlock, body .individualPalette .secondaryPalette.bPageBlock, body .bodyDiv .genericTable, body .genericPageBlockTable, body .bodyDiv .bSubBlock, body .bComponentBlock .bPageBlock, body .bMyDashboard .bPageBlock, body.rlHoverFrame .bPageBlock, body.subjectSelectionPopup div.choicesBox, body.lookupTab .secondaryPalette.bPageBlock, body.popupTab .secondaryPalette.bPageBlock, body.UserTagStatsPage .secondaryPalette.bPageBlock {
+    margin-bottom: 1rem;
+    border: 1px solid #dddbda;
+    border-radius: .25rem;
+    background: white;
+    -webkit-box-shadow: 0 2px 0 0 rgba(0,0,0,.1);
+    box-shadow: 0 2px 0 0 rgba(0,0,0,.1);
+    background-clip: padding-box;
+}
+    .message .messageText h4 {
+    font-weight: bold;
+   color:#fff !important;
+    margin-left: -60 px;
+    display: block;
+}
+    .errorM3 .msgIcon, .errorMedium {
+    
+    background-position: 0 0 !important;
+    width: 24px !important;
+    height: 24px !important;
+}
+.message {
+    background-color: #c23934 !important;
+    border-style: solid;
+    border-width: 1px;
+    color: #fff !important;
+    padding: 6px 8px 6px 6px;
+    margin: 4px 20px;
+    
+}
+td.messageCell {
+color: #fff !important;
+}
+input[type="submit"], body .pbButton .btn, body .pbButtonb .btn, body input.btn, .slds-scope input[type="submit"], .slds-scope .pbButton .btn, .slds-scope .pbButtonb .btn, .slds-scope input.btn {
+    -webkit-appearance: none;
+    position: relative;
+    display: inline-block;
+    border: 1px solid transparent;
+    padding: 0;
+    font-size: 11px;
+    font-weight:none;
+    line-height: 1.875rem;
+    text-decoration: none;
+    white-space: normal;
+    border-radius: .25rem;
+    background: transparent;
+    background-clip: border-box;
+    color: #0070d2;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-transition: color .05s linear,background-color .05s linear;
+    transition: color .05s linear,background-color .05s linear;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid #dddbda;
+    -webkit-transition: border .15s linear;
+    transition: border .15s linear;
+    border-color: #dddbda;
+    background-color: white;
+    float:right;
+}
+body select, body select[size='0'], body select[size='1'], .slds-scope select, .slds-scope select[size='0'], .slds-scope select[size='1'] {
+    border: 1px solid #dddbda;
+    max-width: 100%;
+    border-radius: .25rem;
+    background-color: white;
+    color: #16325c;
+    -webkit-transition: border .1s linear,background-color .1s linear;
+    transition: border .1s linear,background-color .1s linear;
+    height: calc(1.875rem+(1px * 2));
+     padding: 5px 16px;
+    
+}
+body label, .slds-scope label {
+    display: inline-block;
+    margin-right: .75rem;
+    font-size: .75rem;
+    line-height: 1.5;
+    color: #706e6b;
+}
+body .bPageTitle .pageDescription, .slds-scope .bPageTitle .pageDescription {
+    font-size: 1.25rem;
+    line-height: 1.25;
+}
+
+body .bPageTitle .pageType, body .bPageTitle .pageDescription, .slds-scope .bPageTitle .pageType, .slds-scope .bPageTitle .pageDescription {
+    margin: 0;
+    padding: 0;
+    font-weight: 400;
+}
+
+h2 {
+    display: block;
+    font-size: 1.5em;
+    -webkit-margin-before: 0.83em;
+    -webkit-margin-after: 0.83em;
+    -webkit-margin-start: 0px;
+    -webkit-margin-end: 0px;
+    font-weight: bold;
+}
+body .slds-vf-data-table, .slds-scope .slds-vf-data-table {
+    background-color: white;
+    font-size: inherit;
+}
+body .list th, body .list td, .slds-scope .list th, .slds-scope .list td {
+    border: 0;
+    border-top:1px solid #ccc !important;
+}
+.apexp .detailList .list .headerRow th {
+    border-bottom: 0px solid #ccc;
+    white-space: nowrap;
+}
+body .apexp .pbBody table.list {
+    border:0px solid #e0e3e5;
+}
+
+body .pbBody table.list {
+    background-color: #fff;
+    border-top:0px solid #e0e3e5;
+}
+.apexp .detailList .list td, .apexp .detailList .list th, .apexp .editPage .bPageBlock .detailList .list tr td, .apexp .editPage .bPageBlock .detailList .list tr th {
+    padding: 4px 2px 4px 5px;
+    color: #333;
+    border-bottom:0px solid #e3deb8;
+}
+
+body .pbBody table.list tr th, body .pbBody table.list tr td {
+    border:0px solid #ededed;
+    color: #000;
+}
+body .pbBody table.list tr.dataRow th, body .pbBody table.list tr.dataRow td {
+    border-width: 0 0 0px 0;
+    vertical-align: middle;
+}
+
+
+
+
+
+
+
+
+body .bEditBlock .pbBody .pbSubheader, body .bWizardBlock .pbBody .pbSubheader {
+   
+    
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+   
+    padding: 0 .5rem;
+    width: 100%;
+    overflow: hidden;
+    
+    line-height: 1.875rem;
+    background: #fafaf9 !important;
+}
+body .bPageBlock .pbSubheader h3, .slds-scope .bPageBlock .pbSubheader h3 {
+    margin: 0;
+    font-weight: inherit;
+    font-size: inherit;
+}
+body .dateInput input[type='text'], .slds-scope .dateInput input[type='text'] {
+    display: inline-block;
+    margin-right: .5rem;
+    width: auto;
+    min-width: auto;
+}
+body input[type="text"], .slds-scope input[type="text"] {
+    border: 1px solid #dddbda;
+    max-width: 100%;
+    border-radius: .25rem;
+    background-color: white;
+    color: #16325c;
+    -webkit-transition: border .1s linear,background-color .1s linear;
+    transition: border .1s linear,background-color .1s linear;
+    display: inline-block;
+    padding: 0 1rem 0 .75rem;
+    min-height: calc(1.875rem+(1px * 2));
+    line-height: 23px !important;
+}
+.bEditBlock .pbHeader>table, .apexp .bPageBlock.apexDefaultPageBlock .pbHeader>table, #ep.bLayoutBlock .pbHeader>table {
+    border-bottom: 0px solid #dbdbdb;
+}
+body .bPageBlock .pbSubheader h3, .slds-scope .bPageBlock .pbSubheader h3 {
+    margin: 0;
+    font-weight: initial;
+    font-size: initial;
+}
+body .pbTitle .mainTitle, .slds-scope .pbTitle .mainTitle {
+    font-weight: 700;
+}
+
+.slds-scope h1, .slds-scope h2, .slds-scope h3, .slds-scope h4, .slds-scope h5, .slds-scope h6, .slds-scope td, .slds-scope th {
+    font-family: "Salesforce Sans",Arial,sans-serif;
+}
+body .bPageTitle .ptBody .pageDescription {
+    font-size: 1.25rem;
+    line-height: 1.25;
+}
+.message {
+    background-color: #c23934 !important;
+    border-style: solid;
+    border-width: 1px;
+    color: #fff !important;
+    padding: 6px 8px 6px 6px;
+    margin: 4px 20px;
+}
+.message .messageText h4 {
+   
+    color: white;
+}
+.message .messageTable .messageCell {
+    
+    color: white;
+}
+.slds-scope table {
+    width: 30%;
+}
+
+.slds-scope ol, .slds-scope ul {
+    list-style: none;
+    color: white;
+    margin: 0px;
+}
+</style>
+
+    <Script>
+
+function setFocusOnLoad() {}
+
+</Script>
+  <apex:slds />
+  </head>
+
+    <apex:sectionHeader title="Visit Plan" subtitle="{!vp.name}"/>
+    <apex:actionstatus id="counterStatus">
+        <apex:facet name="start">
+            <div class="waitingSearchDiv" id="el_loading" style="background-color: #fbfbfb; height:100%;opacity:0.65;width:100%;">
+                <div class="waitingHolder" style="top: 100px; width: 91px;">
+                <img class="waitingImage" src="/img/loading.gif" title="Please Wait..." />
+                <span class="waitingDescription">Loading...</span>
+                </div>
+            </div>
+        </apex:facet>
+    </apex:actionstatus>
+    
+     <apex:form id="theform" >
+        <apex:pageMessages id="pm"/>
+        <apex:pageBlock title="Visit Plan Edit" mode="edit" id="pb1">
+            <apex:pageBlockSection title="Information" columns="2" rendered="{!b1=true}">
+                <apex:outputField value="{!vp.From__c}"/>
+                <apex:inputField value="{!vp.To__c}"/>
+                 
+                
+                
+            </apex:pageBlockSection>
+            <apex:pageBlockButtons location="bottom" rendered="{!b1=true}">
+                <apex:commandButton value="Save and Next" action="{!Saveandnext}" reRender="theform"/>
+                <apex:commandButton value="Cancel" action="{!cancel}" immediate="true"/>
+            </apex:pageBlockButtons>
+            
+            <apex:pageBlockSection title="Information" rendered="{!b1=false}">
+                <apex:outputField value="{!vp.From__c}"/>
+                <apex:outputField value="{!vp.To__c}"/> 
+                <!--<apex:outputField value="{!vp.city_type__c}"/> -->  
+                <apex:outputField value="{!vp.recordtypeid}"/> 
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection title="Tour Plan" rendered="{!b1=false}" columns="1">
+                <apex:pageBlockTable value="{!dp}" var="d" >
+                    
+                    <apex:column headerValue="From Date">
+                        <apex:inputField value="{!d.From__c}" required="true"> 
+                        <!--<apex:actionSupport event="onchange" reRender="theform"/>-->
+                    </apex:inputField></apex:column>
+                    <apex:column headerValue="To Date"><apex:inputField value="{!d.To__c}" required="true"/></apex:column>
+                    <apex:column headerValue="Select City"><apex:inputField value="{!d.City_lookup__c}" required="true"/></apex:column>
+                    
+                    
+                </apex:pageBlockTable>
+            </apex:pageBlockSection>
+            <apex:pageblockButtons location="bottom" id="pbt" rendered="{!b1=false}">
+                <div style="text-align:right;margin:10px 0;font-weight:bold;float:right;">
+                    <apex:commandLink value="Add Row" action="{!addRow}" rerender="pb1,table" immediate="true" style="color:#808000;"/>
+                           &nbsp;|&nbsp;&nbsp;
+                    <apex:commandLink value="Remove Row" action="{!removeRow}" rerender="pb1,table" immediate="true" style="color:#808000;"/>                
+                </div>
+                <br clear="all" />
+                <apex:commandButton value="Save" action="{!Savefinal}" reRender="pm"/>
+                <!--<apex:commandButton value="Edit Visit details"  reRender="theform" immediate="true"/>-->
+                <apex:commandButton value="Cancel" action="{!cancel}" immediate="true"/>
+            </apex:pageblockButtons> 
+        </apex:pageBlock>
+     </apex:form>
+
+</html>  
+</apex:page>

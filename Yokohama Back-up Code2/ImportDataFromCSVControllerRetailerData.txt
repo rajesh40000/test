@@ -1,0 +1,132 @@
+public class ImportDataFromCSVControllerRetailerData {
+    public Blob csvFileBody{get;set;}
+    public string csvAsString{get;set;}
+    public String[] csvFileLines{get;set;}
+    public Retailer_Order_Line__c cc{get;set;}
+    public boolean pb1{get;set;}
+    String idvalue;
+    String idvalue1;
+    public List<Retailer_Order_Line__c> Retailerlist{get;set;}
+    public Map<String, Id> stockMap{get;set;}
+    public Map<String, Id> productMap {get;set;}
+    Public Map<String,Id>productGroupMap{get;set;}
+    public List<User> lstUser{get;set;}
+    public ImportDataFromCSVControllerRetailerData(ApexPages.StandardController stdController) {
+        this.cc = (Retailer_Order_Line__c)stdController.getRecord();
+        System.debug(this.cc);
+        csvFileLines = new String[]{};
+            Retailerlist = New List<Retailer_Order_Line__c>();
+        lstUser = [Select ContactId,Contact.accountId from User where Id = :UserInfo.getUserId() limit 1];
+        stockMap = new Map<String, Id>();
+        productMap = new Map<String, Id>();
+        List<Product__c> pro= new List<Product__c>();
+        pro=[Select id,name from Product__c];
+        for(Product__c value : pro){
+            productMap.put(value.name, value.Id);
+        }
+        productGroupMap = new Map<String, Id>();
+        List<Product_Group__c> progroup = new List<Product_Group__c>();
+        progroup = [Select id,name from Product_Group__c];
+        for(Product_Group__c value : progroup){
+            productMap.put(value.name, value.Id);
+        }
+        List<Retailer_Order_Line__c> stock = [Select Product_c__r.name, Id from Retailer_Order_Line__c where Distributor__c =: lstUser[0].Contact.accountId];
+        for(Retailer_Order_Line__c value : stock){
+            stockMap.put(value.Product_c__r.name, value.Id);
+        }
+    }
+    public ImportDataFromCSVControllerRetailerData(){
+        csvFileLines = new String[]{};
+            Retailerlist = New List<Retailer_Order_Line__c>();
+        System.debug('@@Retailerlist' +Retailerlist);
+        
+        Retailerlist = [Select id, Product_c__r.name,Quantity__c,Sale_Price__c,CGST__c from Retailer_Order_Line__c];
+        System.debug('@@Retailerlist' +Retailerlist);
+        pb1=true;
+        
+    }  
+    public id provalue(String proName){
+        id provalue;
+        List<Product__c> pro= new List<Product__c>();
+        pro=[Select id,name from Product__c WHERE name =:proName];
+        for(Product__c value : pro){
+            provalue = value.id; 
+            System.debug(provalue);
+        }
+        return provalue;
+        
+    } 
+    public PageReference downloadTemplate(){
+        PageReference orderPage = new PageReference('/apex/printRetailerOrderCSV');
+        orderPage.setRedirect(false);
+        return orderPage;
+    }
+    
+    public void importCSVFile(){
+        try{
+            csvAsString = csvFileBody.toString();
+            System.debug('@@csvAsString' +csvAsString);
+            csvFileLines = csvAsString.split('\n'); 
+            
+            system.debug('**lstUser'+lstUser);
+            for(Integer i=1;i<csvFileLines.size();i++){
+                Retailer_Order_Line__c ccObj = new Retailer_Order_Line__c() ;
+                string[] csvRecordData = csvFileLines[i].split(',');
+                System.debug(csvRecordData);
+                //idvalue=csvRecordData[0].trim();
+                System.debug(idvalue);
+                //if(stockMap.get(csvRecordData[0].trim()) != null){
+                ccObj.Distributor__c = lstUser[0].Contact.accountId;
+                ccObj.Customer_Name__c = csvRecordData[0].trim();
+                ccObj.Address__c = csvRecordData[1].trim();
+                ccObj.KYC__c = csvRecordData[2].trim();
+                if(String.isBlank(csvRecordData[3].trim()) == false){
+                    ccObj.Order_Date__c = date.valueOf(csvRecordData[3].trim());
+                }
+                ccObj.Product_Group__c = productGroupMap.get(csvRecordData[5].trim());
+                ccObj.Order_Number1__c = csvRecordData[4].trim();
+                ccObj.Product_c__c = productMap.get(csvRecordData[6].trim());
+                if(String.isBlank(csvRecordData[7].trim()) == false)
+                    ccObj.Quantity__c  = Integer.valueof(csvRecordData[7].trim());
+                if(String.isBlank(csvRecordData[8].trim()) == false)
+                    ccObj.Sale_Price__c =  Double.valueof(csvRecordData[8].trim());
+                if(String.isBlank(csvRecordData[9].trim()) == false)
+                    ccObj.IGST__c = Double.valueof(csvRecordData[9].trim());
+                if(String.isBlank(csvRecordData[10].trim()) == false)
+                    ccObj.CGST__c = Double.valueof(csvRecordData[10].trim());
+                if(String.isBlank(csvRecordData[11].trim()) == false)
+                    ccObj.SGST__c = Double.valueof(csvRecordData[11].trim());
+                
+                Retailerlist.add(ccObj); 
+                //}
+                /*else{
+ccObj.Customer_Name__c = csvRecordData[0].trim();
+ccObj.Address__c = csvRecordData[1].trim();
+ccObj.KYC__c = csvRecordData[2].trim();
+ccObj.Distributor__c = lstUser[3].Contact.accountId;
+ccObj.Order_Date__c = date.valueOf(csvRecordData[4].trim());
+ccObj.Order_Number__c = csvRecordData[5].trim();
+ccObj.Product_Group__c = productGroupMap.get(csvRecordData[6].trim());
+ccObj.Product_c__c = productMap.get(csvRecordData[7].trim());
+ccObj.Id = stockMap.get(csvRecordData[8].trim());
+ccObj.Quantity__c  = Integer.valueof(csvRecordData[9].trim());
+ccObj.Sale_Price__c =  Decimal.valueof(csvRecordData[10].trim());
+ccObj.IGST__c = Double.valueof(csvRecordData[11].trim());
+ccObj.CGST__c = Double.valueof(csvRecordData[12].trim());
+}*/
+                
+                
+                
+                
+                
+            }
+            upsert Retailerlist;
+        }
+        catch (Exception e)
+        {
+            //ApexPages.Message errorMessage = new ApexPages.Message(ApexPages.severity.ERROR,'An error has occured while importin data Please make sure input csv file is correct');
+            ApexPages.addMessages(e);
+        }  
+    }
+    
+}

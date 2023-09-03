@@ -1,0 +1,33 @@
+trigger AccountFieldUpdate on Account (before insert, before update) {
+    
+        TriggerDisabled__c bypassTrigger= TriggerDisabled__c.getInstance('DisableTrigger');
+    system.debug('bypassTrigger '+ bypassTrigger);
+    system.debug('bypassTrigger '+ bypassTrigger.Is_Disabled_Trigger__c);
+    
+    if(!bypassTrigger.Is_Disabled_Trigger__c){
+    Set<Id> TerrSet = New Set<Id>();
+    For (Account objIns : Trigger.New) 
+    {
+        if(objIns.Territory_y__c != null) 
+        {
+            TerrSet.add(objIns.Territory_Y__c);
+        }
+    }
+    List<Account> acLst = new List<Account>();
+    for(Territory_Y__c   terr : [Select Id,RSM__c,DSM__c,AGM__c  from Territory_Y__c where id IN : TerrSet])     {    
+        for(Account ac : Trigger.new)      
+        {          
+            if(ac.Territory_Y__c == terr.Id)
+            {
+                ac.RSM_y__c = terr.RSM__c;
+                ac.DSM_y__c = terr.DSM__c;
+                ac.AGM__c = terr.AGM__c ;
+              //  ac.DDM__c = terr.DDM__c ;
+                
+                
+                acLst.add(ac);
+            }
+        }
+    }
+    }     
+}

@@ -1,0 +1,170 @@
+public without sharing class invoice_statuschangeCTRL 
+{
+  
+    /* 
+@AuraEnabled
+public static list<Quote__c> fetchLeadRecords(){
+return [select id,Name,Order_Date__c From Quote__c Order By createdDate DESC LIMIT 5];        
+}*/
+    
+    
+    
+    
+    /* public List<Quote__c> getIDs;
+public String accIds{get;set;}
+
+public JavaScript_DemoV2Ctrl(ApexPages.StandardSetController controller){
+System.debug('Get Selected');
+getIDs = controller.getSelected();
+accIds = '';  
+for(Quote__c acc : getIDs){
+accIds += acc.Id + ','; 
+System.debug('Account ID : '+accIds);
+}
+accIds = accIds.removeEnd(','); 
+}    
+
+@auraenabled
+public static void invoice(String qo)
+{
+system.debug('hi class');
+system.debug(qo);
+
+}
+
+*/
+    
+    
+    
+    
+    
+   
+      
+    public class accountListWrapper {
+        @AuraEnabled public boolean isChecked {get;set;}
+        @AuraEnabled public  Invoice__c objAccount{get;set;}
+        public accountListWrapper(boolean isChecked, Invoice__c objAccount){
+            this.isChecked = isChecked;
+            this.objAccount = objAccount;
+        }
+    }
+    
+    @AuraEnabled
+    public static map<string,string> getvehiclename()
+    {   list<Vehicle__c> vch=[select id,Vehicle_No__c from Vehicle__c];
+     
+     map<string,string> mp = new map<string,string>();
+     //  mp.put(new SelectOption('','--None--'));
+     
+     for(Vehicle__c vc:vch)
+     {
+         mp.put(vc.Vehicle_No__c,vc.Vehicle_No__c) ;
+         
+     }
+     return mp;
+    }
+    
+    @AuraEnabled
+    public static void saverecod(list<Quote__c> getIDs, string selectedValue)
+    { 
+          System.debug(getIDs+'getIDs'); 
+         System.debug('selectedValue->'+selectedValue); 
+        list<Invoice__c> invoice =new list<Invoice__c>();
+        list<Quote__c> quo =new list<Quote__c>();
+        for(Quote__c str :getIDs)
+        {
+            str.Quote_Status__c = 'Invoiced';
+            
+            quo.add(str);
+            
+        }
+        upsert (quo);
+        
+        for(Quote__c acc : getIDs){
+            list<Quote__c> ord=[select id ,Order_To__c,	Total_Amount_In_Rs__c,Total_Amount_Inc_Tax__c,
+                                Billing_Street__c,Billing_City__c,Billing_Zip__c,Billing_State_Province__c,Billing_Country__c,Street__c,City__c,
+                                Zip_Postal_Code__c,State_Province__c,Country__c
+                                from Quote__c where id=:acc.id];
+            Invoice__c vc =new Invoice__c();
+            vc.Customer__c=ord[0].Order_To__c;
+            vc.Invoice_Date__c=system.today();
+            vc.Net_Value__c=ord[0].Total_Amount_In_Rs__c;
+            vc.Billing_Street__c=ord[0].Billing_Street__c;
+            vc.Billing_City__c=ord[0].Billing_City__c;
+            vc.Billing_Zip_Postal_Code__c=ord[0].Billing_Zip__c;
+            vc.Billing_State_Province__c=ord[0].Billing_State_Province__c;
+            vc.Billing_Country__c=ord[0].Billing_Country__c;
+            vc.Street__c=ord[0].Street__c;
+            vc.City__c=ord[0].City__c;
+            vc.Zip_Postal_Code__c=ord[0].Zip_Postal_Code__c;
+            vc.State_Province__c=ord[0].State_Province__c;
+            vc.Country__c=ord[0].Country__c;
+            
+            //	vc.Invoice_Amount_Inc_Tax__c=ord[0].Total_Amount_Inc_Tax__c;
+            
+            vc.Related_Quote__c= acc.id;
+            vc.Vehicle_No__c=SelectedValue;
+            
+            invoice.add(vc);
+            
+            
+        }       
+        
+        System.debug(invoice+'invoiceinvoice');
+        insert invoice;
+        
+        
+        
+    }
+    
+    @AuraEnabled
+    public static map<string,string> getbeatename()
+    {   list<Beats__c> vch=[select id,Name from Beats__c];
+     
+     map<string,string> mp = new map<string,string>();
+     //  mp.put(new SelectOption('','--None--'));
+     
+     for(Beats__c vc:vch)
+     {
+         mp.put(vc.id,vc.Name) ;
+         
+     }
+     return mp;
+    }
+    
+    @AuraEnabled
+    public static map<string,string> getAreaName()
+    {   
+        
+        map<string,string> mp = new map<string,string>();
+        //  mp.put(new SelectOption('','--None--'));
+        for(Quote__c acc : [Select id,Name,Order_To__r.Name,Order_Date__c,Beat__r.Name,Sales_Visit__r.Name,Loyalty_Points_Added__c,Beat_ID11__c,Area1__c,Total_Amount_In_Rs__c,Total_Amount_Inc_Tax__c,Quote_Status__c
+                            From Quote__c where Area1__c !='' Order By createdDate DESC
+                            Limit 1000]){
+                                mp.put(acc.Area1__c,acc.Area1__c) ;    
+                            }
+        
+        return mp;
+    }
+    
+     
+    @AuraEnabled
+    public static list<Invoice__c> fetchAccountWrapper(){
+        return [select id,Name,Invoice_Amount_Inc_Tax1__c,Customer__r.Name,Related_Quote__r.Name,Vehicle_No__c,Invoice_Status1__c, Invoice_Status__c,Invoice_Amount_Inc_tax__c,Invoice_Date__c From Invoice__c Order By createdDate DESC ];        
+    }  
+    
+    
+    @AuraEnabled
+    public static list<Invoice__c> saverecod5(list<Invoice__c> a)
+    {
+        update a;
+        return a;
+    }
+    
+    
+    
+    
+    
+
+
+}

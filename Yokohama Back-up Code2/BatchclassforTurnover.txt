@@ -1,0 +1,119 @@
+global class BatchclassforTurnover implements Database.Batchable<sObject>
+    {
+        global Database.QueryLocator start(Database.BatchableContext bc)
+         {        
+             list<Account> Accountlist =new list<Account>();      
+             string led='Select Id from Account limit 49999';
+            return Database.getQueryLocator(led);
+         }
+        
+      global void execute(Database.BatchableContext bc, List<Account> scope)
+         {
+            // Getting turnover percentage from custom 
+                                
+             TurnoverCalculation__c ldownr = TurnoverCalculation__c.getInstance();
+             List<TurnoverCalculation__c> allvalues  = TurnoverCalculation__c.getall().values();
+             Decimal factor;
+             factor=allvalues[0].Calculation__c ;
+                
+             Integer Sum1;
+             Integer Sum2;
+             map<String,Integer>  Map1 = new map<String,Integer>();
+             map<String,Integer>  Map2 = new map<String,Integer>();
+             map<String,Integer>  Map3 = new map<String,Integer>();
+             
+             Set<String>  IdSet = new Set<String>();
+           list<Promotional_Budget__c> PromotionalBudgetList =new list<Promotional_Budget__c>();
+             
+          
+          // Calculating Invoice of a particular customer
+                  
+             AggregateResult[] groupedResults = [SELECT Sell_to_Customer_No__c, SUM(Amount__c)Sum1 FROM Invoice_Line__c GROUP BY Sell_to_Customer_No__c];
+              
+               for (AggregateResult ar : groupedResults)  {
+                   Sum1=Integer.valueOf(ar.get('Sum1'))    ;
+                   Map1.put( String.valueOf(ar.get('Sell_to_Customer_No__c')), Sum1 );
+                   IdSet.add(String.valueOf(ar.get('Sell_to_Customer_No__c')));
+                   
+               }
+           // Calculating Return Order of a particular customer
+           
+              AggregateResult[] groupedResults2 = [SELECT Bill_to_Customer_No__c, SUM(Amount__c)Sum2 FROM Return_Order_Line__c GROUP BY Bill_to_Customer_No__c];
+              
+               for (AggregateResult ar : groupedResults2)  {
+                  Sum2=Integer.valueOf(ar.get('Sum2'))    ;
+                 Map2.put( String.valueOf(ar.get('Bill_to_Customer_No__c')), Sum2 ); 
+               }
+            
+                 Integer mon = Date.Today().Month();
+              
+             Date Todaydate= Date.today();
+             date LastThree = Todaydate.addMonths(-3);
+             date LastSix = Todaydate.addMonths(-6);
+             string quatername;
+             
+             // calculating quater value here 
+             
+                    if(mon == 1 ||mon == 2 ||mon == 3 )
+                     {
+                       quatername= 'Fourth';  
+                     }
+                    else if(mon == 4 ||mon == 5 ||mon == 6 )
+                    {
+                      quatername= 'First';
+                    }
+                    else if(mon == 7 ||mon == 8 ||mon == 9 )
+                    {
+                      quatername= 'Second';
+                    }
+                    else if(mon == 10 ||mon == 11 ||mon == 12 )
+                    {
+                      quatername= 'Third';
+                    }
+             
+             
+             PromotionalBudgetList=[Select Id ,Statu__c , Dealer__c from Promotional_Budget__c where OwnerId IN: IdSet ];
+               for(Promotional_Budget__c pp : PromotionalBudgetList)
+               {
+                   pp.Statu__c = 'Inactive';
+               }
+               update PromotionalBudgetList;
+    
+             AggregateResult[] groupedResults3 = [Select SUM(Remaining_budget__c) SUM1 , Dealer__c from Promotional_Budget__c  where Createddate >=: LastSix  GROUP BY Dealer__c ];
+              
+             for (AggregateResult ar : groupedResults3)  {
+                 
+                 Map3.put( String.valueOf(ar.get('Dealer__c')), Integer.valueOf(ar.get('SUM1')) ); 
+               }
+              
+             for(String ss: IdSet ) { 
+                 if( ss !='' && ss!= null)
+                 { 
+             Promotional_Budget__c budget = new Promotional_Budget__c();
+               
+                 if(Map1.size()>0 && Map2.size()>0)    {
+                                      budget.TurnOver__c=  Integer.valueOf(Map1.get(ss)) -  Integer.valueOf(Map2.get (ss));  
+    
+                     }
+                     if(budget.TurnOver__c !=null) {
+                          budget.Budget_Value__c=((budget.TurnOver__c*factor)/100) + budget.TurnOver__c ;
+                     }   
+                
+                 budget.Dealer__c= ss;
+                 budget.Unused_Amount__c= Map3.get(ss);
+                 budget.Statu__c='Active';
+                 budget.Quater__c= quatername;
+                     
+                   
+                 insert budget;
+             }
+             }
+             
+         }
+             
+         global void finish(Database.BatchableContext bc)
+        {
+            
+        }
+    
+    }

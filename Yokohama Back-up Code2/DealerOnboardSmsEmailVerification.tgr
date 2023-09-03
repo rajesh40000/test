@@ -1,0 +1,37 @@
+trigger DealerOnboardSmsEmailVerification on Account (before insert) {
+    
+        TriggerDisabled__c bypassTrigger= TriggerDisabled__c.getInstance('DisableTrigger');
+    system.debug('bypassTrigger '+ bypassTrigger);
+    system.debug('bypassTrigger '+ bypassTrigger.Is_Disabled_Trigger__c);
+    
+    if(!bypassTrigger.Is_Disabled_Trigger__c){
+        
+    List<Messaging.Email> emailList = new List <Messaging.Email>();
+    if(trigger.isInsert){
+        for(Account acc: Trigger.new){
+        if(acc.Phone!=null){
+            string test=acc.Phone;
+            string email=acc.Email__c;
+            string message='Dear'+acc.Name+'Invoice No 98542 dated fdgh for Rs. 84 issued by Yokohama India. Thanks. Please do not reply';
+            //string message='Dear'+acc.Name+'Invoice No 98542 dated fdgh for Rs. 84 issued by Yokohama India. Thanks. Please do not reply';
+            SendBulkSMS.send(acc.Phone, message);
+            Messaging.SingleEmailMessage emailMsg = new Messaging.SingleEmailMessage();
+                String[] toAddress = new String[]{acc.Email__c};
+                emailMsg.setToAddresses(toAddress);
+                String emailSub = 'welcome' + acc.First_Name__c;
+                emailMsg.setSubject(emailSub);
+                String disName='*************Salesforce Message************';
+                emailMsg.setSenderDisplayName(disName);
+                
+                String content = 'Hi' + acc.First_Name__c +',<b/r><br/>'+
+                    'Welcome to salesforce Mail notification system! <br/><br>'+ acc.Phone;
+                emailMsg.setHtmlBody(content);
+                emailList.add(emailMsg);
+        }   
+    }
+        Messaging.sendEmail(emailList);
+        
+    }
+   
+    }
+}

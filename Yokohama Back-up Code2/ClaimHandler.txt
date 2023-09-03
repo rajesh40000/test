@@ -1,0 +1,63 @@
+trigger ClaimHandler on Claim__c (before insert,before update,after insert,after update){
+    
+    //for Sharing
+    Map<id,id> zsmMap = new Map<id,id>();
+    Map<id,id> ddmMap = new Map<id,id>();
+    Map<id,id> agmMap = new Map<id,id>();
+    Map<id,id> rsmMap = new Map<id,id>();
+    Map<id,id> dsmMap = new Map<id,id>();
+    Map<id,id> seMap = new Map<id,id>();
+    
+    if(trigger.isAfter && trigger.isInsert){
+        for( Claim__c claim : trigger.new){
+            
+            zsmMap.put(claim.Id, claim.ZSM__c );
+            ddmMap.put(claim.Id, claim.DDM__c);
+            agmMap.put(claim.Id, claim.AGM__c);
+            rsmMap.put(claim.Id, claim.RSM__c);
+            dsmMap.put(claim.Id, claim.DSM__c);
+            seMap.put(claim.Id, claim.SE__c);
+            
+        }
+        ObjectShare.claimShare(zsmMap,ddmMap,agmMap,rsmMap,dsmMap,seMap);
+    }
+    //sharing end
+    
+    if (RecursiveHandler.hasExecuted) {
+        return;
+    }
+    RecursiveHandler.hasExecuted = true; 
+    switch on Trigger.operationType {
+        when AFTER_INSERT {
+            List<Claim__c> claimlist = new List<Claim__c>();
+            claimlist = [select id ,Customer_Name__c,Dealer_Name__c,Tyre_Serial_No__c,customer_mobile__c, Discount_Amount__c,name, Article_No__c, Article_No__r.Nom_Rim_Diameter__c ,Chargeable_Amount__c, Docket_No__c  from claim__c where id =:Trigger.new];
+            System.debug('claimlist:::'+claimlist);
+            ClaimTriggerHandler.ChargeableAmount(claimlist);
+            
+            
+            ClaimTriggerHandler.DocketCreationandAPI1(Trigger.new);
+            //ClaimTriggerHandler.claimcreatesmsTrigger(claimlist);
+            ClaimTriggerHandler.Noofclaims(Trigger.new);
+            
+            // RecursiveHandler.hasExecuted = true; 
+            
+            
+        }
+        when AFTER_UPDATE {
+            ClaimTriggerHandler.SendPlaceorderdatatoNAV(Trigger.new, Trigger.oldMap);
+            ClaimTriggerHandler.DocketCreationandAPI(Trigger.new, Trigger.oldMap);
+            ClaimTriggerHandler.DocketCreationandAPI1(Trigger.new);
+            ClaimTriggerHandler.Noofclaims(Trigger.new);
+            ClaimTriggerHandler.claimacceptanceMessage(Trigger.new, Trigger.oldMap);
+        }
+        when BEFORE_UPDATE{
+            ClaimTriggerHandler.ClaimStatus(Trigger.new,Trigger.oldMap);
+        }
+        when BEFORE_INSERT{
+            ClaimTriggerHandler.ServiceHeadUpdate(Trigger.new);
+        }
+        
+    }
+    RecursiveHandler.hasExecuted = false;
+    
+}

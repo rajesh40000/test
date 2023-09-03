@@ -1,0 +1,59 @@
+trigger CreateConactOfAccouunt on Account (after Update) {
+  /*  
+    list<Contact>newcontact= new list<Contact>();
+    list<User>userlst= new list<User>();
+    Profile p=[Select id,Name from Profile where Name='Community User'];
+    for(Account acc:Trigger.new){
+        Contact con = new Contact();
+        con.LastName = acc.Name;
+        con.AccountId = acc.Id;
+        con.Email=acc.Email__c;
+        con.Phone=acc.Phone;
+        newContact.add(con);
+        
+       /* User u = new User();
+        u.Username = 'user@example.com';
+      
+        u.Email = 'user@example.com';
+        u.LastName = 'New User';
+        u.Alias = 'newuser';
+        u.CommunityNickname = 'newuser';
+        u.TimeZoneSidKey = 'America/Los_Angeles';
+        u.LocaleSidKey = 'en_US';
+        u.EmailEncodingKey = 'UTF-8';
+        u.ProfileId = p.id; 
+        u.LanguageLocaleKey = 'en_US';
+        u.IsActive = true;
+        //u.AccountId = acc.Id;
+        userlst.add(u);*/
+        /*
+    }
+    if(newContact.size()>0){
+        System.debug('newContact:::'+newContact);
+        insert newContact;
+    }
+    for(Contact con:newContact){
+        User u = new User();
+        u.Username =con.Email;
+      
+        u.Email = con.Email;
+        u.LastName = con.LastName;
+        u.Alias = con.LastName;
+        //u.CommunityNickname = 'newuser';
+        u.TimeZoneSidKey = 'Asia/Kolkata';
+        u.LocaleSidKey = 'en_US';
+        u.EmailEncodingKey = 'UTF-8';
+        u.ProfileId = p.id; 
+        u.LanguageLocaleKey = 'en_US';
+        u.IsActive = true;
+        u.ContactId = con.Id;
+        userlst.add(u);
+    }
+    System.debug('userlst:::'+userlst);
+    // insert newContact;
+    if(userlst.size()>0){
+        insert userlst;
+    }
+   // insert userlst;
+*/
+}

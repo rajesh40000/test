@@ -1,0 +1,30 @@
+public class AttendanceDetailCtr {
+	      @Auraenabled 
+    public static string attend(Attendance__c acc){  
+        acc.Today_s_Date__c = System.today();
+       Savepoint sp = Database.setSavepoint();
+        
+        try{
+            Attendance__c bp = new Attendance__c();
+            bp.Today_s_Date__c = System.today();
+            insert acc; 
+            return acc.Id;
+            
+        } catch (Exception ex){
+            //throw new AuraHandledException(ex.getMessage());
+            Database.rollback(sp);
+            throw new AuraHandledException(ex.getdmlMessage(0));
+        }    
+        
+    }
+            @AuraEnabled
+   public static List<String> getIndustry(){
+        List<String> options = new List<String>();
+        Schema.DescribeFieldResult fieldResult = Attendance__c.Attendance_Type__c.getDescribe();
+        List<Schema.PicklistEntry> pList = fieldResult.getPicklistValues();
+        for (Schema.PicklistEntry p: pList) {
+            options.add(p.getLabel());
+        }
+        return options;
+    }
+}

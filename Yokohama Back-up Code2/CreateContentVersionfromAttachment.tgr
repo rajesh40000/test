@@ -1,0 +1,16 @@
+trigger CreateContentVersionfromAttachment on Attachment (After insert) {
+   /* Map<id,String> attMap=new Map<id,String>();
+    for(Attachment att:trigger.new){
+        attMap.put(att.ParentID, att.Name);
+    }
+    List<Balance_Confirmation__c> bcclistUpdate=new List<Balance_Confirmation__c>();
+    List<Balance_Confirmation__c> bcclist=[Select id,IsAttachment__c,Balance_Confirmation_Status__c from Balance_Confirmation__c where id=:attMap.keySet()];
+    for(Balance_Confirmation__c bc:bcclist){
+        bc.IsAttachment__c=true;
+        bc.Balance_Confirmation_Status__c='Received';
+        bcclistUpdate.add(bc);
+    }
+    if(bcclistUpdate.size()>0){
+        Update bcclistUpdate;
+    }*/
+}
