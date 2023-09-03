@@ -1,0 +1,256 @@
+public class VisitPlandetailPageLocalCtrl {
+    public Visit_plan__c vp{get;set;}
+    public id pageid{get;set;}
+    public String cityname{get;set;}
+    public String cityText{get;set;}
+    public list<Daily_plan__c> dp{get;set;}
+    public list<Daily_plan__c> dpunplanned{get;set;}
+    public list<Daily_plan__c> dailyunplanned{get;set;}
+    public boolean b1{get;set;}
+    public list<Attachment> att{get;set;}
+    public List<User> Usergrade{get;set;}
+    public List<Expense_policy__c> exppolicy{get;set;}    
+    public List<SelectOption> filesCountList {get; set;}
+    public String FileCount {get; set;}
+    public List<Attachment> allFileList {get; set;}
+    
+    public VisitPlandetailPageLocalCtrl(ApexPages.StandardController controller) {
+        cityText='';
+        pageid=apexpages.currentpage().getparameters().get('id');
+        att=[select id, Name, ContentType, BodyLength,Lastmodifieddate,createdbyid from attachment where parentid=:pageid ];
+        vp=[Select name,from__c, difference__c,Approvers_Comment__c, Total_Approved_Amount__c, Miscellaneous_Amount_Approved__c, Approval_Status__c, ownerid, city__c, Amount_Entitled__c, city_type__c, recordtypeid, Mode_Of_Conveyance__c, Category__c,Amount_Approved__c, Total_Km__c,Total_Local_Expense__c, Miscellaneous_Amount__c, Description__c, City_lookup__c  from Visit_plan__c where id=: pageid];
+        //Usergrade= [select grade__c from user where id=: UserInfo.getUserId()];
+        Usergrade= [select grade__c from user where id=: vp.ownerid];
+        system.debug(vp.recordtypeid);
+        dp=[select Daily_Plan_Status__c,name, start_time__c, end_time__c, Select_Type__c, Business_Pramotion__c,Opportunity__c, Lead__c, Customer__c, status__c,Check_In_Time__c,city__c, Check_Out_Time__c,OwnerId  from Daily_plan__c where Visit_Plan__c=: vp.id AND status__c ='planned' ORDER BY createddate];
+        dpunplanned=[select name, Daily_Plan_Status__c,start_time__c, end_time__c, Select_Type__c, Business_Pramotion__c,Opportunity__c, Lead__c, Customer__c, status__c,Check_In_Time__c,city__c, Check_Out_Time__c,OwnerId  from Daily_plan__c where Visit_Plan__c=: vp.id AND status__c ='unplanned' ORDER BY createddate];
+        b1=true;
+        dailyunplanned= new list<Daily_plan__c>();
+        exppolicy= new list<Expense_policy__c>();
+        
+        filesCountList = new List<SelectOption>() ;
+        FileCount = '' ;
+        allFileList = new List<Attachment>() ;
+        
+        //Adding values count list - you can change this according to your need
+        for(Integer i = 1 ; i < 11 ; i++)
+            filesCountList.add(new SelectOption(''+i , ''+i)) ;
+            
+    }
+    @RemoteAction
+    public static List<City__c> searchCities_New(String cityname) {
+        System.debug('Product Name is: '+cityname );
+        List<City__c> movies = Database.query('Select Id,Name from City__c where  name like \'%' + String.escapeSingleQuotes(cityname) + '%\'');
+        return movies;
+    }
+    public pagereference back(){ 
+         pageReference pr=new pageReference('/apex/Visitplantabview');
+         pr.setredirect(true);
+         return pr; 
+    }
+    
+    public void addunplanned(){
+        b1=false;
+        dailyunplanned.clear();
+        Daily_plan__c dpp= new Daily_plan__c();
+        dpp.date__c=vp.from__c;
+        dpp.status__c='Unplanned';
+        dailyunplanned.add(dpp);
+    }
+    
+    public void addrow() {
+        Daily_plan__c dpp= new Daily_plan__c();
+            dpp.date__c=vp.from__c;
+            dpp.status__c='Unplanned';
+        dailyunplanned.add(dpp); 
+    }
+    
+    public void removerow(){
+        Integer i = dailyunplanned.size();
+        if(i != 0 || Test.isRunningTest())
+            dailyunplanned.remove(i-1);
+    }
+    
+    public void CancelUnplanned(){
+        dailyunplanned.clear();
+        b1=true;
+    }
+    
+    public void saveunplanned(){
+        try{
+            integer i=dp.size() + dpunplanned.size();  
+            if(i>0)
+                i=i+1;
+            else
+                i=1;  
+            for(Daily_plan__c vv: dailyunplanned){
+                Date d = vp.from__c;
+                vv.name=string.valueof(DateTime.newInstance(d.year(),d.month(),d.day()).format('dd/MM/YY')) +'-'+ i;
+                String start = DateTime.newInstance(d.year(),d.month(),d.day()).format('dd/MM/YY') +' ' +vv.Start_Time__c;
+                String endtime = DateTime.newInstance(d.year(),d.month(),d.day()).format('dd/MM/YY') +' ' +vv.End_Time__c;
+                vv.Start_date_Time__c=DateTime.parse(start);
+                vv.end_date_Time__c=DateTime.parse(endtime);
+                vv.Visit_Plan__c=vp.id; 
+                
+                i++;
+            }
+            insert dailyunplanned;
+            
+            for(Daily_plan__c vv: dailyunplanned){
+                Date d = vv.Date__c;          
+                String start = DateTime.newInstance(d.year(),d.month(),d.day()).format('dd/MM/YY') +' ' +vv.Start_Time__c;
+                String endtime = DateTime.newInstance(d.year(),d.month(),d.day()).format('dd/MM/YY') +' ' +vv.End_Time__c;  
+                //datetime startddd=DateTime.parse(start);
+                //datetime endddd=DateTime.parse(endtime);
+                //decimal decMinutes = ((startddd.getTime())/1000/60) - ((endddd.getTime())/1000/60);
+                Event e= new Event();
+                e.subject=vv.name;
+                //if(decMinutes <0){
+                    e.StartDateTime=DateTime.parse(start);
+                    e.EndDateTime=DateTime.parse(endtime);
+                //}
+                //else{
+                 //   e.StartDateTime=DateTime.parse(endtime);
+                 //   e.EndDateTime=DateTime.parse(start);
+               // }
+                e.whatid=vv.id;
+                insert e;
+            }
+            dpunplanned=[select name, start_time__c, Daily_Plan_Status__c,end_time__c, Select_Type__c, Business_Pramotion__c,Opportunity__c, Lead__c, Customer__c,city__c, status__c,Check_In_Time__c,OwnerId, Check_Out_Time__c from Daily_plan__c where Visit_Plan__c=: vp.id AND status__c ='unplanned' ORDER BY createddate];
+            b1=true;
+        }
+        catch(Exception ex){
+            ApexPages.addMessages(ex);
+        } 
+     } 
+     
+     public pagereference addexpense(){ 
+         pageReference pr=new pageReference('/apex/LocalExpenseAndAttachment?id=' +pageid);
+         pr.setredirect(true);
+         return pr; 
+    }  
+    
+    public pagereference expensecancel(){ 
+         allFileList.clear();
+         pageReference pr=new pageReference('/apex/VisitPlanDetailPageLocal?id=' +pageid);
+         pr.setredirect(true);
+         return pr; 
+    }  
+    
+    public PageReference ChangeCount()
+    {
+        allFileList.clear() ;
+        system.debug(FileCount);
+        //Adding multiple attachments instance
+        if(FileCount!=null){
+            for(Integer i = 1 ; i <= Integer.valueOf(FileCount) ; i++)
+                allFileList.add(new Attachment()) ;
+        }
+        return null ;
+    }
+    
+    
+    public pagereference Uploadexpense(){
+        /*if(vp.Mode_Of_Conveyance__c == 'Bike' || vp.Mode_Of_Conveyance__c =='Car'){
+            if(vp.Category__c=='' || vp.Category__c==null){
+                ApexPages.addmessage(new ApexPages.message(ApexPages.Severity.error, 'Please select category'));    
+            }
+            else{
+                exppolicy= [select Rate_in_Km__c from expense_policy__c where type__c='Local' and Car_Bike_Category__c=: vp.Category__c];
+                if(exppolicy[0].Rate_in_Km__c != null)
+                    vp.Amount_Entitled__c=exppolicy[0].Rate_in_Km__c * vp.Total_Km__c;          
+           }         
+        }
+        if(vp.Total_km__c == 0 ){
+            ApexPages.addmessage(new ApexPages.message(ApexPages.Severity.error, 'Please add total km'));    
+        }*/
+        if((vp.Miscellaneous_Amount__c > 0 ) && (vp.Description__c == '' || vp.Description__c == null)){
+            ApexPages.addmessage(new ApexPages.message(ApexPages.Severity.error, 'Please add the description'));    
+        }
+        else{
+        exppolicy= [select Entitled__c from expense_policy__c where User__c=: UserInfo.getUserId()];
+        //if(exppolicy[0].Entitled__c != null)
+        if(exppolicy.size() > 0 )
+            vp.Amount_Entitled__c=exppolicy[0].Entitled__c;
+        vp.Amount_approved__c= vp.Total_Local_Expense__c;
+        vp.Miscellaneous_Amount_Approved__c= vp.Miscellaneous_Amount__c;
+        update vp;
+        List<Attachment> listToInsert = new List<Attachment>() ;
+            
+            //Attachment a = new Attachment(parentId = accid, name=myfile.name, body = myfile.body);
+            for(Attachment a: allFileList)
+            {
+                if(a.name != '' && a.name != '' && a.body != null )
+                    listToInsert.add(new Attachment(parentId = pageid, name = a.name, body = a.body)) ;
+            }
+            
+            //Inserting attachments
+            if(listToInsert.size() > 0 || test.isRunningTest())
+            {
+                insert listToInsert ;
+                ApexPages.addmessage(new ApexPages.message(ApexPages.Severity.INFO, listToInsert.size() + ' file(s) are uploaded successfully'));
+                FileCount = '' ;
+            }
+            Pagereference ref=new PageReference('/apex/VisitPlanDetailPageLocal?id='+pageid);
+            ref.setredirect(true);
+            return ref;
+        }
+        return null;
+    }
+    
+    public pagereference submitapproval(){
+        Try{  
+          Approval.ProcessSubmitRequest req1 = 
+            new Approval.ProcessSubmitRequest();
+            req1.setComments('Submitting request for approval.');
+            req1.setObjectId(vp.id);
+            Approval.ProcessResult result2 =  Approval.process(req1);
+    
+            PageReference ref1 =  new PageReference(ApexPages.currentPage().getUrl());
+            ref1.setredirect(true);
+            return ref1;
+            }
+           catch (Exception ex) {
+               ApexPages.addMessages(ex);
+            }
+            return null;
+
+   } 
+   
+   public void saveapprovedamount(){
+       if((vp.Total_Local_Expense__c != vp.Amount_Approved__c) || (vp.Miscellaneous_Amount__c != vp.Miscellaneous_Amount_Approved__c))
+       {    
+           if(vp.Approvers_Comment__c == null){
+               ApexPages.addmessage(new ApexPages.message(ApexPages.Severity.error, 'Please Add Approvers Comment'));    
+           }
+           else{    
+               update vp;
+               ApexPages.addmessage(new ApexPages.message(ApexPages.Severity.Confirm, 'Record update successfully. Please Approve this expense by clicking on Approve/Reject link from Approval History.')); 
+           }
+       }
+       else{
+           update vp;
+           ApexPages.addmessage(new ApexPages.message(ApexPages.Severity.Confirm, 'Record update successfully. Please Approve this expense by clicking on Approve/Reject link from Approval History.'));
+       }
+       
+   }
+   
+   /*public void expensecalculate(){
+       if(vp.Mode_Of_Conveyance__c == 'Bike' || vp.Mode_Of_Conveyance__c =='Car'){
+            if(vp.Category__c=='' ||vp.Category__c==null ){
+                ApexPages.addmessage(new ApexPages.message(ApexPages.Severity.error, 'Please select category'));    
+            }
+            else{
+                exppolicy= [select Rate_in_Km__c from expense_policy__c where type__c='Local' and Car_Bike_Category__c=: vp.Category__c];
+                if(exppolicy[0].Rate_in_Km__c != null)
+                    vp.Total_Local_Expense__c=exppolicy[0].Rate_in_Km__c * vp.Total_Km__c;  
+            }         
+        }    
+   }*/
+   
+   /*public void changemode(){
+       
+       vp.Total_Local_Expense__c=0;
+       vp.Total_Km__c= 0;
+   }*/
+}

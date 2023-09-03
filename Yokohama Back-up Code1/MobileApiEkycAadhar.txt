@@ -1,0 +1,75 @@
+@RestResource(urlMapping='/EkycAuthAPIAadhaar/*')
+global class MobileApiEkycAadhar {
+    global class Res{
+        global string request_id;
+        global string code;
+        global string message;
+    }
+    @HttpPost
+    global static Res dopostAadhaar(string AadharId){
+        //RestRequest cc= RestContext.request;
+        //map<string, string> contactparam=cc.params;
+        //string AccountID=contactparam.get('AccountID');
+        ID userid = userinfo.getUserId();
+        //user jk=[select ContactId,Id from user where Id=:'userid' limit 1];
+        user jk=[select ContactId,Id from user where Id=:'0059D000003TxpfQAC' limit 1];
+        Contact acc=[select AccountId, Id from contact where ID=:jk.ContactId];
+        system.debug('jkkkkkkkkkkkkkkkkkk'+userid+'n     '+ jk.ContactId+'      '+acc.AccountId);
+        Account AccAddharList=[select id, Aadhar_Request_Id__c,Aadhar_No__c from Account where Id =:acc.AccountId];
+        system.debug('AccList>>>'+AccAddharList.Aadhar_Request_Id__c);
+        Http http = new Http();
+        HttpRequest request = new HttpRequest();
+        request.setEndpoint('https://testapi.karza.in/v3/aadhaar-xml/otp');
+        request.setBody('{"aadhaarNo":'+ AadharId+',"consent": "Y"}');
+        system.debug('output will be::::'+AadharId);
+        request.setMethod('POST');
+        request.setHeader('Content-Type','application/json');
+        request.setHeader('x-karza-key','lIcWRvsaWJzZVMUz');
+        //request.setHeader('Content-Type','application/json'); 
+        //request.setHeader('header', 'jvgujghv5dcfg37uv');
+        
+       
+     // checking what kind of request sending
+        system.debug('jkkkkkkkkkkkkkkkkkkk'+request);
+       
+        HttpResponse response = http.send(request);
+        system.debug('jkkkkkkkkkkkkkkkkkkk'+response);
+        //String resBody = response.getBody();
+        String Result=response.getBody();
+        String responsevalue=Result.trim().replace('\uFEFF', '');
+        Map<String, Object> Output=(Map<String, Object>)JSON.deserializeUntyped(responsevalue.trim().replace('\uFEFF', ''));
+        system.debug(Result+'Output '+   Output.get('requestId')  );
+        String ReqId=String.valueOf(Output.get('requestId'));
+        AccAddharList.Aadhar_Request_Id__c=ReqId;
+        AccAddharList.Aadhar_No__c=AadharId;
+        	//AccList.PAN_Request_Id__c=ReqId;
+        system.debug('requestId::::::::'+ReqId);
+        update AccAddharList;
+        
+        Res res = new Res();
+        
+        try{
+            res.code='001';
+            res.message='OTP sent to registered mobile number';
+            res.request_id=ReqId;
+            return res;
+            
+        }
+        catch(Exception e){
+            res.code = '0002';
+            res.message = 'Some Problem Occur'+e;
+            return res;
+            
+        }
+        
+     
+        
+
+        
+       /* if(response.getStatusCode() != 200) {
+            System.debug('The status code returned was not expected: ' + response.getStatusCode() + ' ' + response.getStatus());
+        } else {
+            System.debug(response.getBody());
+        }*/
+    }
+}

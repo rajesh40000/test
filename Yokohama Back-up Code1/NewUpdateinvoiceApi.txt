@@ -1,0 +1,534 @@
+@RestResource(urlMapping='/NewUpdateinvoiceApi/')
+global class NewUpdateinvoiceApi{
+    global class Response {    
+        global string id;
+        global string code;
+        global string message;
+    }
+    @HttpPost
+    global static Response doPost (){
+        Response response = new Response();
+        //list<Visits__c> VstList1 = new list<Visits__c>();
+        restrequest req = RestContext.request;
+        RequestBodyWrap reqBodywrap = parse(req.requestBody.toString());
+        if(reqBodywrap.No != null){
+            List<Invoice__c> invoice1 = [Select  Id, Amount__c,Bill_to_Address_2__c,Update_Remarks__c,Cancel_Remarks__c,Bill_to_Address__c,Order_Date__c,Shipment_Date__c,
+                                         Sell_to_Customer_No__c,Sell_to_Customer_Name__c,Sell_to_Customer_Name_2__c,Sell_to_Address__c,Sell_to_Address_2__c,Sell_to_City__c,Sell_to_Post_Code__c,
+                                         Sell_to_County__c,Sell_to_Country_Region_Code__c,Sell_to_Contact__c,Sell_to_Contact_No__c,Bill_to_Contact_No__c,Bill_to_Customer_No__c,Bill_to_Name__c,
+                                         Bill_to_Name_2__c,Bill_to_Post_Code__c,Bill_to_County__c,Bill_to_City__c,Bill_to_Country_Region_Code__c,Bill_to_Contact__c,Ship_to_Code__c,Payment_Terms_Code__c,Due_Date__c,
+                                         Shipment_Method_Code__c,Location_Code__c,Customer_Posting_Group__c,Currency_Code__c,Currency_Factor__c,Customer_Price_Group__c,Customer_Disc_Group__c,
+                                         Salesperson_Code__c,Order_No__c,On_Hold__c,Gen_Bus_Posting_Group__c,Transport_Method__c,Ship_to_Post_Code__c,Ship_to_County__c,Ship_to_Country_Region_Code__c,Document_Date__c,External_Document_No__c,
+                                         Payment_Method_Code__c,Pre_Assigned_No__c,User_ID__c,Canceled_By__c,Canceled__c,Paid__c,
+                                         Remaining_Amount__c,Cust_Ledger_Entry_No__c,Invoice_Discount_Amount__c,Campaign_No__c,Responsibility_Center__c,Amount_to_Customer__c,Bill_to_Customer_State__c,
+                                         State__c,Structure__c,LR_RR_No__c,LR_RR_Date__c,Vehicle_No__c,Mode_of_Transport__c,
+                                         GST_Bill_to_State_Code__c,GST_Ship_to_State_Code__c,Location_State_Code__c,Location_GST_Reg_No__c,Customer_GST_Reg_No__c,Distance_Km__c,Reference_Invoice_No__c,
+                                         E_Way_Bill_No__c,IRN_Hash__c,Discount_Remarks__c,Zone__c,Remarks__c,Docket_No__c,Transporter_Code__c,Picking_No__c,Referance_ID__c,Cancel_Referance_ID__c,e_Invoice_Created__c,
+                                         Cancelling_IRN__c,Cancelling_IRN_Date__c,Terrotry__c,Cancelled_e_Way_Bill_No__c,Invoice_Type1__c,Signed_QR_Code__c,
+                                         Ship_to_Name__c,Ship_to_Name_2__c,Ship_to_Address__c,Supply_Finised_Date__c from Invoice__c where No__c =:reqBodywrap.No];
+            if(invoice1 != NULL && invoice1.size() >= 0){
+                Invoice__c invoice = new Invoice__c();
+                invoice.id=invoice1[0].id;
+                if(reqBodywrap.Amount!= null){
+                    invoice.Amount__c= reqBodywrap.Amount;
+                }
+                if(reqBodywrap.AmounttoCustomer!= null){
+                    invoice.Amount_to_Customer__c= reqBodywrap.AmounttoCustomer;
+                }
+                if(reqBodywrap.BilltoAddress!= null){
+                    
+                    invoice.Bill_to_Address__c= reqBodywrap.BilltoAddress;
+                }
+                if(reqBodywrap.BilltoAddress2!= null){
+                    invoice.Bill_to_Address_2__c= reqBodywrap.BilltoAddress2;
+                }
+                /*if(reqBodywrap.No!= null){
+                    invoice.No__c= reqBodywrap.No;
+                }*/
+                if(reqBodywrap.OrderDate!= null){
+                    invoice.Order_Date__c= reqBodywrap.OrderDate;
+                }
+                if(reqBodywrap.PostingDate!= null){
+                 invoice.Posting_Date__c=Date.ValueOf(reqBodywrap.PostingDate);
+            }
+                
+                if(reqBodywrap.ShipmentDate!= null){
+                    invoice.Shipment_Date__c= reqBodywrap.ShipmentDate;
+                }
+                
+                if(reqBodywrap.SelltoCustomerNo!= null && reqBodywrap.SelltoCustomerNo != ''){
+                    account acc=[select id, name,Customer_No__c from Account where Customer_No__c=:reqBodywrap.SelltoCustomerNo];
+                    invoice.Sell_to_Customer_No__c= acc.id;
+                }
+                if(reqBodywrap.SelltoCustomerName!= null){
+                    invoice.Sell_to_Customer_Name__c= reqBodywrap.SelltoCustomerName;
+                }
+                
+                if(reqBodywrap.SelltoCustomerName2!= null){
+                    invoice.Sell_to_Customer_Name_2__c= reqBodywrap.SelltoCustomerName2;
+                }
+                
+                if(reqBodywrap.SelltoAddress!= null){
+                    invoice.Sell_to_Address__c= reqBodywrap.SelltoAddress;
+                }
+                
+                if(reqBodywrap.SelltoAddress2!= null){
+                    invoice.Sell_to_Address_2__c= reqBodywrap.SelltoAddress2;
+                }
+                
+                if(reqBodywrap.SelltoCity!= null){
+                    invoice.Sell_to_City__c= reqBodywrap.SelltoCity;
+                }
+                
+                if(reqBodywrap.SelltoPostCode!= null){
+                    invoice.Sell_to_Post_Code__c= reqBodywrap.SelltoPostCode;
+                }
+                
+                if(reqBodywrap.SelltoCounty!= null){
+                    invoice.Sell_to_County__c= reqBodywrap.SelltoCounty;
+                }
+                if(reqBodywrap.SelltoCountryRegionCode!= null){
+                    Country__c COUNT=[select id ,name from Country__c where name=:reqBodywrap.SelltoCountryRegionCode];
+                    invoice.Sell_to_Country_Region_Code__c= COUNT.id;
+                }
+                if(reqBodywrap.SelltoContact!= null){
+                    invoice.Sell_to_Contact__c= reqBodywrap.SelltoContact;
+                }
+                if(reqBodywrap.SelltoContactNo!= null){
+                    invoice.Sell_to_Contact_No__c= reqBodywrap.SelltoContactNo;
+                }
+                if(reqBodywrap.BilltoContactNo!= null){
+                    invoice.Bill_to_Contact_No__c= reqBodywrap.BilltoContactNo;
+                }
+                if(reqBodywrap.BilltoCustomerNo!= null && reqBodywrap.BilltoCustomerNo != ''){
+                    account acc=[select id, name ,Customer_No__c from Account where Customer_No__c=:reqBodywrap.BilltoCustomerNo];
+                    invoice.Bill_to_Customer_No__c= acc.Id;
+                }
+                if(reqBodywrap.BilltoName!= null){
+                    invoice.Bill_to_Name__c= reqBodywrap.BilltoName;
+                }
+                if(reqBodywrap.BilltoName2!= null){
+                    invoice.Bill_to_Name_2__c= reqBodywrap.BilltoName2;
+                }
+                
+                if(reqBodywrap.BilltoPostCode!= null && reqBodywrap.BilltoPostCode != ''){
+                    Pincode__c pin=[select id,name from Pincode__c where name=:reqBodywrap.BilltoPostCode];
+                    invoice.Bill_to_Post_Code__c= pin.id;
+                }
+                if(reqBodywrap.BilltoCounty!= null){
+                    
+                    invoice.Bill_to_County__c= reqBodywrap.BilltoCounty;
+                }
+                if(reqBodywrap.BilltoCity!= null && reqBodywrap.BilltoCity != ''){
+                    //City__c city=[select id,name from City__c where name=:reqBodywrap.BilltoCity];
+                    invoice.Bill_to_City__c=reqBodywrap.BilltoCity;
+                }
+                if(reqBodywrap.BilltoCountryRegionCode!= null  && reqBodywrap.BilltoCountryRegionCode != ''){
+                    Country__c count=[select id,name from Country__c where name=:reqBodywrap.BilltoCountryRegionCode];
+                    invoice.Bill_to_Country_Region_Code__c=count.id ;
+                }
+                if(reqBodywrap.BilltoContact!= null){
+                    invoice.Bill_to_Contact__c= reqBodywrap.BilltoContact;
+                }
+                if(reqBodywrap.ShiptoCode!= null){
+                    invoice.Ship_to_Code__c= reqBodywrap.ShiptoCode;
+                }
+                if(reqBodywrap.ShiptoCity!= null && reqBodywrap.ShiptoCity != ''){
+                    City__c city=[select id,name from City__c where name=:reqBodywrap.ShiptoCity];
+                    invoice.Ship_to_City__c=city.id;
+                }
+                if(reqBodywrap.PaymentTermsCode!= null){
+                    invoice.Payment_Terms_Code__c= reqBodywrap.PaymentTermsCode;
+                }
+                
+                if(reqBodywrap.DueDate!= null){
+                    invoice.Due_Date__c= reqBodywrap.DueDate;
+                }
+                if(reqBodywrap.ShipmentMethodCode!= null){
+                    invoice.Shipment_Method_Code__c= reqBodywrap.ShipmentMethodCode;
+                }
+                if(reqBodywrap.LocationCode!= null && reqBodywrap.LocationCode != ''){
+                    Location_Master__c loc=[select id, name from Location_Master__c where name=:reqBodywrap.LocationCode];
+                    invoice.Location_Code__c= loc.id;
+                }
+                
+                if(reqBodywrap.CustomerPostingGroup!= null){
+                    invoice.Customer_Posting_Group__c= reqBodywrap.CustomerPostingGroup;
+                }
+                
+                if(reqBodywrap.CurrencyCode!= null){
+                    invoice.Currency_Code__c= reqBodywrap.CurrencyCode;
+                }
+                
+                if(reqBodywrap.CurrencyFactor!= null){
+                    invoice.Currency_Factor__c= reqBodywrap.CurrencyFactor;
+                }
+                
+                if(reqBodywrap.CustomerPriceGroup!= null){
+                    invoice.Customer_Price_Group__c= reqBodywrap.CustomerPriceGroup;
+                }
+                
+                if(reqBodywrap.CustomerDiscGroup!= null){
+                    invoice.Customer_Disc_Group__c= reqBodywrap.CustomerDiscGroup;
+                }
+                if(reqBodywrap.SalespersonCode != null  && reqBodywrap.SalespersonCode != ''){
+                    
+                    invoice.Salesperson_Code__c=reqBodywrap.SalespersonCode;
+                }
+                
+                
+                if(reqBodywrap.OrderNo!= null){
+                    invoice.Order_No__c= reqBodywrap.OrderNo;
+                }
+                
+                if(reqBodywrap.OnHold!= null){
+                    invoice.On_Hold__c= reqBodywrap.OnHold;
+                }
+                if(reqBodywrap.GenBusPostingGroup!= null){
+                    invoice.Gen_Bus_Posting_Group__c= reqBodywrap.GenBusPostingGroup;
+                }
+                if(reqBodywrap.TransportMethod!= null){
+                    invoice.Transport_Method__c= reqBodywrap.TransportMethod;
+                }
+                if(reqBodywrap.ShiptoPostCode!= null  && reqBodywrap.ShiptoPostCode != ''){
+                    Pincode__c pin=[select id, name from Pincode__c where name=:reqBodywrap.ShiptoPostCode];
+                    invoice.Ship_to_Post_Code__c= pin.Id;
+                }
+                if(reqBodywrap.ShiptoCounty!= null){
+                    invoice.Ship_to_County__c= reqBodywrap.ShiptoCounty;
+                }
+                if(reqBodywrap.ShiptoCountryRegionCode!= null && reqBodywrap.ShiptoCountryRegionCode != ''){
+                    Country__c count=[select id,name from Country__c where name=:reqBodywrap.ShiptoCountryRegionCode];
+                    invoice.Ship_to_Country_Region_code__c= count.id;
+                }
+                if(reqBodywrap.DocumentDate!= null){
+                    invoice.Document_Date__c= reqBodywrap.DocumentDate;
+                }
+                if(reqBodywrap.ExternalDocumentNo!= null){
+                    invoice.External_Document_No__c= reqBodywrap.ExternalDocumentNo;
+                }
+                if(reqBodywrap.PaymentMethodCode!= null){
+                    invoice.Payment_Method_Code__c= reqBodywrap.PaymentMethodCode;
+                }
+                if(reqBodywrap.PreAssignedNo!= null){
+                    invoice.Pre_Assigned_No__c= reqBodywrap.PreAssignedNo;
+                }
+                if(reqBodywrap.UserID!= null){
+                    invoice.User_ID__c= reqBodywrap.UserID;
+                }
+                if(reqBodywrap.CanceledBy!= null){
+                    invoice.Canceled_By__c= reqBodywrap.CanceledBy;
+                }
+                if(reqBodywrap.Canceled!= null){
+                    invoice.Canceled__c= reqBodywrap.Canceled;
+                }
+                if(reqBodywrap.Paid!= null){
+                    invoice.Paid__c= reqBodywrap.Paid;
+                }
+                if(reqBodywrap.RemainingAmount!= null){
+                    invoice.Remaining_Amount__c= reqBodywrap.RemainingAmount;
+                }
+                if(reqBodywrap.CustLedgerEntryNo!= null){
+                    invoice.Cust_Ledger_Entry_No__c= reqBodywrap.CustLedgerEntryNo;
+                }
+                if(reqBodywrap.InvoiceDiscountAmount!= null){
+                    invoice.Invoice_Discount_Amount__c= reqBodywrap.InvoiceDiscountAmount;
+                }
+                if(reqBodywrap.CampaignNo!= null){
+                    invoice.Campaign_No__c= reqBodywrap.CampaignNo;
+                }
+                if(reqBodywrap.Responsibilitycenter!= null){
+                    invoice.Responsibility_Center__c= reqBodywrap.Responsibilitycenter;
+                }
+                if(reqBodywrap.AmounttoCustomer!= null){
+                    invoice.Amount_to_Customer__c= reqBodywrap.AmounttoCustomer;
+                }
+                if(reqBodywrap.BilltoCustomerState!= null && reqBodywrap.BilltoCustomerState != ''){
+                    State__c state=[select id ,name from State__c where name=:reqBodywrap.BilltoCustomerState];
+                    invoice.Bill_to_Customer_State__c= state.id;
+                }
+                if(reqBodywrap.State!= null && reqBodywrap.State != ''){
+                    State__c state=[select id ,name from State__c where name=:reqBodywrap.State];
+                    invoice.State__c= state.ID;
+                }
+                if(reqBodywrap.Structure!= null){
+                    invoice.Structure__c= reqBodywrap.Structure;
+                }
+                if(reqBodywrap.LRRRNo!= null){
+                    invoice.LR_RR_No__c= reqBodywrap.LRRRNo;
+                }
+                
+                if(reqBodywrap.LRRRDate!= null){
+                    invoice.LR_RR_Date__c= reqBodywrap.LRRRDate;
+                }
+                if(reqBodywrap.VehicleNo!= null){
+                    invoice.Vehicle_No__c= reqBodywrap.VehicleNo;
+                }
+                
+                if(reqBodywrap.ModeofTransport!= null){
+                    invoice.Mode_of_Transport__c= reqBodywrap.ModeofTransport;
+                }
+                
+                if(reqBodywrap.GSTBilltoStateCode!= null){
+                    State__c state=[select id ,name from State__c where name=:reqBodywrap.GSTBilltoStateCode];
+                    invoice.GST_Bill_to_State_Code__c= state.id;
+                }
+                
+                if(reqBodywrap.GSTShiptoStateCode!= null){
+                    State__c state=[select id ,name from State__c where name=:reqBodywrap.GSTBilltoStateCode];
+                    invoice.GST_Ship_to_State_Code__c= state.id;
+                }
+                
+                if(reqBodywrap.LocationStateCode!= null){
+                    State__c state=[select id ,name from State__c where name=:reqBodywrap.GSTBilltoStateCode];
+                    invoice.Location_State_Code__c= state.id;
+                }
+                
+                if(reqBodywrap.LocationGSTRegNo!= null){
+                    invoice.Location_GST_Reg_No__c= reqBodywrap.LocationGSTRegNo;
+                }
+                
+                if(reqBodywrap.CustomerGSTRegNo!= null){
+                    invoice.Customer_GST_Reg_No__c= reqBodywrap.CustomerGSTRegNo;
+                }
+                /*  if(reqBodywrap.ShiptoGSTRegNo!= null){
+invoice.= reqBodywrap.ShiptoGSTRegNo;
+}*/
+                if(reqBodywrap.DistanceKm!= null){
+                    invoice.Distance_Km__c= reqBodywrap.DistanceKm;
+                }
+                if(reqBodywrap.ReferenceInvoiceNo!= null){
+                    invoice.Reference_Invoice_No__c= reqBodywrap.ReferenceInvoiceNo;
+                }
+                if(reqBodywrap.EWayBillNo!= null){
+                    invoice.E_Way_Bill_No__c= reqBodywrap.EWayBillNo;
+                }
+                if(reqBodywrap.IRNHash!= null){
+                    invoice.IRN_Hash__c= reqBodywrap.IRNHash;
+                }
+                if(reqBodywrap.DiscountRemarks!= null){
+                    invoice.Discount_Remarks__c= reqBodywrap.DiscountRemarks;
+                }
+                if(reqBodywrap.Zone!= null){
+                    invoice.Zone__c= reqBodywrap.Zone;
+                }
+                if(reqBodywrap.Remarks!= null){
+                    invoice.Remarks__c= reqBodywrap.Remarks;
+                }
+                if(reqBodywrap.DocketNo!= null){
+                    invoice.Docket_No__c= reqBodywrap.DocketNo;
+                }
+                if(reqBodywrap.TransporterCode!= null){
+                    invoice.Transporter_Code__c= reqBodywrap.TransporterCode;
+                }
+                if(reqBodywrap.PickingNo!= null){
+                    invoice.Picking_No__c= reqBodywrap.PickingNo;
+                }
+                
+                if(reqBodywrap.ReferanceID!= null){
+                    invoice.Referance_ID__c= reqBodywrap.ReferanceID;
+                }
+                
+                if(reqBodywrap.CancelReferanceID!= null){
+                    invoice.Cancel_Referance_ID__c= reqBodywrap.CancelReferanceID;
+                }
+                
+                if(reqBodywrap.EInvoiceCreated!= null){
+                    invoice.e_Invoice_Created__c= reqBodywrap.EInvoiceCreated;
+                }
+                
+                if(reqBodywrap.CancellingIRN!= null){
+                    invoice.Cancelling_IRN__c= reqBodywrap.CancellingIRN;
+                }
+                
+                if(reqBodywrap.CancellingIRNDate!= null){
+                    invoice.Cancelling_IRN_Date__c= reqBodywrap.CancellingIRNDate;
+                }
+                
+                if(reqBodywrap.Territory!= null && reqBodywrap.Territory != ''){
+                    
+                    invoice.Terrotry__c= reqBodywrap.Territory;
+                }
+                
+                if(reqBodywrap.InterDocumentNo!= null){
+                    invoice.Inter_Document_No__c= reqBodywrap.InterDocumentNo;
+                }
+                
+                if(reqBodywrap.CancelledeWayBillNo!= null){
+                    invoice.Cancelled_e_Way_Bill_No__c= reqBodywrap.CancelledeWayBillNo;
+                }
+                /* {
+Account acc=[select id, Customer_No__c from Account where Customer_No__c=:'111111'];
+if(acc != null){
+invoice.Customer__c=acc.id;
+}
+}*/
+                if(reqBodywrap.type!= null){
+                    invoice.Invoice_Type1__c= reqBodywrap.type;
+                }
+                /* if(reqBodywrap.ordertype!= null){
+invoice.= reqBodywrap.ordertype;
+}*/
+                if(reqBodywrap.signedQRCode!= null){
+                    invoice.Signed_QR_Code__c= reqBodywrap.signedQRCode;
+                }
+                
+                if(reqBodywrap.ShiptoCode!= null){
+                    invoice.Ship_to_Code__c= reqBodywrap.ShiptoCode;
+                }
+                
+                if(reqBodywrap.ShiptoName!= null){
+                    invoice.Ship_to_Name__c= reqBodywrap.ShiptoName;
+                }
+                
+                if(reqBodywrap.ShiptoName2!= null){
+                    invoice.Ship_to_Name_2__c= reqBodywrap.ShiptoName2;
+                }
+                
+                if(reqBodywrap.ShiptoAddress!= null){
+                    invoice.Ship_to_Address__c= reqBodywrap.ShiptoAddress;
+                }
+                
+                if(reqBodywrap.suppyfinisheddate!= null){
+                    invoice.Supply_Finised_Date__c= reqBodywrap.suppyfinisheddate;
+                }
+               /* if(reqBodywrap.PostingDate!=null){
+                    invoice.Posting_Date__c=reqBodywrap.PostingDate;
+                }*/
+                try{
+                    update invoice;
+                    
+                    response.code = '0001';
+                    response.message = 'Invoice Updated successfully';   
+                    response.id = invoice.id;   
+                }
+                catch(Exception e){
+                    response.code = '0002';
+                    response.message = 'Some Problem Occur'+e;
+                    system.debug('<<test>>'+ e.getMessage());
+                    return response;
+                }
+            }else{
+                response.code = '0003';
+                response.message = 'Visit is Already Updated';
+                response.id = invoice1[0].id;
+                return response;
+            }
+        } 
+        return response;    
+    }     
+    public class RequestBodyWrap
+    {
+        public string Customer;
+        public string No;
+        public string type;
+        public string ordertype;
+        public string PostingDate;
+        public string QRcode;
+        public string signedQRCode;
+        Public string suppyfinisheddate;
+        public date OrderDate;
+        
+        public date ShipmentDate;
+        public string SelltoCustomerNo;
+        public string SelltoCustomerName;
+        public string SelltoCustomerName2;
+        public string SelltoAddress;
+        public string SelltoAddress2;
+        public string SelltoCity;
+        public string SelltoPostCode;
+        public string SelltoCounty;
+        public string SelltoCountryRegionCode;
+        public string SelltoContact;
+        public string SelltoContactNo;
+        public string BilltoContactNo;
+        public string BilltoCustomerNo;
+        public string BilltoName;
+        public string BilltoName2;
+        public string BilltoAddress;
+        public string BilltoAddress2;
+        public string  BilltoCity;
+        public string BilltoPostCode;
+        public string BilltoCounty;
+        public string BilltoCountryRegionCode;
+        public string BilltoContact;
+        public string ShiptoCode;
+        public string ShiptoName;
+        public string ShiptoName2;
+        public string ShiptoAddress;
+        public string ShiptoAddress2;
+        public string ShiptoCity;
+        public string ShiptoContact;
+        public string PaymentTermsCode;
+        public string DueDate;
+        public string ShipmentMethodCode;
+        public string LocationCode;
+        public string CustomerPostingGroup;
+        public string CurrencyCode;
+        public decimal CurrencyFactor;
+        public string CustomerPriceGroup;
+        public string  CustomerDiscGroup;
+        public string SalespersonCode;
+        public string OrderNo;
+        public string OnHold;
+        public decimal Amount;
+        public String GenBusPostingGroup;
+        public string TransportMethod;
+        public string ShiptoPostCode;
+        Public string ShiptoCounty;
+        public string ShiptoCountryRegionCode;
+        public string DocumentDate;
+        public string ExternalDocumentNo;
+        public string PaymentMethodCode;
+        public string PreAssignedNo;
+        public string UserID;
+        public string CanceledBy;
+        public boolean Canceled;
+        public boolean Paid;
+        public decimal RemainingAmount;
+        public integer CustLedgerEntryNo;
+        public decimal InvoiceDiscountAmount;
+        public string CampaignNo;
+        public string Responsibilitycenter;
+        public decimal AmounttoCustomer;
+        public string BilltoCustomerState;
+        public  string State;
+        public string Structure;
+        public  string LRRRNo;
+        public date LRRRDate;
+        Public string VehicleNo;
+        public string ModeofTransport;
+        public  string GSTBilltoStateCode;
+        public string GSTShiptoStateCode;
+        public string LocationStateCode;
+        public string LocationGSTRegNo;
+        public string CustomerGSTRegNo;
+        public string ShiptoGSTRegNo;
+        public decimal DistanceKm;
+        public string ReferenceInvoiceNo;
+        public string EWayBillNo;
+        public string IRNHash;
+        public string DiscountRemarks;
+        public string Zone;
+        public string Remarks;
+        public string DocketNo;
+        public string TransporterCode;
+        public string PickingNo;
+        public string ReferanceID;
+        public string CancelReferanceID;
+        public boolean EInvoiceCreated;
+        public boolean CancellingIRN;
+        public string CancellingIRNDate;
+        public string Territory;
+        public string InterDocumentNo;
+        public string CancelledeWayBillNo;
+        public string CancelRemarks;
+        public string UpdateRemarks;
+        public string RouteNo;
+        public string RouteCode;
+        public boolean CancelInvoice;
+    }
+    
+    public static RequestBodyWrap parse(String json){
+        return (RequestBodyWrap) System.JSON.deserialize(json, RequestBodyWrap.class);
+    }
+}

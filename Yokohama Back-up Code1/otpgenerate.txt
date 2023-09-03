@@ -1,0 +1,21 @@
+trigger otpgenerate on Invoice__c (after update) {
+    
+    Invoice__c invoice =[SELECT customer__c, customer__r.name, name, customer__r.Phone, Order_No__c FROM Invoice__c where Invoice_Status1__c='Dispatch' limit 1];
+    string phone=invoice.Customer__r.Phone;
+    string CustomerName=invoice.Customer__r.name;
+    
+    for(Invoice__c inv:Trigger.new){
+        if(inv.Invoice_Status__c=='Dispatch'){
+            integer rndnum=Math.round(Math.random()*9999);
+            system.debug('Random OTP:::'+rndnum);
+            inv.OTP__c=integer.valueOf(rndnum);
+            //inv.OTP__c=8523;
+            //String message='Dear'+ inv.OTP__c+'Invoice No 98542 dated fdgh for Rs. 89 issued by Yokohama India. Thanks. Please do not reply' ;
+            String message='Hi '+CustomerName+',Your Order '+inv.Order_No__c+' has been dispatched. Invoice No. '+inv.Name+'. Use OTP '+inv.OTP__c+' for delivery confirmation. Yokohama India';
+            InvoiceSmsClass.send(phone, message);
+            //   leadList.add(inv);
+        }
+    }
+    //   update leadList;
+    //}
+}

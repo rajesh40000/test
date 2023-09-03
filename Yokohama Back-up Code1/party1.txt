@@ -1,0 +1,177 @@
+public with sharing class party1 {
+    public List<Account> records {get; set;} 
+    public List<Account> output {get; set;} 
+    public List<Account> fav {get; set;} 
+    public List<Account> unfav {get; set;} 
+   public Account ft { get; set; }
+    public Account ft1 { get; set; }
+    public Integer favsize {get; set;}
+    public Integer unfavsize {get; set;}
+    public Integer sum {get; set;}
+    
+    public party1(){
+        ft = new Account();
+    }
+    
+     public PageReference XX() {
+      
+PageReference pageRef = new PageReference(ApexPages.currentPage().getUrl());
+pageRef.setRedirect(true);
+return pageRef;
+}
+    public void Forecastt(){
+        fav = new List<Account>();
+        output = new List<Account>();
+        unfav = new List<Account>();
+        records = [SELECT Name,Score__c,F_NF__c,Leads_Value_Number__c,Orders__c,Influencer_Type__c,Score3__c,Region__c , Customer_Type__c FROM Account WHERE Score__c != 0 AND Customer_Type__c = 'Influencer'];
+        for(Integer i =0; i< records.size(); i++){
+            ft1 = records[i];
+            if(ft1.F_NF__c == 'Yes'){
+                fav.add(ft1);
+            }
+            favsize = fav.size();
+            if(ft1.F_NF__c == 'No'){
+                unfav.add(ft1);
+            }
+            unfavsize = unfav.size();
+            sum = favsize + unfavsize;
+            if(ft.Influencer_Type__c == null && ft.Region__c == null && ft.F_NF__c == null && ft.Score3__c == null){
+                
+                    output.add(ft1);
+                
+            }
+            if(ft.Score3__c == 'More than 80'){
+            if(ft.Influencer_Type__c == ft1.Influencer_Type__c && ft.Region__c == ft1.Region__c && ft.F_NF__c == ft1.F_NF__c){
+                if(ft1.Score__c >= 80.0){
+                    output.add(ft1);
+                }
+            }}
+            
+            
+            if(ft.Score3__c == '50-79'){
+            if(ft.Influencer_Type__c == ft1.Influencer_Type__c && ft.Region__c == ft1.Region__c && ft.F_NF__c == ft1.F_NF__c){
+                if(ft1.Score__c >= 50.0 && ft1.Score__c <= 79.0 ){
+                    output.add(ft1);
+                }
+            }}
+            
+            if(ft.Score3__c == 'Below 50'){
+            if(ft.Influencer_Type__c == ft1.Influencer_Type__c && ft.Region__c == ft1.Region__c && ft.F_NF__c == ft1.F_NF__c){
+                if(ft1.Score__c <= 50.0 ){
+                    output.add(ft1);
+                }
+            }}
+            
+            
+            if(ft.Score3__c == 'More than 80'){
+            if(ft.Influencer_Type__c == null && ft.Region__c == ft1.Region__c && ft.F_NF__c == ft1.F_NF__c){
+                if(ft1.Score__c >= 80.0){
+                    output.add(ft1);
+                }
+            }}
+            
+            
+            if(ft.Score3__c == '50-79'){
+            if(ft.Influencer_Type__c == null && ft.Region__c == ft1.Region__c && ft.F_NF__c == ft1.F_NF__c){
+                if(ft1.Score__c >= 50.0 && ft1.Score__c <= 79.0 ){
+                    output.add(ft1);
+                }
+            }}
+            
+            if(ft.Score3__c == 'Below 50'){
+            if(ft.Influencer_Type__c == null && ft.Region__c == ft1.Region__c && ft.F_NF__c == ft1.F_NF__c){
+                if(ft1.Score__c <= 50.0 ){
+                    output.add(ft1);
+                }
+            }}
+            
+            
+             if(ft.Score3__c == 'More than 80'){
+            if(ft.Influencer_Type__c == ft1.Influencer_Type__c && ft.Region__c == null && ft.F_NF__c == ft1.F_NF__c){
+                if(ft1.Score__c >= 80.0){
+                    output.add(ft1);
+                }
+            }}
+            
+            
+            if(ft.Score3__c == '50-79'){
+            if(ft.Influencer_Type__c == ft1.Influencer_Type__c && ft.Region__c == null && ft.F_NF__c == ft1.F_NF__c){
+                if(ft1.Score__c >= 50.0 && ft1.Score__c <= 79.0 ){
+                    output.add(ft1);
+                }
+            }}
+            
+            if(ft.Score3__c == 'Below 50'){
+            if(ft.Influencer_Type__c == ft1.Influencer_Type__c && ft.Region__c == null && ft.F_NF__c == ft1.F_NF__c){
+                if(ft1.Score__c <= 50.0 ){
+                    output.add(ft1);
+                }
+            }} 
+            
+            
+            
+            if(ft.Score3__c == 'More than 80'){
+            if(ft.Influencer_Type__c == ft1.Influencer_Type__c && ft.Region__c == ft1.Region__c && ft.F_NF__c == null){
+                if(ft1.Score__c >= 80.0){
+                    output.add(ft1);
+                }
+            }}
+            
+            
+            if(ft.Score3__c == '50-79'){
+            if(ft.Influencer_Type__c == ft1.Influencer_Type__c && ft.Region__c == ft1.Region__c && ft.F_NF__c == null){
+                if(ft1.Score__c >= 50.0 && ft1.Score__c <= 79.0 ){
+                    output.add(ft1);
+                }
+            }}
+            
+            if(ft.Score3__c == 'Below 50'){
+            if(ft.Influencer_Type__c == ft1.Influencer_Type__c && ft.Region__c == ft1.Region__c && ft.F_NF__c == null){
+                if(ft1.Score__c <= 50.0 ){
+                    output.add(ft1);
+                }
+            }}
+            
+            if(ft.Influencer_Type__c == ft1.Influencer_Type__c && ft.Region__c == ft1.Region__c && ft.F_NF__c ==  ft1.F_NF__c && ft.Score3__c == null){
+              output.add(ft1);
+            }
+            
+                  if(ft.Influencer_Type__c == null && ft.Region__c == null && ft.F_NF__c ==  ft1.F_NF__c && ft.Score3__c == null){
+              output.add(ft1);
+            }
+                    if(ft.Influencer_Type__c == null && ft.Region__c == ft1.Region__c && ft.F_NF__c ==  null && ft.Score3__c == null){
+              output.add(ft1);
+            }
+                       if(ft.Influencer_Type__c == ft1.Influencer_Type__c && ft.Region__c == ft1.Region__c && ft.F_NF__c ==  null && ft.Score3__c == null){
+              output.add(ft1);
+            }
+            
+              if(ft.Influencer_Type__c == null && ft.Region__c == ft1.Region__c && ft.F_NF__c ==  ft1.F_NF__c && ft.Score3__c == null){
+              output.add(ft1);
+            }
+            
+             if(ft.Score3__c == 'More than 80'){
+            if(ft.Influencer_Type__c == null && ft.Region__c == null && ft.F_NF__c == null){
+                if(ft1.Score__c >= 80.0){
+                    output.add(ft1);
+                }
+            }}
+            
+            
+            if(ft.Score3__c == '50-79'){
+            if(ft.Influencer_Type__c == null && ft.Region__c == null && ft.F_NF__c == null){
+                if(ft1.Score__c >= 50.0 && ft1.Score__c <= 79.0 ){
+                    output.add(ft1);
+                }
+            }}
+            
+            if(ft.Score3__c == 'Below 50'){
+            if(ft.Influencer_Type__c == null && ft.Region__c == null && ft.F_NF__c == null){
+                if(ft1.Score__c <= 50.0 ){
+                    output.add(ft1);
+                }
+            }}
+        }
+    }
+
+}

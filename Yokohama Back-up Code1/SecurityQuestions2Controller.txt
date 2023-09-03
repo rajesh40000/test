@@ -1,0 +1,66 @@
+public class SecurityQuestions2Controller {
+    
+    public String dropdown {get;set;}
+    public String answer {get;set;}
+    public String usrId {get;set;}
+    public String pageName {get;set;}
+    
+    public Account acc {get;set;}
+    public User usr {get;set;}
+    public Contact con {get;set;}
+    
+    public SecurityQuestions2Controller(ApexPages.StandardController controller){
+        
+        dropdown = ApexPages.currentPage().getParameters().get('dropdown');
+        System.debug('dropdown '+dropdown);
+        
+        
+        usrId = UserInfo.getUserId();  //'0059D000003mZuj';
+        System.debug('usrId '+usrId);
+        usr = [SELECT id,Name, ContactID FROM User WHERE id=: usrId];
+        con = [SELECT id,Name, AccountId FROM Contact WHERE id=:usr.ContactId];
+        acc = [SELECT id, Name, Verified__c, What_is_the_name_of_your_favorite_pet__c, What_is_your_mother_s_maiden_name__c, 
+               What_was_the_name_of_your_first_school__c, What_was_your_favorite_food_as_a_child__c FROM Account
+               WHERE  id=: con.AccountId];
+        System.debug('acc '+acc);
+        
+    }
+    public void proceed2(){
+        System.debug('proceed2 ');
+        System.debug('answer '+answer);
+        
+        if (answer == NULL){
+            ApexPages.addmessage(new ApexPages.message(ApexPages.severity.WARNING,'Please enter value'));
+        } 
+        else{
+            if (answer == acc.What_is_the_name_of_your_favorite_pet__c || answer == acc.What_is_your_mother_s_maiden_name__c 
+                || answer == acc.What_was_the_name_of_your_first_school__c ||answer == acc.What_was_your_favorite_food_as_a_child__c )
+            {
+                ApexPages.addmessage(new ApexPages.message(ApexPages.severity.CONFIRM,'Success!'));
+                acc.Verified__c =true;
+                update acc;
+                
+                
+            }
+            else if (answer != acc.What_is_the_name_of_your_favorite_pet__c || answer != acc.What_is_your_mother_s_maiden_name__c 
+                     || answer != acc.What_was_the_name_of_your_first_school__c ||answer != acc.What_was_your_favorite_food_as_a_child__c )
+            {
+                ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'Please enter correct answer!'));
+            }
+        }
+        
+    }
+    
+    
+    public PageReference reload(){
+        
+        string uuu = ApexPages.currentPage().getHeaders().get('referer');
+        System.debug('uuu '+uuu);
+        pageName = ApexPages.currentPage().getUrl();
+        System.debug('pageName '+pageName);
+        PageReference p = new PageReference('https://atctirepvtltd--partial.sandbox.my.site.com/Dealerportal/s/invoice/Invoice__c/Default');
+        //p.getParameters().put('answer',answer);
+        p.setRedirect(true);
+        return p;
+    }
+}

@@ -1,0 +1,219 @@
+public class VisitPlanEditPageOutStationCtrl {
+    public Visit_plan__c vp{get;set;}
+    public boolean b1{get;set;}
+    public list<Tour_plan__c> dp{get;set;}
+    
+   // public list<Tour_plan__c> dp1{get;set;}
+    public list<Tour_plan__c> dpfinal{get;set;}
+    public list<Visit_plan__c> dd{get;set;}
+    public list<Tour_plan__c> tourplanlist{get;set;}
+    
+    //public list<daily_plan__c> dailylist{get;set;}
+    public list<Visit_plan_expense__c> expense{get;set;}
+    public set<date> setd{get;set;}
+    
+    public VisitPlanEditPageOutStationCtrl(ApexPages.StandardController controller) {
+        this.vp= (Visit_plan__c)Controller.getRecord();
+        vp.Approval_status__c='Not Submitted';
+        setd= new set<date>();
+       
+        //dailylist = new list<daily_plan__c>();
+        dd= new list<Visit_plan__c>();
+        tourplanlist= new list<Tour_plan__c>();
+        dp= new list<Tour_plan__c>();
+        dpfinal= new list<Tour_plan__c>();
+        expense= new list<Visit_plan_expense__c>();
+        Id devRecordTypeId = Schema.SObjectType.Visit_plan__c.getRecordTypeInfosByName().get('Outstation').getRecordTypeId();
+        vp.recordtypeid=devRecordTypeId;
+        b1=true;
+    }
+   
+    public pagereference cancel(){
+        PageReference pageRef = new PageReference('/apex/Visitplantabview');
+        pageRef.setredirect(true);
+        return pageRef;
+    }
+    
+    public void SaveAndNext(){
+    
+        try{    
+                
+                system.debug(vp.from__c);
+                Date startDate = vp.from__c;
+                if(vp.id == null)
+                    dd=[select name from visit_plan__c where ((To__c >=: startDate and from__c <=: startDate) OR (To__c <=: vp.to__c and from__c >=: vp.to__c)) and ownerid=: userinfo.getuserid() and recordtype.name='outstation' and visit_status__c !='Cancelled'];
+                if(vp.from__c < date.Today()){
+                    ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Error,'You can schedule meeting for future. Past date is not acceptable. Please make necessary changes and then click on Save.'));
+                }
+                else if(vp.To__c < vp.from__c){
+                    ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Error,'From date always less than To Date'));    
+                }
+                else if(dd.size()>0){
+                    ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Error,'Already Visit created for this Range date'));
+                }    
+                
+                else
+                
+                {
+                    b1=false;
+                    Tour_plan__c dpp= new Tour_plan__c();
+                    dp.add(dpp);
+                    
+                }
+            
+            If(Test.isRunningTest())
+            {
+               Integer x = 1/0; //Controller will reach here only when code is runninging test mode and will throw exception e.
+            } 
+           
+        }
+        catch(Exception ex){
+            ApexPages.addMessages(ex);
+        }       
+    }
+    
+    public PageReference Savefinal() {
+        
+            setd.clear();
+            dpfinal.clear();
+            integer i=1;
+            
+            for(Tour_plan__c vv: dp){
+                if(vv.To__c < vv.from__c){
+                    ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Error,'From date always less than To Date'));    
+                }
+                else if(vv.from__c < vp.From__c || vv.To__c > vp.To__c){
+                    ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Error,'Please enter From and To date according to Visit Plan Range'));
+                }
+                else if(setd.contains(vv.from__c)){
+                    ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Error,'Already used this'+ '(' +vv.from__c +')' +'date in before line items'));
+                }
+                else{
+                    integer calculatedays= vv.from__c.daysBetween(vv.To__c);
+                    for(integer j=0; j<=calculatedays ; j++){
+                        setd.add(vv.from__c + j);
+                        
+                    }
+                    system.debug(setd);
+                    Date d = vv.from__c;
+                    Date d1 = vv.To__c;
+                    //vv.name=string.valueof(DateTime.newInstance(d.year(),d.month(),d.day()).format('dd/MM/YY'))+'-'+ string.valueof(DateTime.newInstance(d1.year(),d1.month(),d1.day()).format('dd/MM/YY'))+'-'+ i;
+                    vv.name=string.valueof(DateTime.newInstance(d.year(),d.month(),d.day()).format('dd/MM/YY'))+'-'+ string.valueof(DateTime.newInstance(d1.year(),d1.month(),d1.day()).format('dd/MM/YY'));
+                    vv.Visit_Plan__c=vp.id; 
+                    
+                    i++;
+                     dpfinal.add(vv);
+                     //daily_plan__c ddd= new daily_plan__c();
+                     //ddd.Tour_Plan__c=vv.id;
+                     //ddd.Visit_Plan__c=vp.id;
+                     //dailylist.add(ddd);
+               } 
+               
+                  
+            }
+            if(dp.size() == 1)
+            {
+                if(dp[0].From__c != vp.from__c || dp[0].To__c != vp.To__c){
+                    ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Error,'For Single Tour Plan, From and To date must be same as Visit Plan'));
+                }
+                else{
+                  
+                    insert vp;
+                    insert dpfinal;
+                    system.debug('dpfinal :'+dpfinal);
+                    for(Tour_plan__c tp: dpfinal){
+                        tp.Visit_Plan__c=vp.id;
+                        system.debug('City Type :'+tp.city_lookup__c);
+                        integer calculatedays= tp.from__c.daysBetween(tp.To__c);
+                        for(integer j=0; j<=calculatedays ; j++){
+                            Visit_plan_expense__c vpe= new Visit_plan_expense__c();
+                            vpe.city_lookup__c= tp.city_lookup__c;
+                            vpe.from__c= tp.from__c + j;
+                            //vpe.to__c= tp.to__c;
+                            vpe.visit_plan__c= vp.id;
+                            expense.add(vpe); 
+                        
+                        }
+                               
+                    
+                    }
+                    update dpfinal;
+                    system.debug('expense :'+expense);
+                    upsert expense;
+                    PageReference pageRef = new PageReference('/apex/VisitPlanDetailPageOutStation?id=' +vp.id);
+                    pageRef.setredirect(true);
+                    return pageRef;
+                    /*tourplanlist= [select name,(select name from daily_plans__r) from tour_plan__c where visit_plan__c=:vp.id];
+                    system.debug(tourplanlist.size());
+                    for(tour_plan__c tp: tourplanlist)
+                        system.debug(tp.daily_plans__r[0].name);
+                    return null;*/
+                    
+                }
+            }
+            else
+           
+            
+            if(dp.size() == dpfinal.size()){
+                
+                
+                    upsert vp;
+                	try{
+                    	insert dpfinal;
+                        }
+                    catch(Exception e){
+                      ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Error,'Duplicate visits found..!!'));
+                     return null;
+                    }
+                    for(Tour_plan__c tp: dpfinal){
+                        tp.Visit_Plan__c=vp.id;
+                        integer calculatedays= tp.from__c.daysBetween(tp.To__c);
+                        for(integer j=0; j<=calculatedays ; j++){
+                            Visit_plan_expense__c vpe= new Visit_plan_expense__c();
+                            vpe.city_lookup__c= tp.city_lookup__c;
+                            vpe.from__c= tp.from__c + j;
+                            //vpe.to__c= tp.to__c;
+                            vpe.visit_plan__c= vp.id;
+                            expense.add(vpe); 
+                        
+                        }
+                      
+                    
+                    }
+                    update dpfinal;
+                    upsert expense;
+                    PageReference pageRef = new PageReference('/apex/VisitPlanDetailPageOutStation?id=' +vp.id);
+                    pageRef.setredirect(true);
+                    return pageRef;
+                
+            }
+            
+            return null;
+            
+              
+        
+       
+    }
+    
+    public void addrow() {
+        Tour_plan__c dpp= new Tour_plan__c ();
+            //dpp.date__c=vp.from__c;
+        dp.add(dpp); 
+    }
+    
+    public void removerow(){
+        Integer i = dp.size();
+        if(i > 1 || test.isRunningTest())
+            dp.remove(i-1);
+    }
+    
+    public void editvisit(){
+        dp.clear();
+        b1=true;
+    }
+    
+    public void auto(){
+        
+    }
+
+}

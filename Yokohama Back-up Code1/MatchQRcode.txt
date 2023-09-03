@@ -1,0 +1,32 @@
+@RestResource(urlMapping='/MatchQRcode/*')
+global  with sharing class MatchQRcode {
+    @Httpget
+    global static List<QR_Code_Master__c> getQRcode(){
+        RestRequest cc= RestContext.request;
+        map<string, string> contactparam=cc.params;
+        //integer jk=integer.valueOf(contactparam.get('limit'));
+        //Date Active_from=date.valueof(contactparam.get('jk'));
+        //Date Active_to=date.valueof(contactparam.get('Posting_Date__c'));
+        //Date active_from=date.valueof(contactparam.get('AccountID'));
+        
+        string AccountID=contactparam.get('AccountID');
+        
+        list<QR_Code_Master__c> conlist=[SELECT ID, Name,  Base_Code__c, Domestic__c, Imported__c, Item_No__c, QR_Code__c, Tire_Pattern__c, Tire_Size__c, Warranty_Registered__c, Year__c FROM QR_Code_Master__c];
+        List<QR_Code_Master__c> TextlongQRCodeList = new List<QR_Code_Master__c>();
+        
+		for(QR_Code_Master__c QR : conlist) {
+    		if(QR.QR_Code__c == 'obc122') {
+        		TextlongQRCodeList.add(QR);
+    		}
+		}
+        
+        //system.debug('kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk'+[SELECT Id,Adjusted_Currency_Factor__c,Posting_Date__c,Customer_No__c FROM Customer_Ledger__c where Customer_No__c=:AccountID AND Posting_Date__c<=Today AND Posting_Date__c>=Today]);
+        
+        return TextlongQRCodeList;
+               //list<Customer_Ledger__c> clclist=[SELECT ID,Adjusted_Currency_Factor__c,Posting_Date__c FROM Customer_Ledger__c where  Posting_Date__c<=Active_from AND Posting_Date__c<=Active_To];
+        //return clclist;
+       // system.debug('kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk'+conlist);
+        
+    }
+
+}

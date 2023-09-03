@@ -1,0 +1,30 @@
+public class ordercall { 
+     public static list<Quote__c> tmp1 = New list<Quote__c>();
+        public static String idString;
+    @AuraEnabled 
+      public static list<Quote__c> fetchdate()
+     {     Integer intCount = 0;
+           DateTime dt = DateTime.now();
+         Date todaysDate = system.today();
+         system.debug(todaysDate);
+         String monthName = dt.format('MMMMM');
+		  System.debug('Month Name : ' + monthName);
+         Integer Month = Date.Today().Month();
+         Integer year = Date.Today().Year();
+         string yearclap=String.valueOf(year);
+         integer lastmonth=Month-1;
+         integer lastmonth1=Month-2;
+         integer lastmonth2=Month-3;
+         integer lastyear=year-1;
+         system.debug(lastyear);
+         system.debug(month);
+         system.debug(year);
+         String sInteger = String.valueOf(Month);
+         String lastm = String.valueOf(lastmonth);
+         String lastm1 = String.valueOf(lastmonth1);
+         String lastm2 = String.valueOf(lastmonth2);
+      list<Quote__c> order =[Select Id,Order_Date__c,Order_Status1__c,Total_Amount_Inc_Tax__c,Loyalty_Points_Added__c from Quote__c];
+          
+      return order;
+     }
+}

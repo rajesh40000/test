@@ -1,0 +1,25 @@
+trigger SendSMS on Account (after insert, after update) {
+   
+    TriggerDisabled__c bypassTrigger= TriggerDisabled__c.getInstance('DisableTrigger');
+    system.debug('bypassTrigger '+ bypassTrigger);
+    system.debug('bypassTrigger '+ bypassTrigger.Is_Disabled_Trigger__c);
+    
+    if(!bypassTrigger.Is_Disabled_Trigger__c){
+        
+    String phoneNo = '';
+    //String DealerName = '';
+    String SendSmS = '';
+    For(Account a : Trigger.new)
+    {
+        if(a.Phone != null)
+        {
+            System.debug('Condition Check>>>>'+a.Phone);
+           
+            phoneNo = a.Phone;
+           
+            SendSmS='Yokohama';
+           
+        }
+      }
+   }
+}

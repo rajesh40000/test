@@ -1,0 +1,22 @@
+trigger Test on Inventory_Register_Line__c (before insert) {
+    
+   TriggerDisabled__c bypassTrigger= TriggerDisabled__c.getInstance('DisableTrigger');
+    system.debug('bypassTrigger '+ bypassTrigger);
+    system.debug('bypassTrigger '+ bypassTrigger.Is_Disabled_Trigger__c);
+    
+    if(!bypassTrigger.Is_Disabled_Trigger__c){
+        
+    List<Stock_Transfer__c> stockmove= new List<Stock_Transfer__c>();
+    Set<Id> invoice= new Set<Id>();
+    For(Inventory_Register_Line__c value:Trigger.New){
+        invoice.add(value.Invoice2__c);
+        stockmove =[SELECT id,Name,Warehouse__c from Stock_Transfer__c WHERE Invoice__c in:invoice];
+    system.debug('invoice:::'+invoice);
+        for(Stock_Transfer__c item:stockmove){
+            value.Inventory_Register__c= item.id;
+           value.Warehouse__c=item.Warehouse__c;
+            system.debug('item.id:::'+item.id);
+        }
+     }
+   }  
+}

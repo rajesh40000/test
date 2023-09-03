@@ -1,0 +1,35 @@
+trigger UtrgetOrder on UTR__c (after update, after insert) {
+    
+    //for Sharing
+    Map<id,id> zsmMap = new Map<id,id>();
+    Map<id,id> ddmMap = new Map<id,id>();
+    Map<id,id> agmMap = new Map<id,id>();
+    Map<id,id> rsmMap = new Map<id,id>();
+    Map<id,id> dsmMap = new Map<id,id>();
+    Map<id,id> seMap = new Map<id,id>();
+    
+    if(trigger.isAfter && trigger.isInsert){
+        for( UTR__c utr : trigger.new){
+            
+            zsmMap.put(utr.Id, utr.ZSM__c );
+            ddmMap.put(utr.Id, utr.DDM__c);
+            agmMap.put(utr.Id, utr.AGM__c);
+            rsmMap.put(utr.Id, utr.RSM__c);
+            dsmMap.put(utr.Id, utr.DSM__c);
+            seMap.put(utr.Id, utr.SE__c);
+        }
+        ObjectShare.paymentShare(zsmMap,ddmMap,agmMap,rsmMap,dsmMap,seMap);
+    }
+    //sharing end
+    if(trigger.isAfter && trigger.isUpdate){
+        UTR__c utr;
+        for( UTR__c utlst:trigger.new)
+            utr = utlst;
+        
+        if(utr.Payment__c == true){
+            if(system.isBatch() == false && system.isFuture() == false){
+                RazorpayorderAPI.getOrder(utr.Order_id__c,utr.id);
+            }
+        }
+    }
+}

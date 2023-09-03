@@ -1,0 +1,104 @@
+@RestResource(urlMapping='/StartDayAPI/')
+global class StartDayAPI {
+    global class Response {    
+        global string id;
+        global string code;
+        global string message;
+        global string latitude;
+        global string longitude;
+    }
+    @HttpPost 
+    global static Response doPost(String UserID, Boolean StartDay, String Type,String PresentType, String Latitude, String Longitude, String StartTime, Date AttendanceDate, String absentReason,String Image,String TravelThrough)
+    {
+        //system.debug('Area:::::'+Area);
+        List<String> item= new List<String>();
+        Response response = new Response();
+        if(Latitude!='' && Longitude!=''){
+            item = GoogleAPI.Google(Latitude, Longitude); 
+            System.debug('<<item>' +item);
+        }
+        
+        List<Attendance__c> attendance =[select id from Attendance__c where Type__c = NULL AND Attendance_Date__c = TODAY AND User__c=:UserID];
+        
+        if(attendance != NULL && attendance.size() >= 0){
+            Datetime now = Datetime.now();
+            Integer offset = UserInfo.getTimezone().getOffset(now);
+            Datetime local = now ; //now.addSeconds(offset/1000);
+            
+            Attendance__c record = new Attendance__c();
+            
+            if(Type == 'Present'){
+                system.debug('Type value: ' + Type);
+                record.User__c= UserID;
+                record.Attendance_Date__c = AttendanceDate;
+                record.Type_y__c=Type;
+                record.Present_Type__c = PresentType;
+                record.CheckIn_Location__Latitude__s = Decimal.valueOf(Latitude);
+                record.CheckIn_Location__Longitude__s = Decimal.valueOf(Longitude);
+                
+                if(item.size() > 0){
+                    //record.City__c=item[4];
+                    //System.debug('<<<record.City__c>>' +record.City__c);
+                    //record.District__c=item[3];
+                    //record.State__c=item[2];
+                    record.CheckIn_Address__c= item[5];
+                }
+                
+                record.Start_Day__c=True;
+                if(TravelThrough!='')
+                    record.Travel_Through__c=TravelThrough;
+                if(Image!='')
+                {
+                    record.Image__c='<img src="data:image/png;base64,'+Image+'"/>';
+                }
+                record.Start_Time__c= Time.newInstance(local.hour(), local.minute(), local.second(), local.millisecond());
+            }else{
+                record.User__c= UserID;
+                record.Attendance_Date__c = AttendanceDate;
+                record.Type_y__c=Type;
+                record.Absent_Reason__c = absentReason;
+                record.Start_Time__c = Time.newInstance(local.hour(), local.minute(), local.second(), local.millisecond());
+            }
+            
+            try{
+                
+                if(Type == 'Present'){
+                    insert record;
+                    response.code = '0001';
+                    response.message = 'Day Started successfully';
+                    response.id = record.id;
+                    return response;
+                }else{
+                    insert record;
+                    response.code = '0002';
+                    response.message = 'Leave marked successfully';
+                    response.id = record.id;
+                    return response;
+                }
+                
+            }
+            catch(Exception e){
+                response.code = '0003';
+                response.message = 'Some Problem Occur'+e;
+                system.debug('<<test>>'+ e.getMessage());
+                return response;
+            }
+            
+        }else{
+            
+            if(Type == 'Present'){
+                response.code = '0004';
+                response.message = 'User Already Started Day';
+                response.id = attendance[0].id;
+                return response;
+            }else{
+                response.code = '0005';
+                response.message = 'User Already Marked leave Today';
+                response.id = attendance[0].id;
+                return response;
+            }
+            
+        }
+        
+    }
+}

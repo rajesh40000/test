@@ -1,0 +1,149 @@
+public without sharing class VANSalesLoadingCtrl {
+    
+    @AuraEnabled
+    public static list<sobject> getValues(String optionssType){ 
+        system.debug('optionssType'+optionssType);
+        list<sobject> returnList = new list<sobject>();
+        if(optionssType == 'vehicle'){
+            list<Vehicle__c> vch=[select id,Vehicle_No__c,Vehicle_Person_Name__r.name,Vehicle_Person_Name__r.mobilephone  from Vehicle__c where Vehicle_No__c != null];
+            returnList.addAll(vch);
+        }
+        else if(optionssType == 'sales'){
+            list<Team__c> vch=[select id,Name from Team__c where Team_Member__c = 'VAN Sales'];
+            returnList.addAll(vch);
+            
+        }
+        else if(optionssType == 'plant'){
+            list<Account> vch=[select id,Name from Account where Recordtype.name = 'Plant'];
+            returnList.addAll(vch);
+            
+        }
+        else if(optionssType == 'dealer'){
+            list<User> vch=[select id,Name,contactId,contact.account.name, contact.accountid, contact.account.distributor_code__c from User where Id =: Userinfo.getUserId()];
+            returnList.addAll(vch);
+            
+        }
+        else if (optionssType == 'beat'){
+            list<Beats__c> vch=[select id,Name from Beats__c];
+            returnList.addAll(vch);
+        }
+        
+        return returnList;
+    }
+    
+    @AuraEnabled
+    public static list<Product_Pricing__c> fetchProduct(String vehicleId, String salesId, String plantId, date dateId, String accountId, String beatId){ 
+        list<Product_Pricing__c> returnList = new list<Product_Pricing__c>();
+        map<string, Sales_Loading__c> mapSL = new map<string, Sales_Loading__c>();
+        list<Sales_Loading__c> slList = [Select Id, Distributer_Stock__c, Loading_Stock__c, Product__c, Van_Inventory__c from Sales_Loading__c where Van_Inventory__r.Date__c =:dateId
+                                         AND Van_Inventory__r.Distributer__c =: accountId AND Van_Inventory__r.Godown_Plant__c =:plantId  AND Van_Inventory__r.Sales_Person__c =:Salesid AND Van_Inventory__r.Vehicle_No__c =:vehicleId AND Van_Inventory__r.Beat__c =: beatId];
+        for(Sales_Loading__c sl : slList){
+            mapSL.put(sl.Product__c, sl);
+        }
+        set<Id> dupProduct = new set<Id>();
+        for(Product_Pricing__c pp : [Select Id, Available_Qty__c, Loading_Stock__c, Product_c__c, Product_c__r.Name, Product_c__r.Batch_Code__c, Product_c__r.Product_Code_del__c from Product_Pricing__c where Product_c__c != null] ){
+            if(!dupProduct.contains(pp.Product_c__c)) {
+                returnList.add(pp);
+                dupProduct.add(pp.Product_c__c);
+                if(mapSL.containsKey(pp.Product_c__c)){
+                    pp.Loading_Stock__c = mapSL.get(pp.Product_c__c).Loading_Stock__c;    
+                    pp.Loading_Id_For_Backend__c = mapSL.get(pp.Product_c__c).Id;
+                }
+            }   
+        }   
+        return returnList;
+    }
+    
+    @AuraEnabled
+    public static void saveLoading(String vehicleId, String salesId, String plantId, date dateId, String accountId, list<Product_Pricing__c> getList, String beatId){ 
+        list<Van_Inventory__c> vIList = [Select Id from Van_Inventory__c where Date__c =:dateId
+                                         AND Distributer__c =: accountId AND Godown_Plant__c =:plantId  AND Sales_Person__c =:Salesid AND Vehicle_No__c =:vehicleId AND Beat__c =: beatId];
+        Van_Inventory__c varVI = new Van_Inventory__c(); 
+        if(vIList.size() > 0){
+            varVI.Id = vIList[0].Id;
+        }
+        varVI.Date__c = dateId;
+        varVI.Distributer__c = accountId;
+        varVI.Godown_Plant__c = plantId;
+        varVI.Sales_Person__c = salesId;
+        varVI.Vehicle_No__c = vehicleId;
+        varVI.Beat__c = beatId;
+        upsert varVI;
+        list<Sales_Loading__c> slList = new list<Sales_Loading__c>();
+        for(Product_Pricing__c pp : getList){
+            Sales_Loading__c sl = new Sales_Loading__c();
+            if(pp.Loading_Id_For_Backend__c != null && pp.Loading_Id_For_Backend__c != ''){
+                sl.Id = pp.Loading_Id_For_Backend__c;
+            }
+            sl.Distributer_Stock__c = pp.Available_Qty__c;
+            sl.Loading_Stock__c = pp.Loading_Stock__c;
+            sl.Product__c = pp.Product_c__c;
+            sl.Van_Inventory__c = varVI.Id;
+            slList.add(sl);
+        }
+        try{
+        	upsert slList;
+        }
+        catch(Exception e){
+            throw new AuraHandledException(e.getMessage());   
+        }
+        
+    }
+    
+    @AuraEnabled 
+    public static list<Sales_UnLoading__c> getSalesUnloading(String salesId, date dateId, String beatId){
+        List<Integer> availableValues = new List<Integer>{-5, -6, -8, -4};
+            list<Sales_UnLoading__c> returnList = new list<Sales_UnLoading__c>();
+        map<string, Sales_UnLoading__c> mapSL = new map<string, Sales_UnLoading__c>();
+        list<Sales_Loading__c> slList = [Select Id, Product__r.Name, Distributer_Stock__c,Product__r.Product_Code_del__c, Product__r.Batch_Code__c, Loading_Stock__c, Product__c, Van_Inventory__c from Sales_Loading__c where Van_Inventory__r.Date__c =:dateId
+                                         AND Van_Inventory__r.Sales_Person__c =:Salesid AND Van_Inventory__r.Beat__c =:beatId];
+        for(Sales_Loading__c sl : slList){
+            Sales_UnLoading__c su = new Sales_UnLoading__c();
+            su.Batch_Code__c = sl.Product__r.Batch_Code__c;
+            //su.Closing_Stock__c = sl.Product__r.Batch_Code__c;
+            su.Opening_Stock__c = sl.Loading_Stock__c;
+            su.Product__c = sl.Product__c;
+            su.Product_Code__c = sl.Product__r.Product_Code_del__c;
+            //su.Quantity__c = sl.Product__r.Batch_Code__c;
+            su.Sales__c = sl.Loading_Stock__c + availableValues[Integer.valueof((Math.random() * 3))];
+            if(su.Sales__c < 0){
+                su.Sales__c = su.Opening_Stock__c;
+            }
+            //su.Sales_Return__c = sl.Product__r.Batch_Code__c;
+            if(su.Sales_Return__c != null){
+                su.Unloading_Stock__c = su.Opening_Stock__c - su.Sales__c + su.Sales_Return__c;
+            }
+            
+            su.Closing_Stock__c = su.Opening_Stock__c - su.Sales__c;
+            su.Van_Inventory__c = sl.Van_Inventory__c;
+            su.Product_name__c = sl.Product__r.Name;
+            returnList.add(su);
+        }  
+        
+        list<Sales_UnLoading__c> sulList = [Select Id, Sales__c,Quantity__c,Sales_Return__c,Unloading_Stock__c,Closing_Stock__c, Opening_Stock__c, Product__c, Van_Inventory__c from Sales_UnLoading__c 
+                                            where Van_Inventory__r.Date__c =:dateId AND Van_Inventory__r.Sales_Person__c =:Salesid ];
+        
+        if(sulList.size() > 0){
+            for(Sales_UnLoading__c sul: sulList){
+                mapSL.put(sul.Product__c, sul);
+            } 
+            for(Sales_UnLoading__c sul: returnList){
+                if(mapSL.containskey(sul.Product__c)){
+                    sul.Id = mapSL.get(sul.Product__c).Id;
+                    sul.Opening_Stock__c = mapSL.get(sul.Product__c).Opening_Stock__c;
+                    sul.Sales__c = mapSL.get(sul.Product__c).Sales__c;
+                    sul.Sales_Return__c = mapSL.get(sul.Product__c).Sales_Return__c;
+                    sul.Unloading_Stock__c = mapSL.get(sul.Product__c).Unloading_Stock__c;
+                    sul.Closing_Stock__c = mapSL.get(sul.Product__c).Closing_Stock__c;
+                    sul.Quantity__c = mapSL.get(sul.Product__c).Quantity__c;
+                }
+            } 
+        }
+        return returnList;
+    }
+    
+    @AuraEnabled 
+    public static void saveUnloadData(list<Sales_UnLoading__c> recData){
+        upsert recData;
+    }
+}

@@ -1,0 +1,228 @@
+trigger plus on Inventory_Register_Line__c (After insert) {
+    
+        TriggerDisabled__c bypassTrigger= TriggerDisabled__c.getInstance('DisableTrigger');
+    system.debug('bypassTrigger '+ bypassTrigger);
+    system.debug('bypassTrigger '+ bypassTrigger.Is_Disabled_Trigger__c);
+    
+    if(!bypassTrigger.Is_Disabled_Trigger__c){
+        
+    /* List<Inventory__c> UpdateInventries = new  List<Inventory__c>();
+Set<String> Product = new Set<String>();
+Set<Id> Productw = new Set<Id>();
+Decimal Qunatityw;
+String type ;
+Set<ID> Warehouse = new Set<ID>();
+
+for(Inventory_Register_Line__c values:Trigger.New) {
+Productw.add(values.Product_c__c);
+Warehouse.add(values.Warehouse__c);
+Qunatityw = values.Quantity__c ;
+type=values.Document_Type__c;
+system.debug('Product'+Productw);
+system.debug('Warehouse'+Warehouse);  
+}
+
+List<Inventory__c> abc= [SELECT Quantity__c FROM Inventory__c WHERE Warehouse__c in :Warehouse AND Product__c in:Productw];
+
+for(Inventory__c value:abc)
+{
+if(type=='Issue')
+{
+value.Quantity__c= value.Quantity__c- Qunatityw  ;
+}
+else
+{
+value.Quantity__c= value.Quantity__c+ Qunatityw  ;
+}
+}
+update abc;*/
+    
+    Set<String> ProductConc = new Set<String>();
+    Map<String, Decimal> mapQuantity = new Map<String, Decimal>();
+    String metho;
+    string movement;
+    list<Inventory_SKU__c> lstInve = new list<Inventory_SKU__c>();
+    for(Inventory_Register_Line__c values:Trigger.New){
+        metho = values.Document_Type__c;
+        movement = values.Movement_Type__c;
+        string conc= string.valueof(values.Product__c)+string.valueof(values.Warehouse1__c);
+        
+        if(!mapQuantity.containsKey(conc)){
+            mapQuantity.put(conc, values.Quantity__c);
+        }
+        else{
+            mapQuantity.put(conc, mapQuantity.get(conc)+ values.Quantity__c);
+        }
+        ProductConc.add(conc);
+        Integer limitt = Integer.valueof(values.Quantity__c);
+        if(values.Document_Type__c == 'Issue'){
+            if(values.Movement_Type__c == 'Return Request'){
+                for(Inventory_SKU__c inveSKU: [Select Id, Inventory_Transaction__c, Stock_Movement__c, Shipments__c, Shipment_Lines__c from Inventory_SKU__c where Id =: values.Map_SKU__c limit :limitt]){
+                    Inventory_SKU__c newInv = new Inventory_SKU__c();
+                    newInv.Id = inveSKU.Id;   
+                    //newInv.Inventory_Transaction__c = values.Id;
+                    // newInv.Stock_Movement__c = values.Inventory_Register__c;
+                    if(values.Map_Head_Id__c.startsWith('a0w')){
+                        newInv.Shipments__c = values.Map_Head_Id__c;
+                        newInv.Shipment_Lines__c = values.Map_Child_Id__c;
+                    }
+                    if(values.Map_Head_Id__c.startsWith('a1q')){
+                        newInv.Stock_Transfer_Header__c = values.Map_Head_Id__c;
+                        newInv.Stock_Transfer_Line__c = values.Map_Child_Id__c;
+                    }
+                    if(values.Map_Head_Id__c.startsWith('a1p')){
+                        newInv.Return_Request_Header__c = values.Map_Head_Id__c;
+                        newInv.Return_Request_Line__c = values.Map_Child_Id__c;
+                    }
+                    if(values.Movement_Type__c == 'Retailer Invoice'){
+                        newInv.Current_Owner_Location__c = 'Retailer';
+                    }
+                    
+                    //newInv.Current_Owner_Location__c = 'Distributor';
+                    newInv.Warehouse1__c = values.Warehouse1__c;
+                    lstInve.add(newInv);
+                }
+            }
+            else if(values.Movement_Type__c == 'Retailer Invoice'){
+                for(Inventory_SKU__c inveSKU: [Select Id, Inventory_Transaction__c, Warehouse1__c, Stock_Movement__c, Shipments__c, Shipment_Lines__c from Inventory_SKU__c where Product_Pricing__c =:values.Product__c AND (Current_Owner_Location__c ='Distributor') AND Warehouse1__c=:values.Warehouse1__c limit :limitt]){
+                    Inventory_SKU__c newInv = new Inventory_SKU__c();
+                    newInv.Id = inveSKU.Id;   
+                    newInv.Inventory_Transaction_Line_Retailer__c = values.Id;
+                    newInv.Inventory_Transaction_Header__c = values.Inventory_Register__c;
+                    if(values.Map_Head_Id__c.startsWith('a0w')){
+                        newInv.Shipments__c = values.Map_Head_Id__c;
+                        newInv.Shipment_Lines__c = values.Map_Child_Id__c;
+                    }
+                    if(values.Map_Head_Id__c.startsWith('a1q')){
+                        newInv.Stock_Transfer_Header__c = values.Map_Head_Id__c;
+                        newInv.Stock_Transfer_Line__c = values.Map_Child_Id__c;
+                    }
+                    if(values.Movement_Type__c == 'Retailer Invoice'){
+                        newInv.Current_Owner_Location__c = 'Retailer';
+                        // newInv.Inventory_Transaction_Header__c = values.Map_Head_Id__c;
+                        // newInv.Inventory_Transaction_Line_Retailer__c = values.Map_Child_Id__c;
+                    }
+                    
+                    //newInv.Current_Owner_Location__c = 'Distributor';
+                    newInv.Inventory__c = null;
+                    newInv.Warehouse1__c = values.Map_Retailer__c;
+                    lstInve.add(newInv);
+                }
+            }
+            else{
+                for(Inventory_SKU__c inveSKU: [Select Id, Inventory_Transaction__c, Stock_Movement__c, Shipments__c, Shipment_Lines__c from Inventory_SKU__c where Product_Pricing__c =:values.Product__c AND (Current_Owner_Location__c = '' OR Current_Owner_Location__c ='Warehouse') limit :limitt]){
+                    Inventory_SKU__c newInv = new Inventory_SKU__c();
+                    newInv.Id = inveSKU.Id;   
+                    newInv.Inventory_Transaction__c = values.Id;
+                    newInv.Stock_Movement__c = values.Inventory_Register__c;
+                    if(values.Map_Head_Id__c.startsWith('a0w')){
+                        newInv.Shipments__c = values.Map_Head_Id__c;
+                        newInv.Shipment_Lines__c = values.Map_Child_Id__c;
+                    }
+                    if(values.Map_Head_Id__c.startsWith('a1q')){
+                        newInv.Stock_Transfer_Header__c = values.Map_Head_Id__c;
+                        newInv.Stock_Transfer_Line__c = values.Map_Child_Id__c;
+                    }
+                    if(values.Movement_Type__c == 'Retailer Invoice'){
+                        newInv.Current_Owner_Location__c = 'Retailer';
+                    }
+                    
+                    //newInv.Current_Owner_Location__c = 'Distributor';
+                    newInv.Warehouse1__c = values.Warehouse1__c;
+                    lstInve.add(newInv);
+                }
+            }
+        }
+        if(values.Document_Type__c == 'Receipt'){
+            system.debug('--->');
+            if(values.Movement_Type__c == 'Return Request'){
+                for(Inventory_SKU__c inveSKU: [Select Id, Inventory__c, Inventory_Transaction__c, Stock_Movement__c, Shipments__c, Shipment_Lines__c from Inventory_SKU__c where Id =: values.map_sku__c]){
+                    Inventory_SKU__c newInv = new Inventory_SKU__c();
+                    newInv.Id = inveSKU.Id; 
+                    list<Inventory__c> inv = [Select id from Inventory__c where Name = 'INV-00013'];
+                    newInv.Inventory__c = inv.size()> 0?inv[0].id:null;
+                    /*newInv.Inventory_Transaction_Line_Receipt__c = values.Id;
+newInv.Inventory_Transaction_Header_Receipt__c = values.Inventory_Register__c;
+if(values.Map_Head_Id__c.startsWith('a0w')){
+newInv.Shipments__c = values.Map_Head_Id__c;
+newInv.Shipment_Lines__c = values.Map_Child_Id__c;
+}
+if(values.Map_Head_Id__c.startsWith('a1q')){
+newInv.Stock_Transfer_Header__c = values.Map_Head_Id__c;
+newInv.Stock_Transfer_Line__c = values.Map_Child_Id__c;
+}*/
+                    if(values.Map_Head_Id__c.startsWith('a1p')){
+                        newInv.Return_Request_Header_Receipt__c = values.Map_Head_Id__c;
+                        newInv.Return_Request_Line_Receipt__c = values.Map_Child_Id__c;
+                    }
+                    newInv.Current_Owner_Location__c = 'Warehouse';
+                    newInv.Warehouse1__c = values.Warehouse1__c;
+                    lstInve.add(newInv);
+                }
+            }
+            else if(values.Movement_Type__c == 'Stock Transfer'){
+                
+                for(Inventory_SKU__c inveSKU: [Select Id, Inventory_Transaction__c, Stock_Movement__c, Shipments__c, Shipment_Lines__c from Inventory_SKU__c where (Shipments__c =: values.Map_Head_Id__c OR Stock_Transfer_Header__c =:values.Map_Head_Id__c) AND (Current_Owner_Location__c = '' OR Current_Owner_Location__c ='Warehouse') AND Product_Pricing__c =:values.Product__c]){
+                    Inventory_SKU__c newInv = new Inventory_SKU__c();
+                    newInv.Id = inveSKU.Id; 
+                    list<Inventory__c> inv = [Select id from Inventory__c where Warehouse_Location__c =:values.Warehouse1__c AND Product1__c =:values.Product__c];
+                    newInv.Inventory__c = inv.size()> 0?inv[0].id:null;
+                    newInv.Inventory_Transaction_Line_Receipt__c = values.Id;
+                    newInv.Inventory_Transaction_Header_Receipt__c = values.Inventory_Register__c;
+                    if(values.Map_Head_Id__c.startsWith('a0w')){
+                        newInv.Shipments__c = values.Map_Head_Id__c;
+                        newInv.Shipment_Lines__c = values.Map_Child_Id__c;
+                    }
+                    if(values.Map_Head_Id__c.startsWith('a1q')){
+                        newInv.Stock_Transfer_Header__c = values.Map_Head_Id__c;
+                        newInv.Stock_Transfer_Line__c = values.Map_Child_Id__c;
+                    }
+                    //newInv.Current_Owner_Location__c = 'Distributor';
+                    newInv.Warehouse1__c = values.Warehouse1__c;
+                    lstInve.add(newInv);
+                }
+            }
+            
+            else{
+                for(Inventory_SKU__c inveSKU: [Select Id, Inventory_Transaction__c, Stock_Movement__c, Shipments__c, Shipment_Lines__c from Inventory_SKU__c where (Shipments__c =: values.Map_Head_Id__c OR Stock_Transfer_Header__c =:values.Map_Head_Id__c) AND (Current_Owner_Location__c = '' OR Current_Owner_Location__c ='Warehouse') AND Product_Pricing__c =:values.Product__c]){
+                    Inventory_SKU__c newInv = new Inventory_SKU__c();
+                    newInv.Id = inveSKU.Id;   
+                    newInv.Inventory_Transaction_Line_Receipt__c = values.Id;
+                    newInv.Inventory_Transaction_Header_Receipt__c = values.Inventory_Register__c;
+                    if(values.Map_Head_Id__c.startsWith('a0w')){
+                        newInv.Shipments__c = values.Map_Head_Id__c;
+                        newInv.Shipment_Lines__c = values.Map_Child_Id__c;
+                    }
+                    if(values.Map_Head_Id__c.startsWith('a1q')){
+                        newInv.Stock_Transfer_Header__c = values.Map_Head_Id__c;
+                        newInv.Stock_Transfer_Line__c = values.Map_Child_Id__c;
+                    }
+                    newInv.Current_Owner_Location__c = 'Distributor';
+                    newInv.Warehouse1__c = values.Warehouse1__c;
+                    lstInve.add(newInv);
+                }
+            }
+        }
+        
+    }
+    List<Inventory__c> abc= [SELECT Quantity__c,conc__c FROM Inventory__c WHERE conc__c IN: ProductConc];
+    for(Inventory__c value:abc)
+    {
+        if(metho=='Issue')
+        {
+            value.Quantity__c= value.Quantity__c- mapQuantity.get(value.conc__c)  ;
+        }
+        else
+        {
+            system.debug(value.Quantity__c);
+            if(movement != 'Return Request')
+                value.Quantity__c= value.Quantity__c+ mapQuantity.get(value.conc__c)  ;
+            else{
+                
+            }
+        }
+    }
+    update abc;
+    update lstInve;
+    }  
+}

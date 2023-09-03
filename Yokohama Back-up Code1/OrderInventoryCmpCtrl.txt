@@ -1,0 +1,91 @@
+public without sharing  class OrderInventoryCmpCtrl {
+    @AuraEnabled
+    public static map<string,string> getValues(String optionssType){ 
+        system.debug('optionssType'+optionssType);
+        map<string,string> mp = new map<string,string>();
+        if(optionssType == 'vehicle'){
+            list<Invoice__c> vch=[select id,Vehicle_No__c from Invoice__c where Vehicle_No__c != null];
+            for(Invoice__c vc:vch)
+            {
+                mp.put(vc.Vehicle_No__c,vc.Vehicle_No__c) ;
+                
+            }
+        }
+        else if(optionssType == 'beat'){
+            list<Beats__c> vch=[select id,Name from Beats__c];
+            for(Beats__c vc:vch)
+            {
+                mp.put(vc.id,vc.Name) ;
+                
+            }
+        }
+        else if(optionssType == 'area'){
+            for(Quote__c acc : [Select id,Name,Order_To__r.Name,Order_Date__c,Beat__r.Name,Sales_Visit__r.Name,Loyalty_Points_Added__c,Beat_ID11__c,Area1__c,Total_Amount_In_Rs__c,Total_Amount_Inc_Tax__c,Quote_Status__c
+                                From Quote__c where Area1__c !='' Order By createdDate DESC
+                                Limit 1000]){
+                                    mp.put(acc.Area1__c,acc.Area1__c) ;    
+                                }   
+        }
+        return mp;
+    }
+      @AuraEnabled
+    public static List<Invoice_Lines__c> fetchInvoice1(list<String> beatSet, list<String> areaSet, String filterDate, list<String> vehicleSet){ 
+        List<Invoice_Lines__c> lstInvoiceLineItemWrap1= new List<Invoice_Lines__c>();
+        String query = 'select Name , Ordered_Quantity__c,Invoice__r.Name, Invoice_Amount_Inc_tax__c,Product_Group__r.Name	, Customer__r.Name from Invoice_Lines__c where Product__r.Name != null';
+        if(beatSet.size() > 0){
+            query += ' AND Invoice__r.Related_Quote__r.Beat__c IN : beatSet';
+        }
+        if(areaSet.size() > 0){
+            query += ' AND Invoice__r.Related_Quote__r.Area1__c IN : areaSet';
+        }
+        if(filterDate != null && filterDate != ''){
+            date filter = date.valueOf(filterDate);
+            query += ' AND Invoice__r.Invoice_Date__c =: filter';
+        }
+        if(vehicleSet.size() > 0){
+            query += ' AND Invoice__r.Vehicle_No__c IN : vehicleSet';
+        }
+       //  query += 'Order By :Customer__r.Name ASC';
+       
+        for (Invoice_Lines__c ar : database.query(query))  {
+      lstInvoiceLineItemWrap1.add(ar);
+        }
+        system.debug('lstInvoiceLineItemWrap1' + lstInvoiceLineItemWrap1);
+        return lstInvoiceLineItemWrap1;
+    }
+    
+    @AuraEnabled
+    public static List<InvoiceLineItemWrap> fetchInvoice(list<String> beatSet, list<String> areaSet, String filterDate, list<String> vehicleSet){ 
+        List<InvoiceLineItemWrap> lstInvoiceLineItemWrap= new List<InvoiceLineItemWrap>();
+        String query = 'select Product__r.Name pn, sum(Ordered_Quantity__c) from Invoice_Lines__c where Product__r.Name != null';
+        if(beatSet.size() > 0){
+            query += ' AND Invoice__r.Related_Quote__r.Beat__c IN : beatSet';
+        }
+        if(areaSet.size() > 0){
+            query += ' AND Invoice__r.Related_Quote__r.Area1__c IN : areaSet';
+        }
+        if(filterDate != null && filterDate != ''){
+            date filter = date.valueOf(filterDate);
+            query += ' AND Invoice__r.Invoice_Date__c =: filter';
+        }
+        if(vehicleSet.size() > 0){
+            query += ' AND Invoice__r.Vehicle_No__c IN : vehicleSet';
+        }
+        query += ' GROUP BY Product__r.Name';
+        AggregateResult[] groupedResults= database.query(query);
+        for (AggregateResult ar : groupedResults)  {
+            lstInvoiceLineItemWrap.add(new InvoiceLineItemWrap((String)ar.get('pn'),(Decimal)ar.get('expr0')));
+        }
+        system.debug('lstInvoiceLineItemWrap' + lstInvoiceLineItemWrap);
+        return lstInvoiceLineItemWrap;
+    }
+  
+    public class InvoiceLineItemWrap {
+        @AuraEnabled public String productName {get;set;}
+        @AuraEnabled public  Decimal quantity{get;set;}
+        public InvoiceLineItemWrap(String productName, Decimal quantity){
+            this.productName = productName;
+            this.quantity = quantity;
+        }
+    }
+}

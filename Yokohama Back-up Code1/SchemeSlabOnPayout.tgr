@@ -1,0 +1,82 @@
+trigger SchemeSlabOnPayout on Distributor_Payout_info__c (after insert, after update) {
+    
+     TriggerDisabled__c bypassTrigger= TriggerDisabled__c.getInstance('DisableTrigger');
+    system.debug('bypassTrigger '+ bypassTrigger);
+    system.debug('bypassTrigger '+ bypassTrigger.Is_Disabled_Trigger__c);
+    
+    if(!bypassTrigger.Is_Disabled_Trigger__c){
+        
+        
+    List<Scheme_Slab__c> SlabList=new List<Scheme_Slab__c>();
+    List<id> PayoutList=new List<id>();
+    List<decimal> AchMonthlyTarget=new List<decimal>();
+    List<decimal> MonthlyTarget=new List<Decimal>();
+    List<Distributor_Payout_info__c> PayoutList1=new List<Distributor_Payout_info__c>();
+    List<Distributor_Payout_info__c> PayoutList2=new List<Distributor_Payout_info__c>();
+    
+    for(Distributor_Payout_info__c dp:trigger.new){
+        //PayoutList.add(dp.id);
+        if(trigger.isUpdate){
+            if(dp.Achieved_Monthly_Target__c!=null && (dp.Achieved_Monthly_Target__c !=trigger.oldMap.get(dp.id).Achieved_Monthly_Target__c || dp.Revised_Target__c !=trigger.oldMap.get(dp.id).Revised_Target__c)){
+        		AchMonthlyTarget.add(dp.Achieved_Monthly_Target__c);
+                if(dp.Revised_Target__c==null)
+            		MonthlyTarget.add(dp.Monthly_Target__c);
+                else if(dp.Revised_Target__c!=null)
+                    MonthlyTarget.add(dp.Revised_Target__c);
+        	system.debug('AchMonthlyTarget '+AchMonthlyTarget);
+            system.debug('asuuhkjdcbadmnbadm '+MonthlyTarget);
+            }
+        }
+        if(trigger.isInsert && dp.Achieved_Monthly_Target__c!=null){
+        	AchMonthlyTarget.add(dp.Achieved_Monthly_Target__c);
+            MonthlyTarget.add(dp.Monthly_Target__c);
+            system.debug('asuuhkjdcbadmnbadm '+AchMonthlyTarget);
+            system.debug('asuuhkjdcbadmnbadm '+MonthlyTarget);
+        }
+        	
+    }
+    
+    if(AchMonthlyTarget.size()>0){
+    	SlabList=[select id, Slab_From__c, Slab_To__c, Scheme__c,Quarterly_Incentive__c,Consistency_Incentive__c,Add_on_Incentive__c,Retail_Incentive__c from Scheme_Slab__c where Slab_From__c<=:AchMonthlyTarget AND Slab_To__c>=:AchMonthlyTarget limit 1];
+        PayoutList1=[select id,Monthly_Target__c,Scheme__c from Distributor_Payout_info__c where id in:Trigger.new];
+        system.debug('SlabList '+SlabList.size());
+   //   system.debug('SlabList '+SlabList[0].id);
+    }
+    
+    if(SlabList.size()>0 /*&& AchMonthlyTarget>=MonthlyTarget*/){
+        for(integer i=0;i<PayoutList1.size();i++){
+            for(integer j=0;j<SlabList.size();j++){
+                system.debug('asuuhkjdcbadmnbadm '+AchMonthlyTarget[i]);
+            	system.debug('asuuhkjdcbadmnbadm '+MonthlyTarget[i]);
+                if(PayoutList1[i].Scheme__c==SlabList[j].Scheme__c && AchMonthlyTarget[i]>=MonthlyTarget[i]){
+        		PayoutList1[i].Scheme_Slab__c=SlabList[j].id;
+        		//PayoutList1[i].Scheme__c=SlabList[j].Scheme__c;
+        		PayoutList1[i].Received_Quarterly_Incentive__c=SlabList[j].Quarterly_Incentive__c;
+        		PayoutList1[i].Received_Consistency_Incentive__c=SlabList[j].Consistency_Incentive__c;
+        		PayoutList1[i].Received_Add_on_Incentive__c=SlabList[j].Add_on_Incentive__c;
+        		PayoutList1[i].Received_Retail_Incentive__c=SlabList[j].Retail_Incentive__c;
+        		PayoutList2.add(PayoutList1[i]);
+    			}
+                else{
+                    PayoutList1[i].Received_Quarterly_Incentive__c=0;
+        		PayoutList1[i].Received_Consistency_Incentive__c=0;
+        		PayoutList1[i].Received_Add_on_Incentive__c=0;
+        		PayoutList1[i].Received_Retail_Incentive__c=0;
+        		PayoutList2.add(PayoutList1[i]);
+                }
+            }
+        }
+    } 
+    else{
+        for(integer i=0;i<PayoutList1.size();i++){
+        PayoutList1[i].Received_Quarterly_Incentive__c=0;
+        		PayoutList1[i].Received_Consistency_Incentive__c=0;
+        		PayoutList1[i].Received_Add_on_Incentive__c=0;
+        		PayoutList1[i].Received_Retail_Incentive__c=0;
+        		PayoutList2.add(PayoutList1[i]);
+    }
+    }
+    if(PayoutList2.size()>0)
+    	update PayoutList2;
+    }
+}

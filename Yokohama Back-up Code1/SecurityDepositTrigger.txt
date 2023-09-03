@@ -1,0 +1,36 @@
+trigger SecurityDepositTrigger on Security_Deposite__c (before insert) {
+    
+    List<user> userids = new List<user>();
+    String NewSDIncreaseform= Schema.SObjectType.Security_Deposite__c.getRecordTypeInfosByName().get('New form SD Increase').getRecordTypeId();
+    String NewSDDecreaseform= Schema.SObjectType.Security_Deposite__c.getRecordTypeInfosByName().get('New form SD Decrease').getRecordTypeId();
+    String Increaseform= Schema.SObjectType.Security_Deposite__c.getRecordTypeInfosByName().get('SD Increase').getRecordTypeId();
+    String DDecreaseform= Schema.SObjectType.Security_Deposite__c.getRecordTypeInfosByName().get('SD Decrease').getRecordTypeId();
+    
+    Profile p=[Select id,Name from Profile where Name='Sales Director'];
+    List<User> u=[Select id,Name,ProfileID,isActive from User where isActive=true and ProfileID=:p.Id limit 1];
+
+    // system.debug('SDincreaseRecordTypeid:::'+RecordValuee);
+    userids = [SELECT Contact.AccountId, id FROM User WHERE id =: UserInfo.getUserId()];
+    for(Security_Deposite__c SD : trigger.new){
+        /* 
+        system.debug('userid '+ userids[0]);
+        if(SD.Dealer__c == null && userids.size()>0){
+            system.debug('Inside IF GYTest '+userids[0].Contact);
+            SD.Dealer__c = userids[0].Contact.AccountId ;
+        }
+		*/
+        System.debug(sd.RecordTypeId);
+        if(sd.RecordTypeId==Increaseform){
+            sd.RecordTypeId=NewSDIncreaseform;
+        }
+        if(sd.RecordTypeId==DDecreaseform){
+            sd.RecordTypeId=NewSDDecreaseform;
+            sd.Request_Type__c='SD Decrease';
+        }
+        if(u.size() >0){
+            sd.Sales_Director__c=u[0].id;
+        }
+        
+    }
+    
+}

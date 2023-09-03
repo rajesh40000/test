@@ -1,0 +1,15 @@
+trigger Onboardingotp on Account (before insert) {
+    
+  TriggerDisabled__c bypassTrigger= TriggerDisabled__c.getInstance('DisableTrigger');
+    system.debug('bypassTrigger '+ bypassTrigger);
+    system.debug('bypassTrigger '+ bypassTrigger.Is_Disabled_Trigger__c);
+    
+    if(!bypassTrigger.Is_Disabled_Trigger__c){
+        
+    for(Account acc:Trigger.new){
+            integer rndnum=Math.round(Math.random()*9999);
+            system.debug('Random OTP:::'+rndnum);
+            acc.On_boarding_OTP__c=string.valueOf(rndnum);
+            }
+    }
+}

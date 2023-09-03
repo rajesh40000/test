@@ -1,0 +1,18 @@
+trigger OTPUpdateMessageTrigger on Customer__c (after update) {
+    
+   TriggerDisabled__c bypassTrigger= TriggerDisabled__c.getInstance('DisableTrigger');
+    system.debug('bypassTrigger '+ bypassTrigger);
+    system.debug('bypassTrigger '+ bypassTrigger.Is_Disabled_Trigger__c);
+    
+    if(!bypassTrigger.Is_Disabled_Trigger__c){
+        
+        
+    if(Trigger.isAfter == True && Trigger.isUpdate == True){
+        for(Customer__c cust : Trigger.new){
+        	String message = 'Hi '+cust.Name+', your OTP for Warranty Registration is '+cust.Otp__c+'. Yokohama India';
+        	System.debug('message'+message);
+        	SendSmsOnTriggerCallClass.send(cust.Customer_Mobile__c,message,'OTPUpdateMessageTrigger');//pass third argument to uniqly identify the method in this class.
+        }
+    }
+  }     
+}

@@ -1,0 +1,59 @@
+public class Listorder {
+     public static Decimal TotalAmount;
+    public static Date date1;
+    public static Decimal LoyaltyPoints;
+    public static Datetime  times;
+    public Quote__c balobj;
+    public static string cid;
+     public static string bid;
+    public static String[] tmp1 = New String[]{};
+        public static string balstring;
+        // public static List<String> my_list = new List<String>();
+        //  public static List<String> my_list1 = new List<String>();
+        public static List<Map<String , String> > m2 = new List<Map<String, String> >();
+    public static List<Map<String , String> > idString;
+      public static List<Map<String , String> > m3 = new List<Map<String, String> >();
+    public static List<Map<String , String> > idString1;
+   
+     @AuraEnabled 
+    public  static  List<Map<String , String> > order ()
+    {
+       
+          
+            
+             list<Quote__c> order =[Select Id,Order_Date__c,Order_Status1__c,Total_Amount_Inc_Tax__c,Loyalty_Points_Added__c from Quote__c];
+           
+            
+            
+            for(Quote__c reqq:order)
+                
+            {
+                
+                
+                Map<String, String> m1 = new Map<String, String>();
+                bid=reqq.id;
+                m1.put('id',bid );
+                TotalAmount=reqq.Total_Amount_Inc_Tax__c;
+                String myString = String.valueOf(TotalAmount);
+                m1.put('TotalAmount',myString );
+                date1=reqq.Order_Date__c;
+                 String OrderStatus= reqq.Order_Status1__c;
+                m1.put('OrderStatus',OrderStatus);                
+                String myString1 = String.valueOf(date1);
+                m1.put('Date',myString1);
+                LoyaltyPoints=reqq.Loyalty_Points_Added__c;
+                String myString2 = String.valueOf(LoyaltyPoints);
+                                    m1.put('LoyaltyPoints',myString2);          
+                
+                m2.add(m1);
+            }
+            
+            
+             idString1 = m2;
+        system.debug(idString1);
+        return idString1;
+        
+            
+        
+    }
+}

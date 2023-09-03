@@ -1,0 +1,32 @@
+trigger PincodeAutoUpdatefield on Account (before insert, before update) {
+    
+    TriggerDisabled__c bypassTrigger= TriggerDisabled__c.getInstance('DisableTrigger');
+    system.debug('bypassTrigger '+ bypassTrigger);
+    system.debug('bypassTrigger '+ bypassTrigger.Is_Disabled_Trigger__c);
+    
+    if(!bypassTrigger.Is_Disabled_Trigger__c){
+        
+        Set<Id> pinSet = New Set<Id>();
+        For (Account objIns : Trigger.New) 
+        {
+            if(objIns.Pincode_y__c != null) 
+            {
+                pinSet.add(objIns.Pincode_y__c);
+            }
+        }
+        List<Account> acLst = new List<Account>();
+        for(Pincode__c pin : [Select Id,City_Code__c,District_Code__c,Sub_District_Code__c,State_code__c  from Pincode__c where id IN : pinSet])     {    
+            for(Account ac : Trigger.new)      
+            {
+                if(ac.Pincode_y__c == pin.Id)
+                {
+                    ac.State_c__c = pin.State_code__c;
+                    ac.Sub_District__c = pin.Sub_District_Code__c;
+                    ac.City_y__c = pin.City_Code__c ;
+                    ac.District__c = pin.District_Code__c ;
+                    acLst.add(ac);
+                }
+            }
+        }
+    }
+}

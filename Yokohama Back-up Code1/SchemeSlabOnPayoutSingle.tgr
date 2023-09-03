@@ -1,0 +1,45 @@
+trigger SchemeSlabOnPayoutSingle on Distributor_Payout_info__c (after update) {
+    
+     TriggerDisabled__c bypassTrigger= TriggerDisabled__c.getInstance('DisableTrigger');
+    system.debug('bypassTrigger '+ bypassTrigger);
+    system.debug('bypassTrigger '+ bypassTrigger.Is_Disabled_Trigger__c);
+    
+    if(!bypassTrigger.Is_Disabled_Trigger__c){
+        
+    List<Scheme_Slab__c> SlabList=new List<Scheme_Slab__c>();
+    List<Distributor_Payout_info__c> PayoutList1=new List<Distributor_Payout_info__c>();
+    decimal AchMonthlyTarget;
+    decimal MonthlyTargetl;
+    for(Distributor_Payout_info__c dp:trigger.new){
+        if(dp.Achieved_Monthly_Target__c!=null && dp.Achieved_Monthly_Target__c !=trigger.oldMap.get(dp.id).Achieved_Monthly_Target__c){
+            MonthlyTargetl=dp.Monthly_Target__c;
+            AchMonthlyTarget=dp.Achieved_Monthly_Target__c;
+        }
+    }
+    if(AchMonthlyTarget !=null){
+        SlabList=[select id, Slab_From__c, Slab_To__c, Scheme__c,Quarterly_Incentive__c,Consistency_Incentive__c,Add_on_Incentive__c,Retail_Incentive__c from Scheme_Slab__c where Slab_From__c<=:AchMonthlyTarget AND Slab_To__c>=:AchMonthlyTarget limit 1];
+    }
+    
+    for(Distributor_Payout_info__c dp:trigger.new){
+        if(SlabList.size()>0 && dp.Scheme__c==SlabList[0].Scheme__c && AchMonthlyTarget>=MonthlyTargetl){
+            dp.Scheme_Slab__c=SlabList[0].id;
+            dp.Received_Quarterly_Incentive__c=SlabList[0].Quarterly_Incentive__c;
+            dp.Received_Consistency_Incentive__c=SlabList[0].Consistency_Incentive__c;
+            dp.Received_Add_on_Incentive__c=SlabList[0].Add_on_Incentive__c;
+            dp.Received_Retail_Incentive__c=SlabList[0].Retail_Incentive__c;
+            PayoutList1.add(dp);
+        }
+        else{
+            dp.Received_Quarterly_Incentive__c=0;
+            dp.Received_Consistency_Incentive__c=0;
+            dp.Received_Add_on_Incentive__c=0;
+            dp.Received_Retail_Incentive__c=0;
+            PayoutList1.add(dp);
+        }
+    }
+    
+    if(PayoutList1.size()>0){
+        update PayoutList1;
+    }
+    }
+}

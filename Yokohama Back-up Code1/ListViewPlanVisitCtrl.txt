@@ -1,0 +1,113 @@
+public class ListViewPlanVisitCtrl {
+    Public Date SelectDate{get;set;}
+    Public ApexPages.StandardSetController Controller;
+    public list<Account> selectedAcc{get;set;}
+    public boolean b{get;set;}
+    public list<Beat__c> lstBeat{get;set;}
+    public list<Event> lstEvent{get;set;}
+    
+    public ListViewPlanVisitCtrl(ApexPages.StandardSetController controller){
+        controller.setPageSize(10);
+        this.Controller = Controller;
+        SelectDate = system.today();
+        lstBeat = new list<Beat__c>();
+        lstEvent = new list<Event>();
+        selectedAcc = [Select name, BillingStreet, BillingCity, BillingState, BillingCountry from Account where Id IN: Controller.getSelected()];
+        if(selectedAcc.size() == 0){
+            ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Error,'Please Select atleast one distributor'));
+            
+        }
+        else{
+            b = true;
+        }
+    }
+    
+    public void save1(){
+        try{
+            for(Account a: selectedAcc){
+                Beat__c b1 = new Beat__c();
+                b1.Distributor__c = a.Id;
+                b1.visit_date__c = SelectDate;
+                lstBeat.add(b1);
+                
+            }
+            if(lstBeat.size() > 0){
+                insert lstBeat;
+            }
+            
+            if(lstBeat.size() > 0){
+                String start = DateTime.newInstance(SelectDate.year(),SelectDate.month(),SelectDate.day()).format('dd/MM/YY') +' ' + '12:00 PM';
+                String endtime = DateTime.newInstance(SelectDate.year(),SelectDate.month(),SelectDate.day()).format('dd/MM/YY') +' ' +'1:00 PM';  
+                
+                for(Beat__c a : lstBeat){
+                    Event e= new Event();
+                    e.subject='Meeting';
+                    
+                    e.StartDateTime=DateTime.parse(start);
+                    e.EndDateTime=DateTime.parse(endtime);
+                    
+                    e.whatid=a.id;
+                    lstEvent.add(e);
+                }
+                
+                if(lstEvent.size() > 0){
+                    insert lstEvent;
+                    b = false;
+                    ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.CONFIRM,'Visit created successfully'));
+                    
+                }
+            }
+        }
+        catch(Exception e){
+            ApexPages.addMessages(e);
+        }
+    }
+    
+    public void Next(){
+        lstBeat.clear();
+        for(Account a: selectedAcc){
+            b = false;
+            Beat__c b1 = new Beat__c();
+            b1.Distributor__c = a.Id;
+            b1.visit_date__c = SelectDate;
+            b1.text_address__c = a.BillingStreet +', '+a.BillingCity+', '+a.BillingState+', '+a.BillingCountry;
+            lstBeat.add(b1);
+            
+        }
+    }
+    
+    public PageReference saveFinal(){
+        try{
+            if(lstBeat.size() > 0){
+                insert lstBeat;
+            }
+            for(Beat__c a : lstBeat){
+                String start = DateTime.newInstance(a.visit_date__c.year(),a.visit_date__c.month(),a.visit_date__c.day()).format('dd/MM/YY') +' ' + '12:00 PM';
+                String endtime = DateTime.newInstance(a.visit_date__c.year(),a.visit_date__c.month(),a.visit_date__c.day()).format('dd/MM/YY') +' ' +'1:00 PM';  
+                
+                Event e= new Event();
+                e.subject='Meeting';
+                
+                e.StartDateTime=DateTime.parse(start);
+                e.EndDateTime=DateTime.parse(endtime);
+                
+                e.whatid=a.id;
+                lstEvent.add(e);
+            }
+            if(lstEvent.size() > 0){
+                insert lstEvent;
+            }
+            PageReference p = new PageReference('/001');
+            p.setRedirect(true);
+            return p;
+            
+            
+        }
+        catch(Exception ex){
+            apexpages.addMessages(ex);
+        }
+        return null;
+    }
+    
+    
+}

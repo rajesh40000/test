@@ -1,0 +1,22 @@
+trigger updateTotalbilledQuantity on Quote_Line__c (before update) {
+    if(!RunOnce.isrun){
+        if(trigger.isupdate){
+            for(Quote_Line__c ql : Trigger.new){
+                
+                if(ql.Total_Billed_Quantity__c == null){
+                    ql.Total_Billed_Quantity__c = 0;
+                    ql.Total_Billed_Quantity__c = ql.Billed_Quantity__c;                 
+                }else if(ql.Billed_Quantity__c == null){
+                    ql.Billed_Quantity__c = 0;                
+                }else{
+                    //System.debug('ql.Total_Billed_Quantity__c '+ql.Total_Billed_Quantity__c+' ql.Billed_Quantity__c '+ql.Billed_Quantity__c);
+                    ql.Total_Billed_Quantity__c = ql.Total_Billed_Quantity__c + ql.Billed_Quantity__c; 
+                                   
+                }
+                
+            }
+        }
+        RunOnce.isrun = true; 
+    }
+    
+}

@@ -1,0 +1,208 @@
+public class TargetVsAchiveNewPageCtrl2 {
+    public Target_Vs_Achievement__c targetHead{get;set;}
+    Public boolean hideHead{get;set;}
+    //Public list<Product_Target__c> lstProductTarget{get;set;}
+    Public Double targetprevious{get;set;}
+    Public Double targetCurrent{get;set;}
+    Public Double targetpreviousTeam{get;set;}
+    Public Double targetCurrentTeam{get;set;}
+    //public list<Target_Vs_Achievement__c> lstTarget{get;set;}
+    public boolean displayPopup {get; set;}
+    public String TargetId{get;set;}
+    public set<String> yearSet{get;set;}
+    public list<wrapClass> wrapList{get;set;}
+    public list<wrapperForTeam> wrapListTeam{get;set;}
+    
+    public TargetVsAchiveNewPageCtrl2(ApexPages.StandardController controller){
+        targetHead = new Target_Vs_Achievement__c();
+        //  lstProductTarget = new list<Product_Target__c>();
+        targetprevious = 0;
+        targetCurrent = 0;
+        targetpreviousTeam = 0;
+        targetCurrentTeam = 0;
+        TargetId = '';
+        //  lstTarget = new list<Target_Vs_Achievement__c>();
+        yearSet = new set<String>();
+        wrapList = new list<wrapClass>();
+        wrapListTeam = new list<wrapperForTeam>();
+        
+    }
+    
+    public void createNext(){
+        hideHead = true;
+        yearSet.clear();
+        targetprevious = 0;
+        targetCurrent = 0;
+        targetpreviousTeam = 0;
+        targetCurrentTeam = 0;
+        
+        set<Id> targetSet = new Set<Id>();
+        //set<String> yearSet = new set<String>();
+        yearSet.add( targetHead.Year__c);
+        yearSet.add( string.valueof(integer.valueof(targetHead.Year__c) - 1));
+        calculatedetails();
+        
+    }
+    
+    
+    
+    public void closePopup() {        
+        displayPopup = false;    
+    }     
+    public void showPopup() {  
+        wrapList.clear();
+        displayPopup = true;  
+        for(Product_Group__c pg : [Select Id, name from Product_Group__c]){
+            wrapClass wrap = new wrapClass();
+            wrap.productName = pg.Name;
+            wrap.prevTarget = 0;
+            wrap.currTarget = 0;
+            wrap.UserId = TargetId;
+            wrap.productId = pg.Id;
+            for(Product_Target__c pt: [Select Target_Vs_Achievement__c, Product_Group__c, Id , Target__c, Target_Vs_Achievement__r.year__c from Product_Target__c where Target_Vs_Achievement__r.Sales_Person__c =:TargetId AND Target_Vs_Achievement__r.year__c IN: yearSet AND Target_Vs_Achievement__r.Month__c =:targetHead.Month__c]){
+                
+                if(pg.Id == pt.Product_Group__c){
+                    if(pt.Target_Vs_Achievement__r.year__c == targetHead.year__c){
+                        wrap.currTarget = pt.Target__c;
+                        wrap.recordId = pt.Id;
+                    }
+                    else{
+                        wrap.prevTarget = pt.Target__c;
+                    }
+                }
+            }
+            wrapList.add(wrap);
+        }
+        system.debug('wrapList'+wrapList);
+    }
+    
+    
+    
+    public void SaveclosePopup(){
+        boolean headCreate= false;
+        String userId = '';
+        Target_Vs_Achievement__c tva = new Target_Vs_Achievement__c();
+        list<Product_Target__c> lstProduct = new list<Product_Target__c>();
+        for(wrapClass wrap: wrapList){
+            Product_Target__c pt = new Product_Target__c();
+            if(wrap.recordId == '' || wrap.recordId == null){
+                headCreate = true;
+            }
+            else{
+                pt.Id = wrap.recordId;
+            }
+            
+            pt.Target__c = wrap.currTarget;
+            pt.Product_Group__c = wrap.productId;
+            userId = wrap.UserId;
+            lstProduct.add(pt);
+            
+        }
+        if(headCreate == true){
+            tva.Year__c = targetHead.Year__c;
+            tva.Month__c = targetHead.Month__c;
+            tva.Sales_Person__c = userId;
+            List<Team__c> lstTeam = [Select Id, Manager__c from Team__c where Id =: userId];
+            if(lstTeam.size() > 0){
+                tva.Manager__c = lstTeam[0].manager__c;
+            }
+            insert tva;
+            for(Product_Target__c pt: lstProduct){
+                if(pt.Target_Vs_Achievement__c == null)
+                    pt.Target_Vs_Achievement__c = tva.Id;
+            }
+            upsert lstProduct;
+        }
+        else{
+            upsert lstProduct;
+        }
+        calculatedetails();
+        displayPopup = false; 
+        
+    }
+    
+    
+    
+    public void calculatedetails(){
+        wrapListTeam.clear();
+        set<Id> userSet = new Set<Id>();
+        for(Team__c team : [Select id,name from Team__c where Manager__c =: targetHead.Sales_Person__c]){
+            userSet.add(team.Id);
+            wrapperForTeam wft = new wrapperForTeam();
+            wft.UserName = team.Name;
+            wft.prevTarget = 0;
+            wft.currTarget = 0;
+            wft.UserId = team.id;
+            for(Target_Vs_Achievement__c tva: [Select id, target__c, year__c from Target_Vs_Achievement__c where Sales_Person__c =: team.id and year__c IN:yearSet and month__c =:targetHead.Month__c ]){
+                if(tva.Year__c == targetHead.Year__c){
+                    wft.currTarget = tva.Target__c;
+                }
+                else{
+                    wft.prevTarget = tva.Target__c;
+                }
+            }
+            wrapListTeam.add(wft);
+        }
+        list<AggregateResult> groupedResults = [Select year__c yer, Sum(Target__c) tar from Target_Vs_Achievement__c where Sales_Person__c =: targetHead.Sales_Person__c and year__c IN:yearSet and month__c =:targetHead.Month__c group by year__c];
+        for(AggregateResult groupRes : groupedResults){
+            if(groupRes.get('yer') == targetHead.Year__c){
+                targetCurrent = (Double)groupRes.get('tar');
+            }
+            else{
+                targetprevious = (Double)groupRes.get('tar');
+            }
+            
+        }
+        list<AggregateResult> groupedResultsChild = [Select year__c yer, Sum(Target__c) tar from Target_Vs_Achievement__c where Sales_Person__c IN: userSet and year__c IN:yearSet and month__c =:targetHead.Month__c group by year__c];
+        for(AggregateResult groupRes : groupedResultsChild){
+            if(groupRes.get('yer') == targetHead.Year__c){
+                targetCurrentTeam = (Double)groupRes.get('tar');
+            }
+            else{
+                targetpreviousTeam = (Double)groupRes.get('tar');
+            }
+            
+        }
+        
+        
+    }
+    public class wrapClass{
+        public String productName{get;set;}
+        public String productId{get;set;}
+        public Double prevTarget{get;set;}
+        public Double currTarget{get;set;}
+        public String UserId{get;set;}
+        public String recordId{get;set;}
+    }
+    
+    public class wrapperForTeam{
+        public String UserName{get;set;}
+        public Double prevTarget{get;set;}
+        public Double currTarget{get;set;}
+        public String UserId{get;set;}
+    }
+    
+    public void clear(){
+        hideHead = false;
+        targetHead = new Target_Vs_Achievement__c();
+        //  lstProductTarget = new list<Product_Target__c>();
+        targetprevious = 0;
+        targetCurrent = 0;
+        targetpreviousTeam = 0;
+        targetCurrentTeam = 0;
+        TargetId = '';
+        //  lstTarget = new list<Target_Vs_Achievement__c>();
+        yearSet = new set<String>();
+        wrapList = new list<wrapClass>();
+        wrapListTeam = new list<wrapperForTeam>();
+    }
+    
+    public List<SelectOption> getdynamiclist() {
+        List<SelectOption> options = new List<SelectOption>();
+        options.add(new SelectOption('','--None--'));
+        for(Team__c team : [Select id,name from Team__c]){
+            options.add(new SelectOption(team.Id,team.Name));
+        }
+        return options;
+    }
+}

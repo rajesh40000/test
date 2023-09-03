@@ -1,0 +1,19 @@
+trigger updateSchemeName on Quote__c (before insert, before update) {   
+    list<Scheme__c> schemelst = new List<Scheme__c>();
+    Map<Decimal,id> quotePriceMap = new Map<Decimal,id>();
+    if(trigger.isBefore && (trigger.isInsert || trigger.isUpdate)){
+        
+        schemelst = [select id,Order_Value_from__c ,Order_Value_Upto__c  from Scheme__c];
+        for(Quote__c quote : trigger.new){
+            if(quote.Scheme_Flag__c != true){
+                for(Scheme__c scheme : schemelst){
+                    if(quote.Net_Value__c <= scheme.Order_Value_Upto__c && quote.Net_Value__c >= scheme.Order_Value_from__c){
+                        quote.Scheme__c = scheme.id;
+                        break;
+                    }
+                }
+            }
+        }
+        
+    }
+}

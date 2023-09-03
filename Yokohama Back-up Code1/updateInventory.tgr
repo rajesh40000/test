@@ -1,0 +1,30 @@
+trigger updateInventory on Quote_Line__c (after insert) {
+    
+    List<Quote_Line__c> lstQL = [select Quantity__c , Product__r.Product_c__c, Quote__r.Customer__c from Quote_Line__c where id in :trigger.new and Quote__r.Order_To__r.Type = 'Distributor' and Quote__r.Customer__r.Type = 'Retailer' and Quantity__c != null];
+    if(!lstQL.isEmpty()){
+        Set<Id> stProduct = new Set<Id>();
+        Set<Id> stAccount = new Set<Id>(); 
+        for(Quote_Line__c ob :lstQL){
+             stProduct.add(ob.Product__r.Product_c__c);  
+             stAccount.add(ob.Quote__r.Customer__c);  
+        }
+        if(!stProduct.isEmpty() && !stAccount.isEmpty()){
+            List< Dealer_Stock__c> lst = [select id, Quantity__c, Product_c__c, Dealer__c from Dealer_Stock__c where Product_c__c in :stProduct and Dealer__c in :stAccount];
+            if(!lst.isEmpty()){
+                List< Dealer_Stock__c> lstUpdate = new List<Dealer_Stock__c>();
+                for(Quote_Line__c ob :lstQL){
+                    for(Dealer_Stock__c ds :lst){
+                        if(ds.Dealer__c == ob.Quote__r.Customer__c && ds.Product_c__c == ob.Product__r.Product_c__c){
+                            ds.Quantity__c = String.valueOf(Integer.valueOf(ds.Quantity__c) - ob.Quantity__c);
+                            lstUpdate.add(ds);
+                        }
+                    }
+                }
+                if(!lstUpdate.isEmpty()){
+                    update lstUpdate;
+                }
+            }
+        }
+    }
+    
+}

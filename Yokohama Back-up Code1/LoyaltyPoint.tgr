@@ -1,0 +1,18 @@
+trigger LoyaltyPoint on Payment__c (after insert) {
+    
+    Id CustomerId;
+    Double loyaltyPoint;
+    List<Account> ac= new List<Account>();
+    For(Payment__c payment:Trigger.New){
+        CustomerId= payment.Customer__c;
+        loyaltyPoint= payment.Loyalty_point__c;
+    }
+ system.debug('RESULT'+loyaltyPoint);    
+    ac=[SELECT id,Dealer_Loyalty_Points__c FROM Account Where id =: CustomerId ];
+    for(Account value: ac){
+        value.Dealer_Loyalty_Points__c= value.Dealer_Loyalty_Points__c + loyaltyPoint;
+    }
+    
+    update ac;
+
+}

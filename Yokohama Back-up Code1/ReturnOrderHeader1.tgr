@@ -1,0 +1,34 @@
+trigger ReturnOrderHeader1 on Return_Order_Header__c (after insert) 
+{
+    /* TriggerDisabled__c bypassTrigger= TriggerDisabled__c.getInstance('DisableTrigger');
+    system.debug('bypassTrigger '+ bypassTrigger);
+    system.debug('bypassTrigger '+ bypassTrigger.Is_Disabled_Trigger__c);
+    
+    if(!bypassTrigger.Is_Disabled_Trigger__c){
+        
+    list<id> list1 =new list<id>();
+    List<User> u = new List <User>();
+    List<User> u1 = new List <User>();
+    list<Invoice_Line__c> list2=new list<Invoice_Line__c>();
+    list<Return_Order_Line__c> list3 =new list<Return_Order_Line__c>();
+    list<Return_Order_Header__c> list4 =new list<Return_Order_Header__c>();
+    list<id> ROH1=new list<id>();
+    for(Return_Order_Header__c roh: trigger.new)
+    {
+        ROH1.add(roh.id);
+        list1.add(roh.Invoice__c);
+    }
+    list2 =[select id from Invoice_Line__c where Invoice__c=: list1[0]];
+    system.debug('ShipraaTest '+list2.size());
+    list4=[select id from Return_Order_Header__c where id =:ROH1[0]];
+    for(Invoice_Line__c IL:list2)
+    {
+        Return_Order_Line__c rol= new Return_Order_Line__c();
+      
+        //rol.Name =IL.id;
+        rol.Return_Order_Header__c=list4[0].id;
+        list3.add(rol);
+    }
+    insert list3;
+    }*/
+}

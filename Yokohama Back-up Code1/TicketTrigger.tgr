@@ -1,0 +1,21 @@
+trigger TicketTrigger on Ticket__c (before insert) {
+    
+    TriggerDisabled__c bypassTrigger= TriggerDisabled__c.getInstance('DisableTrigger');
+    system.debug('bypassTrigger '+ bypassTrigger);
+    system.debug('bypassTrigger '+ bypassTrigger.Is_Disabled_Trigger__c);
+    
+    if(!bypassTrigger.Is_Disabled_Trigger__c){
+        
+        List<user> userids = new List<user>();
+        userids = [SELECT Contact.AccountId, id FROM User WHERE id =: UserInfo.getUserId()];
+        for(Ticket__c tick : trigger.new)
+        {
+            system.debug('userid '+ userids[0]);
+            if(tick.Dealer__c == null && userids.size()>0)
+            {
+                system.debug('Inside IF GYTest '+userids[0].Contact);
+                tick.Dealer__c = userids[0].Contact.AccountId ;
+            }
+        }
+    }
+}

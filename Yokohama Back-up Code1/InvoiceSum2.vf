@@ -1,0 +1,166 @@
+<apex:page standardController="Invoice__c" recordSetVar="Inv" extensions="PassSelectedIdsToFlowVFController" lightningStylesheets="true" action="{!newForm}" >
+    <apex:slds />
+    <apex:includeLightning />
+    
+    <apex:form >
+        <apex:actionFunction name="red" action="{!proceed}" reRender="resultPanel" status="myStatus"> 
+        </apex:actionFunction>
+        <apex:actionFunction name="passpaymentid" action="{!passpaymentid}" oncomplete="red()" status="myStatus"> 
+            
+            <apex:param name="payid"  value="" />
+            <apex:param name="UTRId"  value="" />
+            <apex:param name="signatureid"  value="" />
+            <!--  <apex:param assignto="{!payid}" name="payid" value=""/>
+            <apex:param assignto="{!orderid}" name="orderid" value=""/>
+            <apex:param assignto="{!signatureid}" name="signatureid" value=""/>  
+            -->  
+        </apex:actionFunction>
+        
+        
+        <apex:outputPanel id="resultPanel">
+            <apex:actionStatus startText="requesting..." stopText="" id="myStatus" />
+            
+            <br />
+            
+            <b><apex:outputLabel value="{!secondParam}" /></b>
+            
+        </apex:outputPanel>
+    </apex:form>
+    
+    <style>
+        output[type=text] {
+        width: 150px;
+        display: block;
+        margin-bottom: 10px;
+        background-color: black;
+        }
+        
+    </style>
+    
+    
+    <style>
+        #DIV_Container{padding: 0; margin: 0; background-color: #F3F3EC;}
+    </style>
+    
+    <style>
+        body {
+        background-image: url("https://images.app.goo.gl/tqvp3isxkAQrgsez8.gif");
+        background-repeat:repeat;
+        }
+    </style>
+    
+    <apex:form style="background-color: #808080 width:750px;height:250px" > 
+        <apex:outputPanel layout="block" style="overflow:auto;width:750px;height:250px" >   
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    
+                    Please Wait!!
+                    
+                    <apex:pageBlock > 
+                        <script type = "text/javascript">
+                        window.onload=function()       
+                        {   //alert("Hello1");    
+                            rzp1.open();
+                         //alert("Hello2");
+                        };
+                        
+                        </script>  
+                        
+                       <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+                        <script>
+                            
+                            var Amount = '{!amountVal}'
+                            //  var Amount = 99.99
+                            
+                            //alert(Amount+' 1Amountttt'+rzpid+' 1Amountttt'+UTRId);
+                        
+                            var rzpid = '{!razorpay}'
+                            var name = '{!name}'
+                            var phone = '{!phone}'
+                            var email = '{!email}'
+                            var UTRId = '{!UTRId}'
+                            
+                        var options = 
+                            {
+                                "key": "rzp_test_P91LOZ6H0nG1L8", //rzp_test_RCIP5IdHuh9Y2n",
+                                 "amount": Amount, 
+                                // "amount": 99.99, 
+                                "currency": "INR",
+                                "name": "Yokohama",
+                                "description": "Test Transaction",
+                                "image": "https://toppng.com/uploads/preview/yokohama-tire-logo-115628732139ixtdqmj3q.png",    
+                                "order_id": rzpid,
+                                
+                               "handler": function (response)
+                                {
+                                    var payid = response.razorpay_payment_id;
+                                    var ordid = response.razorpay_order_id;
+                                    var signatureid = response.razorpay_signature_id;
+                                    //alert(signatureid);
+                                    // generated_signature = hmac_sha256(ordid + "|" + payid, 'rzp_test_P91LOZ6H0nG1L8');
+
+                                    // if (generated_signature == signatureid) {
+                                    // alert(' payment is successful');
+                                    //}
+                                    passpaymentid(response.razorpay_payment_id,UTRId,response.razorpay_signature);
+                                    // red();
+                                    // alert('dd');
+                                    // window.setTimeout(sayHello,2000)
+                                    /*  PassSelectedIdsToFlowVFController.passpaymentid(URTid, payid, orderid, signatureid,function(result,event){
+                                      
+                                        if(event.status)
+                                        {   alert(result +' result');
+                                            console.log(result);
+                                        }
+                                      }); 
+                                   
+                                   */
+                                    /*           window.$j = jQuery.noConflict();
+                                     $j( document ).ready(function() {
+                                     PassSelectedIdsToFlowVFController.passpaymentid(URTid, payid, orderid, signatureid, function(result, event){
+                                      alert(result+' result ')
+                                       console.log(result);
+                                    });
+                                   });
+                                 */   
+                                    
+                                },
+                                
+                                "prefill": 
+                                {
+                                    "name": name,
+                                    "email": email,
+                                    "contact": phone,
+                                },
+                                
+                                "notes": 
+                                {
+                                    "address": "Razorpay Corporate Office"
+                                },
+                                
+                                "theme": 
+                                {
+                                    "color": "#3399cc"
+                                }
+                            };
+                        var rzp1 = new Razorpay(options);
+                        rzp1.on('payment.failed', function (response){
+                            alert(response.error.code);
+                            alert(response.error.description);
+                            alert(response.error.source);
+                            alert(response.error.step);
+                            alert(response.error.reason);
+                            alert(response.error.metadata.order_id);
+                            alert(response.error.metadata.payment_id);
+                        });
+                        
+                        </script>
+
+                    </apex:pageBlock>
+                </div> 
+            </section>
+        </apex:outputPanel>
+    </apex:form>
+    
+    
+</apex:page>

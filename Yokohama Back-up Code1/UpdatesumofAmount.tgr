@@ -1,0 +1,40 @@
+trigger UpdatesumofAmount on Return_Order_Line__c (after update) {
+        Map<id,decimal> nooflinemap = new Map<id,decimal>();
+    Map<id,decimal> AmountToCustomermap = new Map<id,decimal>();
+      set<ID>retrunorderset = new set<ID>();
+   // set<id> ordline1=new set<id>();
+    if(trigger.isAfter && trigger.isupdate){
+        for(Return_Order_Line__c Ordline :trigger.new){
+             retrunorderset.add(Ordline.Return_Order_Header__c);
+            
+    }
+    }
+    system.debug(retrunorderset);
+     Decimal AmountSum=0;
+     Decimal AmountToCustomer=0;
+    list<Return_Order_Line__c> agglist=[select Return_Order_Header__c ,Amount__c,Amount_to_Customer__c,id from Return_Order_Line__c where Amount__c !=NULL AND Return_Order_Header__c In:retrunorderset];
+    System.debug('agglist:::'+agglist);
+    for(Return_Order_Line__c retrnheader:agglist){
+        AmountToCustomer=AmountToCustomer+retrnheader.Amount_to_Customer__c;
+        AmountSum=AmountSum+retrnheader.Amount__c;
+        nooflinemap.put(retrnheader.Return_Order_Header__c,AmountSum);
+        AmountToCustomermap.put(retrnheader.Return_Order_Header__c,AmountToCustomer);
+    }
+   
+    System.debug('nooflinemap:::'+nooflinemap);
+     List<Return_Order_Header__c> returnUpdatelist=new List<Return_Order_Header__c>();
+     List<Return_Order_Header__c> returnlist=[Select id,Name,Amount__c,Amount_to_Customer__c,Remaining_Amount__c from Return_Order_Header__c];
+    for(Return_Order_Header__c retrnord:returnlist){
+            if(nooflinemap.containsKey(retrnord.id)){
+                retrnord.Amount__c=nooflinemap.get(retrnord.id);
+                retrnord.Amount_to_Customer__c=AmountToCustomermap.get(retrnord.id);
+                returnUpdatelist.add(retrnord);
+            }
+        }
+        if(returnUpdatelist.size()>0){
+            try{
+                Update returnUpdatelist;
+            }
+            catch(exception e){}
+        }
+    }

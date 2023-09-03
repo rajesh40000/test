@@ -1,0 +1,92 @@
+public class TargetVsAchivementViewCtrl {
+    public Target_Vs_Achievement__c targetHead{get;set;}
+    Public boolean hideHead{get;set;}
+    Public Double targetfinal{get;set;}
+    Public Double achivementfinal{get;set;}
+    Public String Username{get;set;}
+    public boolean displayPopup {get; set;}
+    public boolean displayPopupchild {get; set;}
+    public list<AggregateResult> groupedResults{get;set;}
+    public list<AggregateResult> groupedResultsChild{get;set;}
+    public list<Target_Vs_Achievement__c> lstTarget{get;set;}
+    public String TargetId{get;set;}
+    
+    public TargetVsAchivementViewCtrl(){
+        targetHead = new Target_Vs_Achievement__c();
+        targetfinal = 0;
+        achivementfinal = 0;
+        Username = '';
+        groupedResults = new list<AggregateResult>();
+        groupedResultsChild = new list<AggregateResult>();
+        lstTarget = new list<Target_Vs_Achievement__c>();
+        
+    }
+    
+    public void createNext(){
+        list<Target_Vs_Achievement__c> lstTVA = new list<Target_Vs_Achievement__c>();
+        hideHead = false;
+        lstTarget.clear();
+        groupedResults.clear();
+        set<Id> userSet = new Set<Id>();
+        set<Id> targetSet = new Set<Id>();
+        for(Team__c team : [Select id from Team__c where Manager__c =: targetHead.Sales_Person__c]){
+            userSet.add(team.Id);
+        }
+        userSet.add(targetHead.Sales_Person__c);
+        list<Target_Vs_Achievement__c> mangerRoll = [Select id,Manager__r.name, Sales_Person__r.name,Target__c, Achivement__c,Sales_Person__c from Target_Vs_Achievement__c where Sales_Person__c =: targetHead.Sales_Person__c AND month__c =: targetHead.month__c AND year__c =: targetHead.Year__c];
+        lstTarget = [Select id,Manager__r.name, Sales_Person__r.name,Target__c, Achivement__c,Sales_Person__c from Target_Vs_Achievement__c where Sales_Person__c IN: userSet AND month__c =: targetHead.month__c AND year__c =: targetHead.Year__c];
+        Decimal target = 0;
+        Decimal Achivement = 0;
+        for(Target_Vs_Achievement__c tva: lstTarget){
+            if(tva.Sales_Person__c == targetHead.Sales_Person__c){
+                Username = tva.Sales_Person__r.name;
+                target += tva.Target__c;
+            }else{
+                Username = tva.Manager__r.name;
+                lstTVA.add(tva);
+            }
+            targetSet.add(tva.Id);
+            
+            Achivement += tva.Achivement__c;
+            hideHead = true;
+        }
+        system.debug('targetSet'+targetSet);
+        targetfinal = target;
+        achivementfinal = Achivement;
+        lstTarget.clear();
+        lstTarget.addAll(lstTVA);
+        if(mangerRoll.size() > 0)
+        	groupedResults= [select Product_Group__r.Name nam, Sum(Target__c) tar, Sum(Achievement__c) ach from product_Target__c where Target_Vs_Achievement__c =:mangerRoll[0].Id  group by Product_Group__r.Name]; 
+        //system.debug('groupedResults'+groupedResults);
+        
+    }
+    
+    public void closePopup() {        
+        displayPopup = false;    
+    }     
+    public void showPopup() {        
+        displayPopup = true;    
+    }
+    
+    public void closePopup1() {        
+        displayPopupchild = false;    
+    }     
+    public void showPopup1() {        
+        displayPopupchild = true; 
+        system.debug('TargetId'+TargetId);
+        groupedResultsChild= [select Product_Group__r.Name nam, Sum(Target__c) tar, Sum(Achievement__c) ach from product_Target__c where Target_Vs_Achievement__c=:TargetId  group by Product_Group__r.Name]; 
+
+    }
+    public List<SelectOption> getdynamiclist() {
+        List<SelectOption> options = new List<SelectOption>();
+        options.add(new SelectOption('','--None--'));
+        for(Team__c team : [Select id,name from Team__c]){
+            options.add(new SelectOption(team.Id,team.Name));
+        }
+        return options;
+    }
+    
+    
+    
+    
+}

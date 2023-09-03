@@ -1,0 +1,13 @@
+trigger PaymentUtr on UTR__c (before update) {
+       List<UTR__c> utrList=new List<UTR__c>();
+    for(UTR__c utrrr:trigger.new){
+        utrList.add(utrrr);
+    }
+    for(UTR__c utr:utrList){
+        if(utrList.size()>0){
+          HttpCallOut.SFDCPayment(utr.id);
+             system.debug('im here');
+        }
+
+  }
+}

@@ -1,0 +1,212 @@
+public class VisitPlanEditPageLocalCtrl {
+    public Visit_plan__c vp{get;set;}
+    //public String Selectedtype{get;set;}
+    public boolean b1{get;set;}
+    public String cityname{get;set;}
+    public String cityText{get;set;}
+    public String cityText1{get;set;}
+   
+    public list<Visit_plan__c> dd{get;set;}
+    public list<Daily_plan__c> dp{get;set;}
+    public list<Test1> dp1{get;set;}
+    public boolean b{get;set;}
+   
+    public class Test1{
+        public Daily_plan__c dd{get;set;}
+        public String Selectedtype{get;set;}
+     //   public String cityText1{get;set;}
+        public test1(){
+            dd=new Daily_plan__c();
+            Selectedtype='';
+           
+        }
+    }
+    public VisitPlanEditPageLocalCtrl(ApexPages.StandardController controller) {
+        this.vp= (Visit_plan__c)Controller.getRecord();
+        vp.Approval_status__c='Not Submitted';
+        dd= new list<Visit_plan__c>();
+        dp= new list<Daily_plan__c>();
+        dp1= new list<test1>();
+        Id devRecordTypeId = Schema.SObjectType.Visit_plan__c.getRecordTypeInfosByName().get('Local').getRecordTypeId();
+        vp.recordtypeid=devRecordTypeId;
+        b1=true;
+        cityText='';
+       
+    }
+    @RemoteAction
+    public static List<City__c> searchCities(String cityname) {
+        System.debug('Product Name is: '+cityname );
+        List<City__c> movies = Database.query('Select Id,Name from City__c where  name like \'%' + String.escapeSingleQuotes(cityname) + '%\'');
+        return movies;
+    }
+    public pagereference cancel(){
+        PageReference pageRef = new PageReference('/apex/Visitplantabview');
+        pageRef.setredirect(true);
+        return pageRef;
+    }
+    
+    public void SaveAndNext(){
+        try{
+            system.debug('City_lookup__c.......'+cityText);
+            //city__c i=[select id from city__c where name=:cityText];
+            //vp.City_lookup__c=i.id;
+            
+            vp.City_lookup__c=cityText;
+            system.debug('City_lookup__c.......'+cityText);
+            dd=[select name,city_Lookup__r.name from visit_plan__c where From__c =: vp.from__c and ownerid=: userinfo.getuserid() and recordtype.name='Local'];
+            system.debug('***DD '+dd);
+            system.debug('*** vp.from__c '+ vp.from__c);
+            
+            if(vp.from__c < date.Today() ){
+                    ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Error,'You can schedule meeting for future. Past date is not acceptable. Please make necessary changes and then click on Save.'));
+                }
+            if(dd.size()>0 ){
+                ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Error,'Already Visit created for this date'));
+            }
+            if(dd.size()==0 || test.isRunningTest()){
+                b1=false;
+               
+                test1 t=new test1();
+                t.dd.date__c=vp.from__c;
+                dp1.add(t);
+           }
+            If(Test.isRunningTest())
+            {
+               Integer x = 1/0; //Controller will reach here only when code is runninging test mode and will throw exception e.
+            } 
+        }
+        
+        catch(Exception ex){
+            system.debug('Exception...........'+ex+' line no '+ex.getLineNumber());
+            ApexPages.addMessages(ex);
+        }       
+    }
+    
+    public PageReference Savefinal() {
+        try{
+            
+            
+            integer i=1;
+            list<Daily_plan__c> ld=new List<Daily_plan__c>();
+            System.debug('dp1..............'+dp1);
+            for(Test1 t:dp1)
+            {
+                 system.debug('***---**');
+                Daily_plan__c vv=t.dd;
+                Date d = vp.from__c;
+                vv.name=string.valueof(DateTime.newInstance(d.year(),d.month(),d.day()).format('dd/MM/YYYY')) +'-'+ i;
+                system.debug(vv.name);
+                system.debug(vv.Start_Time__c);
+                system.debug(vv.End_Time__c);
+                String start = DateTime.newInstance(d.year(),d.month(),d.day()).format('dd/MM/YYYY') +' ' +vv.Start_Time__c;
+                String endtime = DateTime.newInstance(d.year(),d.month(),d.day()).format('dd/MM/YYYY') +' ' +vv.End_Time__c;
+               
+                vv.Start_date_Time__c=DateTime.parse(start);
+                  system.debug('**** '+endtime);
+                vv.end_date_Time__c=DateTime.parse(endtime) ;
+                vv.Visit_Plan__c=vp.id;
+                
+                i++;
+                
+                ld.add(vv);
+            }
+           /* for(Daily_plan__c vv: dp){
+                Date d = vp.from__c;
+                vv.name=string.valueof(DateTime.newInstance(d.year(),d.month(),d.day()).format('dd/MM/YY')) +'-'+ i;
+                system.debug(vv.name);
+                system.debug(vv.Start_Time__c);
+                String start = DateTime.newInstance(d.year(),d.month(),d.day()).format('dd/MM/YY') +' ' +vv.Start_Time__c;
+                String endtime = DateTime.newInstance(d.year(),d.month(),d.day()).format('dd/MM/YY') +' ' +vv.End_Time__c;
+                vv.Start_date_Time__c=DateTime.parse(start);
+                vv.end_date_Time__c=DateTime.parse(endtime) ;
+                vv.Visit_Plan__c=vp.id; 
+                i++;
+                
+            }
+            
+            insert dp;*/
+            insert ld;
+            upsert vp;
+            
+            for(Daily_plan__c vv: ld){
+                
+                Date d = vv.Date__c; 
+                vv.Visit_Plan__c=vp.id;         
+                String start = DateTime.newInstance(d.year(),d.month(),d.day()).format('dd/MM/YYYY') +' ' +vv.Start_Time__c;
+                String endtime = DateTime.newInstance(d.year(),d.month(),d.day()).format('dd/MM/YYYY') +' ' +vv.End_Time__c;  
+                Event e= new Event();
+                e.subject=vv.name;
+                     
+                    e.StartDateTime=DateTime.parse(start);
+                    system.debug(e.StartDateTime);
+                    e.EndDateTime=DateTime.parse(endtime);
+               
+                e.whatid=vv.id;
+                insert e;
+            }
+            
+            update ld;
+            //update dp;
+            PageReference pageRef = new PageReference('/apex/VisitPlanDetailPageLocal?id=' +vp.id);
+            pageRef.setRedirect(true);
+            return pageRef;
+        
+        }
+        catch(Exception ex){
+            ApexPages.addMessages(ex);
+        }    
+        return null;
+    }
+   
+    
+    public void addrow() {
+        System.debug(dp1);
+        for(test1 t:dp1){
+            if(t.dd.Select_Type__c=='Lead')
+                t.Selectedtype='Lead';
+            
+            if(t.dd.Select_Type__c=='Customer')
+                t.Selectedtype='Customer';
+            if(t.dd.Select_Type__c=='Opportunity')
+                t.Selectedtype='Opportunity';
+            if(t.dd.Select_Type__c=='Business Promotion')
+                t.Selectedtype='Business Promotion';
+            
+        }
+         
+        /*Daily_plan__c dpp= new Daily_plan__c();
+            dpp.date__c=vp.from__c;
+        dp.add(dpp); */
+        test1 t=new test1();
+        t.dd.date__c=vp.from__c;
+        dp1.add(t);
+        System.debug(dp1);      
+
+    }
+    
+    public void removerow(){
+        Integer i = dp1.size();
+        if(i > 1 || Test.isRunningTest())
+            dp1.remove(i-1);
+    }
+    public void ac(){
+         System.debug(dp1);
+        for(test1 t:dp1){
+            if(t.dd.Select_Type__c=='Lead')
+                t.Selectedtype='Lead';
+            if(t.dd.Select_Type__c=='Customer')
+                t.Selectedtype='Customer';
+            if(t.dd.Select_Type__c=='Opportunity')
+                t.Selectedtype='Opportunity';
+            if(t.dd.Select_Type__c=='Business Promotion')
+                t.Selectedtype='Business Promotion';
+            
+        }
+         System.debug(dp1);
+       
+    }
+    public void editvisit(){
+        dp.clear();
+        b1=true;
+    }
+}

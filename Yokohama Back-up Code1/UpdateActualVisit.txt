@@ -1,0 +1,19 @@
+trigger UpdateActualVisit on Visit__c (After Update) {
+    Set<id> Pjpidset=new Set<id>();
+    for(Visit__c v:trigger.new){
+        if(v.Check_in_Address__c !=null){
+            Pjpidset.add(v.PJP_Header__c);
+        }
+    }
+    System.debug('Pjpidset:::'+Pjpidset);
+    List<PJP_Header__c> pjpheaderupdatelist=new List<PJP_Header__c>();
+    List<PJP_Header__c> pjpheaderlist=[Select id,Name,(Select id from Visits__r) from PJP_Header__c where id IN:Pjpidset];
+    for(PJP_Header__c pjp:pjpheaderlist){
+        pjp.Actual_No_of_Visits__c=pjp.Visits__r.size();
+        pjpheaderupdatelist.add(pjp);
+    }
+    if(pjpheaderupdatelist.size()>0){
+        update pjpheaderupdatelist;
+    }
+    
+}

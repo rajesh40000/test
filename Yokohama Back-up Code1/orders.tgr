@@ -1,0 +1,47 @@
+trigger orders on Quote__c (After insert,After update) {
+     TriggerDisabled__c bypassTrigger= TriggerDisabled__c.getInstance('DisableTrigger');
+    system.debug('bypassTrigger '+ bypassTrigger);
+    system.debug('bypassTrigger '+ bypassTrigger.Is_Disabled_Trigger__c);
+    
+    if(!bypassTrigger.Is_Disabled_Trigger__c){
+        
+    if (Trigger.isAfter) 
+    {
+        Set<Id> accountIds = new Set<Id>();
+        
+        List<String> phone = new List<String>();
+        Boolean truee;
+        String abz;
+        for(Quote__c orderObj : Trigger.NEW){
+            abz='OTP : 9238';
+            truee=orderObj.Send_COnfirmation_Code__c;
+            phone.add(orderObj.contact__c);
+            
+            if(orderObj.Order_To__c != null)    
+                accountIds.add(orderObj.Order_To__c);
+        } 
+            
+        if(truee==True && !phone.isEmpty())
+            SendSMS.send(phone,abz);
+        
+        //Order Date and Value Code 
+        if(!accountIds.isEmpty()){
+            Map<Id,Account> accountMap = new Map<Id,Account>(
+                                        [Select Id,Last_Order_Date__c, Last_Order_Value__c,
+                                            (Select Id, Order_Date__c, Order_Value_Inc_Tax__c from Orders__r order by createdDate desc) 
+                                        from Account where Id in : accountIds]);
+                                        
+            if(!accountMap.isEmpty()){
+                for(Account actObj : accountMap.values()){
+                    if(actObj.Orders__r.size() > 0 ){
+                        actObj.Last_Order_Date__c = actObj.Orders__r[0].Order_Date__c;
+                        actObj.Last_Order_Value__c = actObj.Orders__r[0].Order_Value_Inc_Tax__c;
+                    }
+                }
+                update accountMap.values();
+            }
+        }
+            
+    } 
+    }
+}

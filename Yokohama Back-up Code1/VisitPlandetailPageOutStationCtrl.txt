@@ -1,0 +1,357 @@
+public class VisitPlandetailPageOutStationCtrl {
+    /*public Visit_plan__c vp{get;set;}
+    public id pageid{get;set;}
+    public list<Tour_plan__c> dp{get;set;}
+    public list<Tour_plan__c> unplannedtour{get;set;}
+    public list<Daily_plan__c> dpunplanned{get;set;}
+    public list<Tour_plan__c> unplannedtour1{get;set;}
+    public list<Daily_plan__c> dailyunplanned{get;set;}
+    public boolean b1{get;set;}
+    public boolean b2{get;set;}
+    public list<Attachment> att{get;set;}
+    public List<User> Usergrade{get;set;}
+    public List<Expense_policy__c> exppolicy{get;set;}
+    public list<Visit_plan_expense__c> expense{get;set;}
+    public List<Daily_plan__c> dailyplanlist {get; set;}
+    public id tourid {get; set;}
+    public Tour_plan__c tt{get;set;}
+    public list<Visit_plan_expense__c> vpe{get;set;}
+    public Boolean displayPopup {get;set;}
+    public list<string> sendto{get;set;}
+    
+    
+    public VisitPlandetailPageOutStationCtrl(ApexPages.StandardController controller) {
+        pageid=apexpages.currentpage().getparameters().get('id');
+        sendto= new list<string>();
+        unplannedtour= new list<Tour_plan__c>();
+        unplannedtour1= new list<Tour_plan__c>();
+        expense= new list<Visit_plan_expense__c>();
+        att=[select id, Name, ContentType, BodyLength,Lastmodifieddate,createdbyid from attachment where parentid=:pageid ];
+        vp=[Select name,Cancel_Reason__c,   visit_status__c,from__c,Local_Difference__c,Food_Difference__c,Lodging_Difference__c,Approvers_Comment__c ,Total_Approved_Amount__c,To__c, Miscellaneous_Amount_Approved__c,Travel_Type_Entitled__c, Travel_Amount_Approved__c ,travel_amount__c, travel_type__c,
+            X2_AC_Train_Amount_Approved__c, X2_AC_Train_Amount_Claimed__c, X2nd_Class_Sleeper_Train_Amount_Approve__c, X2nd_Class_Sleeper_Train_Amount_Claimed__c, X3_AC_Train_Amount_Approved__c, X3_AC_Train_Amount_Claimed__c, 
+                Approval_Status__c, Expense_Approval_Status__c ,ownerid,  recordtypeid, Miscellaneous_Amount__c, Description__c, Lodging_Expense_Claimed__c, Local_Conveyance_Claimed__c, Food_Allowances_Claimed__c, Lodging_Expense_Entitled__c, Food_Allowances_Entitled__c, Local_Conveyance_Entitled__c, Lodging_Expense_Approved__c, Food_Allowances_Approved__c, Local_Conveyance_Approved__c from Visit_plan__c where id=: pageid];
+        Usergrade= [select email,grade__c,manager.email from user where id=: UserInfo.getUserId()];
+        sendto.add(Usergrade[0].email);
+        if(Usergrade[0].manager.email != null){
+            sendto.add(Usergrade[0].manager.email);
+        }
+        dp=[select name, From__c, To__c, City__c, status__c,city_type__c,City_lookup__c, (Select name, Date__c, Start_Time__c, End_Time__c ,Select_Type__c, Tour_Plan__c, Lead__c,City__c, customer__c, opportunity__c,Business_Pramotion__c,Daily_Plan_Status__c,Check_In_Time__c,Check_Out_Time__c,OwnerId from daily_plans__r order by date__c) from tour_plan__c where visit_plan__c =: pageid order by createddate];
+        Usergrade= [select grade__c from user where id=: vp.ownerid];
+        system.debug(vp.recordtypeid);
+        dailyplanlist= new List<Daily_plan__c>();
+        dpunplanned= new List<Daily_plan__c>();
+        tt= new Tour_plan__c();
+        b1=true;
+        b2=true;
+        vpe= [select from__c, To__c, city__c,city_lookup__c, city_type__c, status__c from visit_plan_expense__c where visit_plan__c=:pageid];
+        
+        exppolicy= new list<Expense_policy__c>();
+        
+        
+    }
+    
+    public pagereference back(){ 
+         pageReference pr=new pageReference('/apex/Visitplantabview');
+         pr.setredirect(true);
+         return pr; 
+    }
+    
+    
+    
+    public void addrow() {
+        daily_plan__c d= new daily_plan__c();
+           d.Tour_Plan__c= tourid;
+           dailyplanlist.add(d);
+        
+    }
+    
+    public void removerow(){
+        Integer i = dailyplanlist.size();
+        if(i > 1 || Test.isRunningTest())
+            dailyplanlist.remove(i-1);
+    }
+    
+    public void CancelUnplanned(){
+        dailyplanlist.clear();
+        b1=true;
+    }
+    
+    public void saveunplanned(){
+        try{
+        dpunplanned.clear();
+        tt=[select name, from__c,city_Lookup__c, to__c from tour_plan__c where id=:tourid];
+        for(daily_plan__c dp: dailyplanlist){
+            if(dp.date__c > tt.To__c || dp.date__c<tt.from__c)
+                ApexPages.addmessage(new ApexPages.message(ApexPages.Severity.error, 'Please select date between ' + tt.from__c +' And ' + tt.To__c));    
+            else{    
+                dp.name= tt.name;
+                Date d = dp.date__c;
+                String start = DateTime.newInstance(d.year(),d.month(),d.day()).format('dd/MM/YY') +' ' +dp.Start_Time__c;
+                String endtime = DateTime.newInstance(d.year(),d.month(),d.day()).format('dd/MM/YY') +' ' +dp.End_Time__c;
+                dp.Start_date_Time__c=DateTime.parse(start);
+                dp.end_date_Time__c=DateTime.parse(endtime);
+                dp.Visit_Plan__c=pageid;
+                dpunplanned.add(dp);
+                }    
+        }
+        if(dailyplanlist.size() == dpunplanned.size()){
+            upsert dailyplanlist;
+            
+            
+            for(Daily_plan__c vv: dailyplanlist){
+                Date d = vv.Date__c;          
+                String start = DateTime.newInstance(d.year(),d.month(),d.day()).format('dd/MM/YY') +' ' +vv.Start_Time__c;
+                String endtime = DateTime.newInstance(d.year(),d.month(),d.day()).format('dd/MM/YY') +' ' +vv.End_Time__c;  
+                //datetime startddd=DateTime.parse(start);
+                //datetime endddd=DateTime.parse(endtime);
+                //decimal decMinutes = ((startddd.getTime())/1000/60) - ((endddd.getTime())/1000/60);
+                Event e= new Event();
+                e.subject=vv.name;
+                //if(decMinutes <0){
+                    e.StartDateTime=DateTime.parse(start);
+                    e.EndDateTime=DateTime.parse(endtime);
+                //}
+                //else{
+                    //e.StartDateTime=DateTime.parse(endtime);
+                    //e.EndDateTime=DateTime.parse(start);
+                //}
+                e.whatid=vv.id;
+                insert e;
+            }
+            dp=[select name, From__c, To__c, City__c, city_type__c,status__c,city_lookup__c, (Select name, Date__c, Start_Time__c, End_Time__c, Select_Type__c, Tour_Plan__c, Lead__c, Business_Pramotion__c, customer__c, opportunity__c,Daily_Plan_Status__c,Check_In_Time__c,City__c,Check_Out_Time__c, OwnerId from daily_plans__r order by date__c) from tour_plan__c where visit_plan__c =: pageid order by createddate];
+            b1= true;
+        }
+        }
+        catch (Exception ex) {
+               ApexPages.addMessages(ex);
+            }
+        
+                
+           
+     } 
+     
+     public pagereference addexpense(){ 
+         pageReference pr=new pageReference('/apex/OutStationExpenseAndAttachment?id=' +pageid);
+         pr.setredirect(true);
+         return pr; 
+    }  
+    
+    
+    
+    
+    
+    
+    
+    public pagereference submitapproval(){
+        Try{  
+          Approval.ProcessSubmitRequest req1 = 
+            new Approval.ProcessSubmitRequest();
+            req1.setComments('Submitting request for approval.');
+            req1.setObjectId(vp.id);
+            Approval.ProcessResult result2 =  Approval.process(req1);
+    
+            PageReference ref1 =  new PageReference(ApexPages.currentPage().getUrl());
+            ref1.setredirect(true);
+            return ref1;
+            }
+           catch (Exception ex) {
+               ApexPages.addMessages(ex);
+            }
+            return null;
+
+   } 
+   
+   public void adddaily(){
+       system.debug(tourid);
+       dailyplanlist.clear();
+       dpunplanned.clear();
+       daily_plan__c d= new daily_plan__c();
+       d.Tour_Plan__c= tourid;
+       dailyplanlist.add(d);
+       tt=[select name, from__c, to__c from tour_plan__c where id=:tourid];
+       b1=false; 
+
+       
+   }
+    public void adddailyUnplan(){
+       system.debug(tourid);
+       dailyplanlist.clear();
+       dpunplanned.clear();
+       daily_plan__c d= new daily_plan__c();
+       d.Tour_Plan__c= tourid;
+       d.Status__c='Unplanned';
+       dailyplanlist.add(d);
+       tt=[select name, from__c,city_Lookup__c, to__c from tour_plan__c where id=:tourid];
+       b1=false; 
+	}
+   public void saveApprovedAmount(){
+        if((vp.Travel_Amount_Approved__c != vp.Travel_Amount__c) || (vp.Miscellaneous_Amount__c != vp.Miscellaneous_Amount_Approved__c) || (vp.X2_AC_Train_Amount_Approved__c != vp.X2_AC_Train_Amount_Claimed__c) || (vp.X2nd_Class_Sleeper_Train_Amount_Approve__c != vp.X2nd_Class_Sleeper_Train_Amount_Claimed__c)|| (vp.X3_AC_Train_Amount_Approved__c != vp.X3_AC_Train_Amount_Claimed__c))
+       {    
+           if(vp.Approvers_Comment__c == null){
+               ApexPages.addmessage(new ApexPages.message(ApexPages.Severity.error, 'Please Add Approvers Comment Field'));    
+           }
+           else{    
+               update vp;
+               ApexPages.addmessage(new ApexPages.message(ApexPages.Severity.Confirm, 'Record update successfully. Please Approve this expense by clicking on Approve/Reject link from Approval History.'));
+           }
+       }
+       else{
+           update vp;
+           ApexPages.addmessage(new ApexPages.message(ApexPages.Severity.Confirm, 'Record update successfully. Please Approve this expense by clicking on Approve/Reject link from Approval History.'));
+       }
+   }
+   
+   public void addunplanned(){
+        b2=false;
+        unplannedtour.clear();
+        tour_plan__c tp= new tour_plan__c();
+      
+        unplannedtour.add(tp);
+       
+            
+    }
+    
+    public void saveunplannedtour(){
+        integer i= dp.size() +1;
+        unplannedtour1.clear();
+        expense.clear();
+        for(Tour_plan__c vv: unplannedtour){
+                if(vv.To__c < vv.from__c){
+                    ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Error,'From date always less than To Date'));    
+                }
+                else if(vv.from__c < vp.From__c || vv.To__c > vp.To__c){
+                    ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Error,'Please enter From and To date according to Visit Plan Range'));
+                }
+                
+                else{
+                    vv.visit_plan__c=vp.id;
+                    vv.status__c='Unplanned';
+                    Date d = vv.from__c;
+                    Date d1 = vv.To__c;
+                    vv.Visit_Plan__c=pageid; 
+                    //vv.name=string.valueof(DateTime.newInstance(d.year(),d.month(),d.day()).format('dd/MM/YY'))+'-'+ string.valueof(DateTime.newInstance(d1.year(),d1.month(),d1.day()).format('dd/MM/YY'))+'-'+ i;
+                    vv.name=string.valueof(DateTime.newInstance(d.year(),d.month(),d.day()).format('dd/MM/YY'))+'-'+ string.valueof(DateTime.newInstance(d1.year(),d1.month(),d1.day()).format('dd/MM/YY'));
+                   
+                    unplannedtour1.add(vv);
+                
+                }
+                i++;
+       }
+       if(unplannedtour1.size()==unplannedtour.size()){
+           try{
+           		insert unplannedtour;
+           }
+			catch(Exception e){
+           		ApexPages.addmessage(new ApexPages.message(ApexPages.Severity.ERROR, 'Already unplanned tour created for this date. Please click on Cancel.'));
+       			return;
+            }           
+           dp=[select name, From__c, To__c, City__c,City_Lookup__c, status__c,city_type__c, (Select name, Date__c, Start_Time__c, End_Time__c, Business_Pramotion__c,Select_Type__c, Tour_Plan__c, Lead__c, customer__c,city__c, Check_Out_Time__c ,opportunity__c,Check_In_Time__c ,Daily_Plan_Status__c,OwnerId from daily_plans__r) from tour_plan__c where visit_plan__c =: pageid order by createddate];
+           for(Tour_plan__c tp: unplannedtour){
+                   integer calculatedays= tp.from__c.daysBetween(tp.To__c);
+                   for(integer j=0; j<=calculatedays ; j++){
+                        Visit_plan_expense__c vpe= new Visit_plan_expense__c();
+                        vpe.city_lookup__c= tp.city_lookup__c;
+                        vpe.from__c= tp.from__c + j;
+                        //vpe.to__c= tp.to__c;
+                        vpe.visit_plan__c= vp.id;
+                        expense.add(vpe);
+                    }  
+                    
+           }
+           upsert expense;
+           b2=true;
+       }
+            
+            
+    }
+   
+   public void CancelUnplannedtour(){
+       b2=true;
+   }
+   
+   public void addrowunplannedtour() {
+        tour_plan__c d= new tour_plan__c();
+           
+           unplannedtour.add(d);
+        
+    }
+    
+    public void removerowunplannedtour(){
+        Integer i = unplannedtour.size();
+        if(i > 1 || Test.isRunningTest())
+            unplannedtour.remove(i-1);
+    }
+    
+    public pagereference CancelVisit(){
+        vp.visit_status__c='Cancelled';
+        update vp;
+        displayPopup = false;
+        List<Messaging.SingleEmailMessage> allmsg = new List<Messaging.SingleEmailMessage>();
+        Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
+        
+        mail.setSaveAsActivity(false);
+        mail.setToAddresses(sendto);
+        mail.setSubject('Cancel Outstation Visit');
+              String body = 'Dear,<br/><br/>';
+              string urrlll=URL.getSalesforceBaseUrl().toExternalForm()+'/'+pageid;
+              body += 'Outstation visit plan (<a href="' +urrlll+'">'+vp.name+'</a>) has been cancelled. <br/><br/><br/>';
+              //body += 'Please find below URL for Visit Plan<br/><br/><br/>';
+              //body +=  URL.getSalesforceBaseUrl().toExternalForm()+'/'+pageid +'<br/><br/><br/>';              
+              body +='<table border="1" style="font-family: arial, sans-serif;border-collapse: collapse"><tr><td style="border: 1px solid #dddddd;text-align: left;padding: 8px;font-size: 12px;">From Date </td><td style="border: 1px solid #dddddd;text-align: left;padding: 8px;font-size: 12px;">' +vp.From__c +'</td></tr>';
+              body +='<tr><td style="border: 1px solid #dddddd;text-align: left;padding: 8px;font-size: 12px;">To Date </td><td style="border: 1px solid #dddddd;text-align: left;padding: 8px;font-size: 12px;">' +vp.To__c +'</td></tr>';
+                body +='<tr><td style="border: 1px solid #dddddd;text-align: left;padding: 8px;font-size: 12px;">Visit Approval Status </td><td style="border: 1px solid #dddddd;text-align: left;padding: 8px;font-size: 12px;">' +vp.Approval_Status__c +'</td></tr>';
+                body +='<tr><td style="border: 1px solid #dddddd;text-align: left;padding: 8px;font-size: 12px;">Cancel Reason </td><td style="border: 1px solid #dddddd;text-align: left;padding: 8px;font-size: 12px;">' +vp.Cancel_Reason__c +'</td></tr>';
+                body +='</table><br/><br/>';
+                body +='Thank You,<br/>Alstrong Salesforce Team<br/><br/><br/>' ;
+        
+                
+              mail.setHtmlBody(body);
+           allmsg.add(mail);
+         Messaging.sendEmail(allmsg,true);  
+
+        PageReference ref1 =  new PageReference('/apex/VisitPlanDetailPageOutStation?id=' +pageid);
+        ref1.setredirect(true);
+        return ref1;
+        
+    }
+    public PageReference BackPage(){
+        
+         PageReference ref1 =  new PageReference('/apex/VisitPlanDetailPageOutStation?id=' +pageid);
+        ref1.setredirect(true);
+        return ref1;
+    }
+    public pagereference ExtendedVisit(){ 
+         pageReference pr=new pageReference('/apex/ExtendedVisitPlanPage?id=' +pageid);
+         pr.setredirect(true);
+         return pr; 
+    }
+    
+    public void showPopup()
+    {
+        
+    displayPopup = true;
+
+    
+    }
+    
+    public void closePopup() {
+        displayPopup = false;
+        
+    }
+    
+    public pagereference cancelVisitPage(){ 
+         pageReference pr=new pageReference('/apex/TourPlanCancel_page?id=' +pageid);
+         pr.setredirect(true);
+         return pr; 
+    }
+    public PageReference redirectPopup()
+    {
+    
+       //Please uncomment below 3 statements and replace YourObjectId
+       //PageReference p=new Pagereference('/'+YourObjectId);
+       //p.setRedirect(true);
+       return null;
+        
+    }*/
+
+}

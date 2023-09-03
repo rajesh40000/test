@@ -1,0 +1,54 @@
+public class sortingPaymentBehaviourhandler {
+   
+    //public static Boolean isFirstTimeRun = false;
+    public static void countNoOfCustomerHandler (List<Payment_Behaviour__c> newCustomers, List<Payment_Behaviour__c> oldCustomers){
+        
+        Set<Id> custIds = new Set<Id>();
+        if(newCustomers != null){
+            for(Payment_Behaviour__c c : newCustomers){
+                if(c.Customer_No__c != null)
+                    custIds.add(c.Customer_No__c);
+            }
+        }
+        if(oldCustomers != null){
+            for(Payment_Behaviour__c c : oldCustomers){
+                if(c.Customer_No__c != null)
+                    custIds.add(c.Customer_No__c);
+            }
+        }
+        
+        
+        
+        List<Account> acct = new List<Account>();
+        List<Payment_Behaviour__c> pymtList = new List<Payment_Behaviour__c>();
+		AggregateResult[] groupedResults = [SELECT  Avg(No_of_days__c	)i FROM Payment_Behaviour__c where Id =: custIds];
+		
+		for(AggregateResult ags: groupedResults){
+       
+        system.debug('groupedResults'+groupedResults);
+        }
+		
+        for(Account a : [SELECT Id, No_Of_Customers__c, (SELECT Id,No_of_days__c From Payment_Behaviour__r ORDER BY No_of_days__c ASC) From Account where Id IN: custIds]){
+            if(a.Payment_Behaviour__r.size()>=0){
+                List<Payment_Behaviour__c> paymentBehaviour = a.Payment_Behaviour__r;
+                a.No_Of_Customers__c = paymentBehaviour.size();
+                for(Integer p=0; p<paymentBehaviour.size(); p++)
+                /*{
+                    if(paymentBehaviour[p].No_of_days__c == paymentBehaviour[0].No_of_days__c)
+                        paymentBehaviour[p].Percentage_Of_Dealers_Ahead__c = '0%';
+                    else{                
+                        Integer percentDealers = (p*100)/paymentBehaviour.size();
+                        paymentBehaviour[p].Percentage_Of_Dealers_Ahead__c = percentDealers+'%';
+                    }
+                    pymtList.add(paymentBehaviour[p]);
+                }*/
+                acct.add(a);
+            }        
+        } 
+        if(acct.size()>0)
+            update acct;
+        if(pymtList.size()>0)
+            update pymtList;
+    }
+        
+}

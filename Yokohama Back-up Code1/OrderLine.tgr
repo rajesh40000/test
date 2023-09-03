@@ -1,0 +1,24 @@
+trigger OrderLine on Quote_Line__c (before insert) {
+    
+        
+        /*
+    for(Integer i=0;i<pp.size();i++){
+        Product_Pricing__c pp1 = pp[i];
+        if(i<=pp2.size()){j=i;}
+            if(i>pp2.size()){j=j+1;}
+                if(j>4){j=0;}
+                if(j<pp2.size()){
+            Product_Pricing__c pp3 = pp2[j];
+            if(pp1.Product_c__c == pp3.Product_c__c){
+                System.debug('in if');
+                    Quote_Line__c ql = ol[j];
+                    System.debug('bfr');
+                    if(ql.Product_Group__c == pp3.Id){
+                        System.debug('if2');
+                        ql.Product_Group__c = pp1.Id;
+                        System.debug(ql.Product_Group__c );
+                    }
+                }
+            }
+        }*/
+    }

@@ -1,0 +1,47 @@
+trigger TriggerOnAccount  on Account (after update) {
+    
+     TriggerDisabled__c bypassTrigger= TriggerDisabled__c.getInstance('DisableTrigger');
+    system.debug('bypassTrigger '+ bypassTrigger);
+    system.debug('bypassTrigger '+ bypassTrigger.Is_Disabled_Trigger__c);
+    
+    if(!bypassTrigger.Is_Disabled_Trigger__c){
+        
+        
+   Set<Id> accIds = new Set<Id>();
+   List<FeedItem> posts = new List<FeedItem>(); 
+    if(trigger.isUpdate && trigger.isAfter) {
+        for(Account acc : trigger.new){
+            if(acc.Send_Relevant_Information__c != Trigger.OldMap.get(acc.Id).Send_Relevant_Information__c && acc.Send_Relevant_Information__c == true){
+                accIds.add(acc.Id);
+                System.debug('Account: ' + acc.Name);
+                //chatter post
+                String status = 'Pending Payment Reminder \n Your payment corresponding to the account: ' + acc.Name + ' is pending. Please clear the pending amount of Rs. 50,000/- ';
+                FeedItem post = new FeedItem(
+                    ParentId = acc.Id,
+                    Title = 'Pending Payment Reminder',
+                    Body = status
+                );
+                posts.add(post);
+            }
+            insert posts;
+        }
+    }
+    
+    if(accIds.size() > 0) {
+        List<Messaging.SingleEmailMessage> emailList = new List<Messaging.SingleEmailMessage>();
+        
+        for(Contact con : [Select Id, Email, Account.Name FROM Contact WHERE AccountId IN :accIds AND Email != null]) {
+            System.debug('Contacts:' + con);
+            Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
+            mail.setToAddresses(new List<String> {con.Email});
+            mail.setSubject('Pending Payment Reminder');
+            mail.setPlainTextBody('Your payment corresponding to the account: ' + con.Account.Name + ' is pending. Please clear the pending amount of Rs. 50,000/- ');
+            emailList.add(mail);
+            
+        }
+        if(emailList.size() > 0) {
+            Messaging.sendEmail(emailList);
+        }
+    }
+   }      
+}

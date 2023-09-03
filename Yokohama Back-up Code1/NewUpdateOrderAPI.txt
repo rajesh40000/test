@@ -1,0 +1,122 @@
+@RestResource(urlMapping='/NewUpdateOrderAPI/')
+global class NewUpdateOrderAPI{
+    @HttpPost
+    global static void doPost()
+    {
+        restrequest req = RestContext.request;
+        RequestBodyWrap reqBodywrap = parse(req.requestBody.toString());
+       
+        list<Invoice_Line__c> lineList = new list<Invoice_Line__c>();
+       
+        Invoice__c invoice =[Select id,name,Invoice_Due_Date__c,Total_Invoice_Quantity__c,NAV_Order_Ref_No__c,Dealer_Code__c,Invoice_Date__c,NAV_Invoice_ID__c,Invoice_Amount_y__c from Invoice__c where NAV_Order_Ref_No__c =:reqBodywrap.NAVOrderRefNo];
+       
+        if(reqBodywrap.NAVOrderRefNo != null){
+            invoice.NAV_Order_Ref_No__c= reqBodywrap.NAVOrderRefNo;
+        }
+        if(reqBodywrap.DealerCode != null){
+            invoice.Dealer_Code__c= reqBodywrap.DealerCode;
+        }
+        if(reqBodywrap.InvoiceDate != null){
+            invoice.Invoice_Date__c= reqBodywrap.InvoiceDate;
+        }
+        if(reqBodywrap.NAVInvoiceID != null){
+            invoice.NAV_Invoice_ID__c= reqBodywrap.NAVInvoiceID;
+        }
+        if(reqBodywrap.InvoiceAmount != null){
+            invoice.Invoice_Amount_y__c= reqBodywrap.InvoiceAmount;
+        }
+        if(reqBodywrap.InvoiceDueDate!= null){
+            invoice.Invoice_Due_Date__c= reqBodywrap.InvoiceDueDate;
+        }
+       
+      if(reqBodywrap.NAVOrderRefNo!= null){
+            invoice.NAV_Order_Ref_No__c= reqBodywrap.NAVOrderRefNo;
+        }
+       
+        Update invoice;
+       
+        for(cls_invoiceline lineData: reqBodywrap.line)
+        {
+            Invoice_Line__c invoiceLine =[Select id,name,Total_Invoice_Quantity__c,Invoice_Quantity__c,NAV_Invoice_Line_ID__c from Invoice_Line__c where id =:lineData.InvoicelineId];
+           
+            if(invoice.id!= null){
+                invoiceLine.Invoice__c= invoice.id;}
+            if(linedata.TotalInvoiceQuantity!=null){
+                invoiceLine.Total_Invoice_Quantity__c=linedata.TotalInvoiceQuantity;
+            }
+            if(linedata.InvoiceQuantity!=null){
+                invoiceLine.Invoice_Quantity__c=linedata.InvoiceQuantity;
+            }
+
+            if(linedata.NAVInvoiceLineID!=null){
+                invoiceLine.NAV_Invoice_Line_ID__c=linedata.NAVInvoiceLineID;
+            }
+            
+           
+            lineList.add(invoiceLine);
+            List<Invoice__c> inv = [Select name from Invoice__c where Id =: invoiceLine.Invoice__c ];
+           
+            responseWrap resWrap = new responseWrap();
+            list<cls_result> resultParaList = new List<cls_result>();
+            List<Database.SaveResult> saveResults = Database.Update(lineList, false);
+            for(Integer i=0;i<saveResults.size();i++){
+               
+                cls_result resultPara = new cls_result();
+                if (saveResults.get(i).isSuccess()){
+                    resultPara.Status = 'Success';
+                    resultPara.response_message = 'Invoice Updated Successfully';
+                   
+                  //  resultPara.SFID = saveResults.get(i).getId();
+                   
+                }else if (!saveResults.get(i).isSuccess()){
+                   
+                    Database.Error error = saveResults.get(i).getErrors().get(0);
+                    resultPara.Status = 'Failure';
+                    resultPara.response_message = error.getMessage();
+                }
+                resultParaList.add(resultPara);
+            }
+            resWrap.result = resultParaList;
+            resWrap.invoiceName = inv[0].Name;
+           // resWrap.invoiceId = inv[0].id;
+            RestResponse res = RestContext.response;
+            res.statusCode = 200;
+            res.responseBody = Blob.valueof(JSON.serialize(resWrap));    
+        }
+    }
+    public class RequestBodyWrap{    
+         public STRING Name;
+        public date InvoiceDueDate;
+        public integer TotalInvoiceQuantity;
+        public string NAVOrderRefNo;
+        public string DealerCode;
+        public date InvoiceDate;
+        public string NAVInvoiceID;
+        public decimal InvoiceAmount;
+        public string  invoiceId;
+     
+        public cls_invoiceline[] line;              
+    }
+    public class cls_invoiceline {
+        
+        Public integer InvoiceQuantity;
+       public String  InvoicelineId;
+       public string NAVInvoiceLineID;
+       public integer TotalInvoiceQuantity;
+        
+    }
+    public class responseWrap{
+        public cls_result[] result;
+        public string invoiceName;
+       // public string invoiceId;
+    }
+    public class cls_result {
+        public String Status;
+        public String response_message;
+        //public String SFID;
+    }
+    public static RequestBodyWrap parse(String json)
+    {
+        return (RequestBodyWrap) System.JSON.deserialize(json, RequestBodyWrap.class);
+    }
+}
