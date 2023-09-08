@@ -1,0 +1,97 @@
+@RestResource(urlMapping='/UpdateCustomerLedger/')
+global class UpdateCustomerLedger {
+    
+    @HttpPost
+    global static void doPost (){
+        restrequest req = RestContext.request;
+        RequestBodyWrap reqBodywrap = parse(req.requestBody.toString());
+        
+        Set<id> documentIDSet=new Set<id>();
+        for(cls_Payment linedata:reqBodywrap.line){
+            documentIDSet.add(linedata.documentNo);
+        }
+        Map<String,id> documentIDMap=new Map<String,id>();
+        for(Customer_Ledger__c cc:[Select  Id,Remaining_Amt_LCY__c,Remaining_Amount__c,Open__c,Document_No__c from Customer_Ledger__c  where Document_No__c =:documentIDSet]){
+            documentIDMap.put(cc.Document_No__c,cc.id);
+        }
+        list<Customer_Ledger__c> custList = new list<Customer_Ledger__c>();  
+        for(cls_Payment lineData: reqBodywrap.line)
+        {
+            Customer_Ledger__c lines = new Customer_Ledger__c();
+            list<Customer_Ledger__c> rec = [Select  Id,Remaining_Amt_LCY__c,Remaining_Amount__c,Open__c,Document_No__c from Customer_Ledger__c  where Document_No__c =:lineData.documentNo LIMIT 1];
+
+            
+            
+            if(rec.size()>0){
+                for(Customer_Ledger__c cust : rec){
+                 // Customer_Ledger__c cust = new Customer_Ledger__c();
+                  cust.id=rec[0].id;
+                if(lineData.remainingamountLCY!= null){
+                    cust.Remaining_Amt_LCY__c= lineData.remainingamountLCY;
+                }
+                if(lineData.remainingamount!= null){
+                    cust.Remaining_Amount__c= lineData.remainingamount;
+                }
+                if(lineData.open!= null){
+                    
+                    cust.Open__c= lineData.open;
+                }
+               
+            
+                custList.add(cust);
+                system.debug('UpdateLst::::'+custList);
+            }
+        }
+        }
+        schema.SObjectField schemafield = Pincode__c.Fields.name;
+        responseWrap resWrap = new responseWrap();
+        list<cls_result> resultParaList = new List<cls_result>();
+        system.debug('test='+custList);
+        Database.UpsertResult[] saveResults = Database.upsert(custList,false);
+        for(Integer i=0;i<saveResults.size();i++){
+            cls_result resultPara = new cls_result();
+            if (saveResults.get(i).isSuccess()){
+                resultPara.Status = 'Success';
+                resultPara.response_message = 'Customer Ledger  Updated Successfully';
+                
+                resultPara.SFID = saveResults.get(i).getId();
+                
+            }else if (!saveResults.get(i).isSuccess()){
+                
+                Database.Error error = saveResults.get(i).getErrors().get(0);
+                resultPara.Status = 'Failure';  
+                resultPara.response_message = error.getMessage(); 
+                resultPara.SFID = '';  
+            }
+            resultParaList.add(resultPara);
+        }
+        resWrap.result = resultParaList;
+        RestResponse res = RestContext.response;
+        res.statusCode = 200;
+        res.responseBody = Blob.valueof(JSON.serialize(resWrap));   
+    
+    }
+    public class RequestBodyWrap{
+        public cls_Payment[] line;
+        
+    }
+    
+    public class cls_Payment {
+        public Decimal remainingamountLCY;
+        public Decimal remainingamount;
+        public string documentNo;
+        public boolean open;       
+    }
+    public class responseWrap{
+        public cls_result[] result;
+    }
+    public class cls_result {
+        public String Status;
+        public String response_message;
+        public String SFID;
+    }
+    public static RequestBodyWrap parse(String json){
+        return (RequestBodyWrap) System.JSON.deserialize(json, RequestBodyWrap.class);
+        
+    }
+}

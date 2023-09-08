@@ -1,0 +1,199 @@
+@RestResource(urlMapping='/upsertdiscountApi/')
+global class upsertdiscountApi {
+    global class Response {     
+        global string id;
+        global string code;
+        global string message;
+    }
+    @HttpPost
+    global static void doPost (){
+        restrequest req = RestContext.request;
+        RequestBodyWrap reqBodywrap = parse(req.requestBody.toString());
+        list<Sales_Line_Discount__c> PriceList = new list<Sales_Line_Discount__c>();
+        for(cls_Pricelist lineData: reqBodywrap.line){
+            Sales_Line_Discount__c sld = new Sales_Line_Discount__c();
+            list<Sales_Line_Discount__c> sd = [select id,Approval_Status__c,Discount_Type__c,Ending_Date__c,
+                                               Line_Discount__c,Minimum_Quantity__c,Sales_Code__c,Item_Code__c,
+                                               Sales_Type__c,Campaign_Group__c,Customer_Discount_Group__c,Starting_Date__c,Type__c,Unit_Measure_Code__c,
+                                               Variant_code__c from Sales_Line_Discount__c where Item_Code__r.Name=:lineData.code and Variant_code__r.Name=:lineData.Variantcode
+                                               AND Starting_Date__c=:lineData.StartingDate  and Discount_Type__c=:lineData.Discounttype and Sales_Type__c=:lineData.salestype ];
+            if(sd.size()>0){
+                
+                for(Sales_Line_Discount__c discount:sd){
+                    
+                    discount.id= discount.id;
+                    discount.Type__c=lineData.type1;
+                    if(lineData.ApprovalStatus != null){
+                        discount.Approval_Status__c = lineData.ApprovalStatus;
+                    }
+                    
+                    discount.Discount_Type__c=lineData.Discounttype;
+                    discount.Ending_Date__c=lineData.Endingdate;
+                    discount.Line_Discount__c=lineData.lineDiscount;
+                    discount.Minimum_Quantity__c=lineData.MinimumQuantity;
+                  
+                    discount.Starting_Date__c=lineData.Startingdate;
+                    if(lineData.salestype=='Customer'){
+                        if(linedata.Salescode != null){
+                            Account acc=[select id,Customer_No__c from Account  where Customer_No__c=:lineData.Salescode];
+                            if(acc != null){
+                                discount.Customer__c=acc.id;
+                            }
+                        }
+                    }
+                    if(lineData.SalesType=='Customer disc. Group'){
+                        if(linedata.Salescode != null){
+                          Customer_Discount_Group__c cd=[Select id,Code__c from Customer_Discount_Group__c where Code__c=:linedata.Salescode];
+                            if(cd != null){
+                                discount.Customer_Discount_Group__c=cd.Id;
+                            }
+                        }
+                    }
+                      if(lineData.SalesType=='Campaign'){
+                        if(linedata.Salescode != null){
+                           Campaign_Group__c cm=[Select id,Name from Campaign_Group__c where Name=:lineData.Salescode];
+                            if(cm != null){
+                                discount.Campaign_Group__c=cm.id;
+                            }
+                        }
+                    }
+                    discount.Sales_Type__c=lineData.salestype;
+                    
+                    discount.Unit_Measure_Code__c=lineData.UnitofMeasureCode;
+                    
+                    if(lineData.Variantcode != null && lineData.Variantcode != ''){
+                        list<Variant__c> vr=[select id from Variant__c  where Name=:lineData.Variantcode];
+                        if(vr.size()>0){
+                            discount.Variant_code__c=vr[0].id;
+                        }
+                    }
+                    if(lineData.code != null && lineData.code != ''){
+                        Product__c pd=[select id from Product__c  where name=:lineData.code LIMIT 1];
+                        if(pd != null){
+                            discount.Item_Code__c=pd.id;
+                        }
+                    }
+                    PriceList.add(discount);
+                    
+                }
+            }
+            else 
+            {
+                //sld.id= sld.id;
+                Sales_Line_Discount__c sld1 = new Sales_Line_Discount__c();
+                sld.Type__c=lineData.type1;
+                sld.Approval_Status__c=lineData.ApprovalStatus;
+               sld.Discount_Type__c=lineData.Discounttype;
+                sld.Ending_Date__c=lineData.Endingdate;
+                sld.Line_Discount__c=lineData.lineDiscount;
+                sld.Minimum_Quantity__c=lineData.MinimumQuantity;
+                if(lineData.salestype=='Customer'){
+                    if(linedata.Salescode != null){
+                        Account acc=[select id,Customer_No__c from Account  where Customer_No__c=:lineData.Salescode];
+                        if(acc != null){
+                            sld.Customer__c=acc.id;
+                        }
+                    }
+                }
+                 if(lineData.SalesType=='Customer disc. Group'){
+                        if(linedata.Salescode != null){
+                          Customer_Discount_Group__c cd=[Select id,Code__c from Customer_Discount_Group__c where Code__c=:linedata.Salescode];
+                            if(cd != null){
+                                sld.Customer_Discount_Group__c=cd.Id;
+                            }
+                        }
+                    }
+                      if(lineData.SalesType=='Campaign'){
+                        if(linedata.Salescode != null){
+                           Campaign_Group__c cm=[Select id,Name from Campaign_Group__c where Name=:lineData.Salescode];
+                            if(cm != null){
+                                sld.Campaign_Group__c=cm.id;
+                            }
+                        }
+                    }
+                sld.Starting_Date__c=lineData.Startingdate;
+                sld.Sales_Type__c=lineData.salestype;
+                
+                sld.Unit_Measure_Code__c=lineData.UnitofMeasureCode;
+                
+   
+                if(lineData.Variantcode != null && lineData.Variantcode != ''){
+                    list<Variant__c> vr=[select id from Variant__c  where Name=:lineData.Variantcode];
+                    if(vr.size()>0){
+                        sld.Variant_code__c=vr[0].id;
+                    }
+                }
+                if(lineData.code != null && lineData.code != ''){
+                    Product__c pd=[select id from Product__c  where name=:lineData.code LIMIT 1];
+                    if(pd != null){
+                        sld.Item_Code__c=pd.id;
+                    }
+                }
+                
+                PriceList.add(sld);
+            }
+            
+        }
+        schema.SObjectField schemafield = Pincode__c.Fields.name;
+        responseWrap resWrap = new responseWrap();
+        list<cls_result> resultParaList = new List<cls_result>();
+        system.debug('test='+PriceList);
+        Database.UpsertResult[] saveResults = Database.upsert(PriceList,false);
+        for(Integer i=0;i<saveResults.size();i++){
+            cls_result resultPara = new cls_result();
+            if (saveResults.get(i).isSuccess()){
+                resultPara.Status = 'Success';
+                resultPara.response_message = 'Discount  Upsert Successfully';
+                
+                resultPara.SFID = saveResults.get(i).getId();
+                
+            }else if (!saveResults.get(i).isSuccess()){
+                
+                Database.Error error = saveResults.get(i).getErrors().get(0);
+                resultPara.Status = 'Failure';  
+                resultPara.response_message = error.getMessage(); 
+                resultPara.SFID = '';  
+            }
+            resultParaList.add(resultPara);
+        }
+        resWrap.result = resultParaList;
+        RestResponse res = RestContext.response;
+        res.statusCode = 200;
+        res.responseBody = Blob.valueof(JSON.serialize(resWrap));   
+        
+    }
+    public class RequestBodyWrap{
+        public cls_Pricelist[] line;
+        
+    }
+    public class cls_Pricelist {
+        public String  ApprovalStatus;
+        // Public String code ;
+        public string Discounttype; 
+        Public string code;
+        Public date Endingdate;
+        Public decimal lineDiscount;
+        Public decimal MinimumQuantity;
+        public string Salescode;
+        Public string salestype;
+        Public date Startingdate;
+        Public string type1;
+        Public string UnitofMeasureCode;
+        Public string Variantcode;
+        Public String CustomerDiscGroup;	
+        public String Campaign;
+        
+    }
+    public class responseWrap{
+        public cls_result[] result;
+    }
+    public class cls_result {
+        public String Status;
+        public String response_message;
+        public String SFID;
+    }
+    public static RequestBodyWrap parse(String json){
+        return (RequestBodyWrap) System.JSON.deserialize(json, RequestBodyWrap.class);
+        
+    }
+}

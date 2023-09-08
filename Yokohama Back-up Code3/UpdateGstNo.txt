@@ -1,0 +1,107 @@
+@RestResource(urlMapping='/UpdateGstNo/')
+global class UpdateGstNo {
+    
+    global class Response {     
+        global string id;
+        global string code;
+        global string message;
+    }
+   @HttpPost
+    global static void doPost (){
+        restrequest req = RestContext.request;
+        RequestBodyWrap reqBodywrap = parse(req.requestBody.toString());
+        list<GST_Registration_No__c> pinList = new list<GST_Registration_No__c>();  
+        for(cls_Payment lineData: reqBodywrap.line)
+        {
+            GST_Registration_No__c lines = new GST_Registration_No__c();
+            list<GST_Registration_No__c> rec = [select id,Name,State_Code__c,Description__c  from GST_Registration_No__c where Name =:linedata.RegistrationCode];
+            if(rec.size()>0){
+                for(GST_Registration_No__c trr : rec){
+                 
+                   trr.id= trr.id; 
+                   trr.Name = lineData.RegistrationCode;
+                   trr.Description__c = lineData.Description;
+                   //trr.State_Code__c=linedata.statecode;
+                    if(lineData.statecode != null && lineData.statecode !=''){
+                State__c dis=[select id,Name from State__c where Name=:lineData.statecode];
+                if(dis != null){
+                    trr.State_Code__c=dis.id;
+                }
+            }
+                    
+                    pinList.add(trr);
+                system.debug('UpdateLst::::'+pinList);
+                }
+                
+            }
+            else
+            {
+                GST_Registration_No__c TerrIns= new GST_Registration_No__c();
+                    lines.Name = lineData.RegistrationCode;
+                    lines.Description__c = lineData.Description;
+                   // lines.State_Code__c=linedata.statecode;
+                     if(lineData.statecode != null && lineData.statecode !=''){
+                State__c dis=[select id,Name from State__c where Name=:lineData.statecode];
+                if(dis != null){
+                    lines.State_Code__c=dis.id;
+                }
+            }
+                
+            
+            
+                pinList.add(lines);
+                system.debug('UpdateLst::::'+pinList);
+            }
+        }
+        schema.SObjectField schemafield = GST_Registration_No__c.Fields.name;
+        responseWrap resWrap = new responseWrap();
+        list<cls_result> resultParaList = new List<cls_result>();
+        system.debug('test='+pinList);
+        Database.UpsertResult[] saveResults = Database.upsert(pinList,false);
+        for(Integer i=0;i<saveResults.size();i++){
+            cls_result resultPara = new cls_result();
+            if (saveResults.get(i).isSuccess()){
+                resultPara.Status = 'Success';
+                resultPara.response_message = 'GstRegistrationNo. Upsert Successfully';
+                
+               resultPara.SFID = saveResults.get(i).getId();
+                
+            }else if (!saveResults.get(i).isSuccess()){
+                
+                Database.Error error = saveResults.get(i).getErrors().get(0);
+                resultPara.Status = 'Failure';  
+                resultPara.response_message = error.getMessage(); 
+                resultPara.SFID = '';  
+            }
+            resultParaList.add(resultPara);
+        }
+        resWrap.result = resultParaList;
+        RestResponse res = RestContext.response;
+        res.statusCode = 200;
+        res.responseBody = Blob.valueof(JSON.serialize(resWrap));   
+    }
+    public class RequestBodyWrap{
+        public cls_Payment[] line;
+        
+    }
+    
+    public class cls_Payment {
+        public String RegistrationCode;
+        public string StateCode;
+        public string Description;
+       
+       
+    }
+    public class responseWrap{
+        public cls_result[] result;
+    }
+    public class cls_result {
+        public String Status;
+        public String response_message;
+        public String SFID;
+    }
+    public static RequestBodyWrap parse(String json){
+        return (RequestBodyWrap) System.JSON.deserialize(json, RequestBodyWrap.class);
+        
+    }
+}

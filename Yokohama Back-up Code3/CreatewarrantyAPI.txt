@@ -1,0 +1,200 @@
+@RestResource(urlMapping='/CreatewarrantyAPI/')
+global class CreatewarrantyAPI  {
+    
+    @HttpPost
+    global static void doPost ()
+    { 
+        if (!Schema.sObjectType.Warranty_Registration__c.isUpdateable() || !Schema.sObjectType.Warranty_Registration__c.isCreateable() || !Schema.sObjectType.Warranty_Registration__c.isAccessible()) {
+            System.debug('Error');
+        }
+        list<Warranty_Registration__c> warrantyregistration = new list<Warranty_Registration__c>();
+        
+        restrequest req = RestContext.request; 
+        RequestBodyWrap reqBodywrap = parse(req.requestBody.toString());
+        
+         //List<Customers__c> acc= [select id,name from Customers__c where Name=:reqBodywrap.mobilenumber];
+        // String DateStr;
+         //String DateStr1;
+        Warranty_Registration__c warranty = new Warranty_Registration__c();
+       
+       list<Account> acc=[select id,Name from Account where name=:reqBodywrap.dealer];
+                
+        
+        //if(reqBodywrap.name1!=null){
+            //warranty.Name=reqBodywrap.name1;}
+        if(reqBodywrap.Averagemonthly!=null){
+            warranty.Avgerage_Monthly_Running__c=reqBodywrap.Averagemonthly;}
+        if(reqBodywrap.Customermobile!=null){
+            warranty.Customer_Mobile__c =reqBodywrap.Customermobile;}
+        if(reqBodywrap.date1!=null){
+            warranty.Date__c=reqBodywrap.date1;}
+        if(acc.size()>0){
+            
+            warranty.Dealer__c=acc[0].id;
+        }
+       // if(reqBodywrap.dealer!=null){
+         //   warranty.Dealer__c=reqBodywrap.dealer;}
+        /*if(reqBodywrap.channelcode!=null){
+            cust.Channel_Code__c=reqBodywrap.channelcode;}*/
+      /*  if(reqBodywrap.dealer != null){
+                        Account code=[select id from Account where name=:reqBodywrap.dealer];
+                        if(code != null){
+                            code.Dealer__c=code.Id;
+                        }
+                    }*/
+      //  if(reqBodywrap.mobilenumber!=null){
+           // warranty.Customer__c=reqBodywrap.mobilenumber;}
+        
+        if(reqBodywrap.nameing != null){
+                     Customer__c code1=[select id,name from Customer__c where name=:reqBodywrap.nameing];
+            system.debug('code1--'+code1);
+                        if(code1 != null){
+                            
+                            Warranty_Registration__c war=new Warranty_Registration__c();
+                            war.Customer__c=code1.Id;
+                           // code1.Customer__c=code1.Id;
+                        }
+                    }
+        if(reqBodywrap.Invoicephoto1!=null){
+            warranty.Invoice_Photo_1__c=reqBodywrap.Invoicephoto1;}
+        if(reqBodywrap.Make!=null){
+            warranty.Make__c=reqBodywrap.Make;}
+        if(reqBodywrap.Model!=null){
+            warranty.Model__c=reqBodywrap.Model;}
+        if(reqBodywrap.Nooftyres!=null){
+            warranty.NO_Of_Tyres__c =reqBodywrap.Nooftyres;}
+        if(reqBodywrap.Odometer!=null){
+            warranty.Odometer_Reading__c=reqBodywrap.Odometer;}
+        if(reqBodywrap.Pattern!=null){
+            warranty.Pattern__c=reqBodywrap.Pattern;}
+        if(reqBodywrap.Registration!=null){
+            warranty.Registration_No__c=reqBodywrap.Registration;}
+        if(reqBodywrap.Serialfrontleft!=null){
+            warranty.Serial_No_Front_Left__c=reqBodywrap.Serialfrontleft;}
+         if(reqBodywrap.Serialfrontright!=null){
+            warranty.Serial_No_Front_Right__c=reqBodywrap.Serialfrontright;}
+        
+         if(reqBodywrap.Serialrearleft!=null){
+            warranty.Serial_No_Rear_Left__c=reqBodywrap.Serialrearleft;}
+        
+        if(reqBodywrap.Serialrearright!=null){
+            warranty.Serial_No_Rear_Right__c=reqBodywrap.Serialrearright;}
+        
+        
+         if(reqBodywrap.Serialspare!=null){
+            warranty.Serial_No_Spare_Tyre__c=reqBodywrap.Serialspare;}
+        //if(acc.size()>0){
+         //   warranty.Customer__c=acc[0].id;
+        //}
+        
+         if(reqBodywrap.Sidewallphoto4!=null){
+            warranty.Sidewall_Photo_4__c=reqBodywrap.Sidewallphoto4;}
+        
+         if(reqBodywrap.size!=null){
+            warranty.Size__c=reqBodywrap.size;}
+         if(reqBodywrap.Vehicle!=null){
+            warranty.Vehicle_No__c=reqBodywrap.Vehicle;}
+        
+         if(reqBodywrap.Vehicleplate1!=null){
+            warranty.Vehicle_No_Plate_1__c =reqBodywrap.Vehicleplate1;}
+        if(reqBodywrap.Vehicleplate2!=null){
+            warranty.Vehicle_No_Plate_2__c =reqBodywrap.Vehicleplate2;}
+        if(reqBodywrap.Year!=null){
+            warranty.Year__c =reqBodywrap.Year;}
+        
+        warrantyregistration.add(warranty);
+        
+        responseWrap resWrap = new responseWrap();
+        list<cls_result> resultParaList = new List<cls_result>();
+        Security.stripInaccessible(AccessType.CREATABLE, warrantyregistration);
+        List<Database.SaveResult> saveResults = Database.Insert(warrantyregistration, false);
+        for(Integer i=0;i<saveResults.size();i++){
+            
+            cls_result resultPara = new cls_result();
+            if (saveResults.get(i).isSuccess()){
+                resultPara.Status = 'Success';
+                resultPara.response_message = 'create warranty record successfully';
+                resultPara.SFID = saveResults.get(i).getId();
+                
+            }else if (!saveResults.get(i).isSuccess()){
+                
+                Database.Error error = saveResults.get(i).getErrors().get(0);
+                resultPara.Status = 'Failure';
+                resultPara.response_message = error.getMessage();
+                // resultPara.RelatedId = newActivityList.get(i).lead_Id_Backend__c;
+                resultPara.SFID = '';  
+            }
+            resultParaList.add(resultPara);
+        }
+        resWrap.result = resultParaList;
+        RestResponse res = RestContext.response;
+        res.statusCode = 200;
+        res.responseBody = Blob.valueof(JSON.serialize(resWrap));   
+    }
+    public class RequestBodyWrap{  
+    // public string name1;
+
+        public Decimal Averagemonthly;
+
+        public string Customermobile;
+
+        public Date date1;
+
+        public String dealer;
+
+        public String Invoicephoto1;
+
+        public String Make;
+
+        public String Model;
+
+        public Decimal Nooftyres;
+
+        public Decimal Odometer;
+
+        public String Pattern;
+
+        public String Registration;
+
+        public String Serialfrontleft;
+
+        public String Serialfrontright;
+
+        public String Serialrearleft;
+
+        public String Serialrearright;
+
+        public String Serialspare;
+
+        public String Sidewallphoto4;
+
+        public String size;
+
+        public String Vehicle;
+
+        public String Vehicleplate1;
+
+        public String Vehicleplate2;
+
+        public String Year;
+        
+        public string nameing;
+
+     
+    }
+    
+    
+    public class responseWrap{
+        public cls_result[] result;
+    }
+    public class cls_result {
+        public String Status; 
+        public String response_message; 
+        public String SFID; 
+    }
+    public static RequestBodyWrap parse(String json) 
+    {
+        return (RequestBodyWrap) System.JSON.deserialize(json, RequestBodyWrap.class);
+    }
+    
+}

@@ -1,0 +1,21 @@
+public with sharing class capturRetailerLocationCtrl {
+    public Double valueLong { get; set; }
+    public Double valueLat { get; set; }
+    
+    public Retailers__c retailer{get;set;}
+    public capturRetailerLocationCtrl(ApexPages.StandardController controller){
+        retailer= [Select id,Geo_Location__c from Retailers__c where id=: apexpages.currentpage().getparameters().get('id')];
+    }
+    public void iFoundYou() {
+       if(retailer.Geo_Location__c ==null )
+       {
+        retailer.Geo_Location__Latitude__s= valueLat;
+        retailer.Geo_Location__Longitude__s= valueLong;
+        update retailer;
+           ApexPages.addmessage(new ApexPages.message(ApexPages.severity.CONFIRM,'Location Captured successfully'));
+       }
+        else{
+            ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'Location Already Captured'));
+        }
+    } 
+}

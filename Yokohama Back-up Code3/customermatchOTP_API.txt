@@ -1,0 +1,73 @@
+@RestResource(urlMapping='/customermatchOTP_API/')
+global class customermatchOTP_API {
+    global class Response {     
+        global string message;
+    }
+    @HttpPost
+    global static void doPost(){
+        restrequest req = RestContext.request;
+        RequestBodyWrap reqBodywrap = parse(req.requestBody.toString());
+        responseWrap resWrap = new responseWrap();
+        List<cls_result> resultParaList = new List<cls_result>();
+        list<Customer__c> warRegList = new list<Customer__c>();
+        cls_result resultPara = new cls_result();
+        for(cls_warReg lineData: reqBodywrap.line)
+        {
+            Customer__c lines = new Customer__c();
+            list<Customer__c> rec = [select id,OTP__c from Customer__c where OTP__c  =:lineData.Otp];
+            if(rec.size()>0){
+                resultPara.Status = 'Success';
+                resultPara.response_message = 'OTP MATCH';
+                //integer rndnum=Math.round(Math.random()*9999);
+            	//system.debug('Random OTP:::'+rndnum);
+                resultParaList.add(resultPara);
+        		system.debug('resultParaList----'+resultParaList);
+              //  String message='Dear saksham your otp is '+rndnum+' which isissued by Yokohama India. Thanks. Please do not reply' ;
+
+               // SendBulkSMS.send(lineData.phoneNo, message);
+                resWrap.result = resultParaList;
+        		RestResponse res = RestContext.response;
+        		res.statusCode = 200;
+        		res.responseBody = Blob.valueof(JSON.serialize(resWrap));
+                
+                system.debug('successfull');
+            } else{
+                resultPara.Status = 'Failure';  
+                resultPara.response_message = 'OTP NOT FOUND';
+                resultParaList.add(resultPara);
+        		system.debug('resultParaList----'+resultParaList);
+                resWrap.result = resultParaList;
+        		RestResponse res = RestContext.response;
+        		res.statusCode = 400;
+        		res.responseBody = Blob.valueof(JSON.serialize(resWrap));
+                
+                system.debug('failed');
+            }
+        }
+    }
+    
+    public class RequestBodyWrap{
+        public cls_warReg[] line;
+        
+    }
+    
+    public class cls_warReg {
+
+        Public String Otp;
+        
+       
+    }
+    public class responseWrap{
+        public cls_result[] result;
+    }
+    public class cls_result {
+        public String Status;
+        public String response_message;
+        
+        
+    }
+    public static RequestBodyWrap parse(String json){
+        return (RequestBodyWrap) System.JSON.deserialize(json, RequestBodyWrap.class);
+        
+    }
+}

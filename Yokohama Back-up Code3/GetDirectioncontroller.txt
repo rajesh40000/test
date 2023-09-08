@@ -1,0 +1,28 @@
+public with sharing class GetDirectioncontroller {
+    private ApexPages.StandardController standardController;
+    public Decimal Lat{get;set;}
+    public Decimal Lon{get;set;}
+    
+    public GetDirectioncontroller(ApexPages.StandardController standardController)
+    {
+        this.standardController = standardController;
+    }
+    
+    public PageReference  location(){
+        ID recordid=standardController.getId();
+        System.debug('ID--'+recordid);
+        system.debug('Latitude---'+lat);
+        System.debug('Longitude-----'+lon);
+        list<Visit__c> ss=new list<Visit__c>();
+        for(Visit__c s:[select id,name,Check_in_Location__Latitude__s,Check_in_Location__Longitude__s from Visit__c where id=:recordid]){
+            s.Check_in_Location__Latitude__s=Lat;
+            s.Check_in_Location__Longitude__s=lon;
+            ss.add(s);
+        }
+        update ss;
+        PageReference pageRef = new PageReference('/'+recordid);
+        return pageRef.setRedirect(true);
+        
+    }
+    
+}

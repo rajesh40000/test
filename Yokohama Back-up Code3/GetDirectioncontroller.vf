@@ -1,0 +1,51 @@
+<apex:page standardController="Account" extensions="GetDirectioncontroller" >
+    <!-- Begin Default Content REMOVE THIS -->
+    <apex:form id="form">
+        <h1>Welcome </h1> Your Location is<br/>
+        
+        Latitude is
+        <div id="startLat">
+        </div>
+        Longitude is
+        <div id="startLon">
+        </div>
+        <!--  <apex:commandbutton style="border-radius:20px;background: #7acdf2;" action="{!getpresentinfo}" value="Get Location"/>                         -->
+        <!--   <apex:outputText value="The unformatted time right now is: {!dd}" /> -->
+        <!-- <apex:commandbutton style="border-radius:20px;background: #7acdf2;"  onclick="ab(); return false;" value="checkin location"/> -->
+        <apex:inputText id="Latitude" value="{!Lat}" Label="Latitude"/>
+        <apex:inputText id="Longitude" value="{!Lon}" Label="Longitude"/>
+        <apex:commandbutton action="{!location}" value="Set Location"/>     
+    </apex:form>
+    
+    <script>
+    window.onload = function ab() {
+        var startPos;
+        var geoSuccess = function(position) {
+            startPos = position;
+            document.getElementById('startLat').innerHTML = startPos.coords.latitude;
+            document.getElementById('startLon').innerHTML = startPos.coords.longitude;
+            document.getElementById('{!$Component.form.Latitude}').value=startPos.coords.latitude;
+            document.getElementById('{!$Component.form.Longitude}').value=startPos.coords.longitude;
+        };
+        navigator.geolocation.getCurrentPosition(geoSuccess);
+    };
+    
+    </script>
+    <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+    <script>     
+        var geocoder = new google.maps.Geocoder();
+    var latLng = new google.maps.LatLng(document.getElementById('{!$Component.form.Latitude}').value,
+document.getElementById('{!$Component.form.Longitude}').value);
+    
+    if (geocoder) {
+        geocoder.geocode({ 'latLng': latLng}, function (results, status) {
+            if (status == google.maps.GeocoderStatus.OK) {
+                console.log(results[0].formatted_address);
+            }
+            else {
+                console.log("Geocoding failed: " + status);
+            }
+        });
+    }    
+    </script>
+</apex:page>

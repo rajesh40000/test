@@ -1,0 +1,65 @@
+@RestResource(urlMapping='/EkycAuthAPIGST/')
+global class EkycAuthAPIGST {
+    @HttpPost
+    global static void dopostGST(String DealerId,String GST){
+        Account AccList=[select id, GST_Request_Id__c from Account where id =:DealerId];
+        system.debug('AccList>>>'+AccList);
+        try{
+            API_Details__c setting=API_Details__c.getValues('Dealer GST EKYC');
+        	String EndPointURL=setting.End_Point_URL__c;
+            System.debug('EndPointURL:::'+EndPointURL);
+            Map<String, object> m1 = new Map<String, object>();
+            
+            m1.put('GSTIN',GST);
+            m1.put('consent','Y');
+             String jsonorder = json.serialize(m1);
+            System.debug(m1);
+        	Httprequest request = new HttpRequest();
+        	Http http = new Http();
+            request.setMethod('POST');
+        	request.setEndpoint(EndPointURL);
+            request.setTimeout(20000); 
+        	request.setBody(jsonorder);
+            //request.setHeader('Content-Type','application/json');
+        	request.setHeader('x-karza-key','lIcWRvsaWJzZVMUz');
+            System.debug('request body'+request.getBody());
+            HttpResponse response=http.send(request);
+            String Result=response.getBody();
+            System.debug('response'+response.getStatus());
+            String responsevalue=Result.trim().replace('\uFEFF', '');
+            Map<String, Object> Output=(Map<String, Object>)JSON.deserializeUntyped(responsevalue.trim().replace('\uFEFF', ''));
+            system.debug(Result+'Output '+   Output.get('request_id')  );
+            String ReqId=String.valueOf(Output.get('request_id'));
+        	//AccList.GST_Request_Id__c=ReqId;
+            AccList.GST_Request_Id__c=String.valueOf(Output.get('requestId'));
+            update AccList;
+            system.debug('updatedgeee'+AccList.GST_Request_Id__c);
+            /*response.id=AccList[0].id;
+            response.code='0001';
+            response.message='Success';*/
+        }
+        catch(exception e){
+            /* response.id='';
+            response.code='0002';
+            response.message='Failure'+e;*/
+        }
+        //  return response;
+    }
+    /*public class RequestBodyWrap
+    {    
+        public string Attribute;
+        public string Value;
+    }*/
+    /*global class Response 
+    {    
+        global string id;
+        global string code;
+        global string message;
+        global string request_id;
+    }*/
+    /*public static List<RequestBodyWrap> parse(String json) 
+    {
+		return (List<RequestBodyWrap>) System.JSON.deserialize(json, List<RequestBodyWrap>.class);
+	}*/
+
+}

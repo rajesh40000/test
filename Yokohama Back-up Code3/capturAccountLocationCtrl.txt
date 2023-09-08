@@ -1,0 +1,21 @@
+public with sharing class capturAccountLocationCtrl {
+	public Double valueLong { get; set; }
+    public Double valueLat { get; set; }
+    
+    public Account retailer{get;set;}
+    public capturAccountLocationCtrl(ApexPages.StandardController controller){
+        retailer= [Select id,Location__c from Account where id=: apexpages.currentpage().getparameters().get('id')];
+    }
+    public void iFoundYou() {
+       if(retailer.Location__c ==null )
+       {
+        retailer.Location__Latitude__s= valueLat;
+        retailer.Location__Longitude__s= valueLong;
+        update retailer;
+           ApexPages.addmessage(new ApexPages.message(ApexPages.severity.CONFIRM,'Location Captured successfully'));
+       }
+        else{
+            ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'Location Already Captured'));
+        }
+    } 
+}

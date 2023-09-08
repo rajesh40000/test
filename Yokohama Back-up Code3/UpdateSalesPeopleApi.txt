@@ -1,0 +1,130 @@
+@RestResource(urlMapping='/UpdateSalesPeopleApi/')
+global class UpdateSalesPeopleApi {
+    @HttpPost
+    global static void doPost (){
+        restrequest req = RestContext.request;
+        RequestBodyWrap reqBodywrap = parse(req.requestBody.toString());
+        list<User> Ulist = new list<User>(); 
+        for(cls_Salespeople lineData: reqBodywrap.line)
+        {
+            User lines = new User();
+            list<User> Userlist = [select id,Name,Code__c,Employee_Code__c,E_Mail__c,Phone,Job_Title__c,FirstName,LastName	//E_Mail_2__c
+                                   from User where Code__c =: lineData.code];
+            
+            if(Userlist.size()>0){
+                for(User Us:Userlist){
+                    if(linedata.code != null){
+                        Us.Code__c=linedata.code;
+                    }
+                      if(linedata.employeecode != null){
+                        Us.Employee_Code__c=linedata.employeecode;
+                    }
+                     if(linedata.email != null){
+                        Us.E_Mail__c=linedata.email;
+                    }
+                      /*if(linedata.email2 != null){
+                        Us.E_Mail_2__c=linedata.email2;
+                    }*/
+                      if(linedata.phone != null){
+                        Us.Phone=linedata.phone;
+                    }
+                     if(linedata.job != null){
+                        Us.Job_Title__c=linedata.job;
+                    }
+                     if(linedata.firstname != null){
+                        Us.FirstName=linedata.firstname;
+                    }
+                     if(linedata.lastname != null){
+                        Us.LastName=linedata.lastname;
+                    }
+                  
+                    Ulist.add(Us);
+                    
+                    
+                }
+            }
+            else{
+                User U= new User();
+               // lines.Name=lineData.;
+                if(linedata.code != null){
+                        lines.Code__c=linedata.code;
+                    }
+                      if(linedata.employeecode != null){
+                        lines.Employee_Code__c=linedata.employeecode;
+                    }
+                     if(linedata.email != null){
+                        lines.E_Mail__c=linedata.email;
+                    }
+                      /*if(linedata.email2 != null){
+                        lines.E_Mail_2__c=linedata.email2;
+                    }*/
+                      if(linedata.phone != null){
+                        lines.Phone=linedata.phone;
+                    }
+                     if(linedata.job != null){
+                        lines.Job_Title__c=linedata.job;
+                    }
+                     if(linedata.firstname != null){
+                        lines.FirstName=linedata.firstname;
+                    }
+                     if(linedata.lastname != null){
+                        lines.LastName=linedata.lastname;
+                    }
+                Ulist.add(lines);
+                
+            }
+            
+        }
+         responseWrap resWrap = new responseWrap();
+        list<cls_result> resultParaList = new List<cls_result>();
+        Database.UpsertResult[] saveResults = Database.upsert(Ulist,false);
+        for(Integer i=0;i<saveResults.size();i++){
+            cls_result resultPara = new cls_result();
+            if (saveResults.get(i).isSuccess()){
+                resultPara.Status = 'Success';
+                resultPara.response_message = 'SalesPeople Updated Successfully';
+                
+                resultPara.SFID = saveResults.get(i).getId();
+                
+            }else if (!saveResults.get(i).isSuccess()){
+                
+                Database.Error error = saveResults.get(i).getErrors().get(0);
+                resultPara.Status = 'Failure';  
+                resultPara.response_message = error.getMessage(); 
+                resultPara.SFID = '';  
+            }
+            resultParaList.add(resultPara);
+        }
+        resWrap.result = resultParaList;
+        RestResponse res = RestContext.response;
+        res.statusCode = 200;
+        res.responseBody = Blob.valueof(JSON.serialize(resWrap));   
+    
+    }
+    public class RequestBodyWrap{
+        public cls_Salespeople[] line;
+        
+    }
+    public class cls_Salespeople {        
+        public String  code;
+        Public string employeecode;
+        Public string email;
+        Public string email2;
+        Public string phone;
+        Public string job;
+        Public string firstname;
+        public string lastname;
+    }
+    public class responseWrap{
+        public cls_result[] result;
+    }
+    public class cls_result {
+        public String Status;
+        public String response_message;
+        public String SFID;
+    }
+    public static RequestBodyWrap parse(String json){
+        return (RequestBodyWrap) System.JSON.deserialize(json, RequestBodyWrap.class);
+        
+    }
+}

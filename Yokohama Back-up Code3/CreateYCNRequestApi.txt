@@ -1,0 +1,64 @@
+@RestResource(urlMapping='/CreateYCNRequestApi/')
+global class CreateYCNRequestApi {
+    
+    @HttpPost
+    global static void doPost ()
+    {	
+        if (!Schema.sObjectType.YCN_Request__c.isUpdateable() || !Schema.sObjectType.YCN_Request__c.isCreateable() || !Schema.sObjectType.YCN_Request__c.isAccessible()) {
+            System.debug('Error');
+        }
+        list<YCN_Request__c> ycnrequest = new list<YCN_Request__c>();
+        restrequest req = RestContext.request; 
+        RequestBodyWrap reqBodywrap = parse(req.requestBody.toString());
+        YCN_Request__c ycnr = new YCN_Request__c();
+                
+        if(reqBodywrap.DealerRemark!=null){
+            ycnr.Dealer_Remarks__c=reqBodywrap.DealerRemark;}
+        if(reqBodywrap.FieldTeamRemark!=null){
+            ycnr.Field_Team_Remarks__c=reqBodywrap.FieldTeamRemark;}
+        if(reqBodywrap.DealerID!=null){
+            ycnr.Dealer__c=reqBodywrap.DealerID;
+        }
+        ycnrequest.add(ycnr);
+        
+        responseWrap resWrap = new responseWrap();
+        list<cls_result> resultParaList = new List<cls_result>();
+        Security.stripInaccessible(AccessType.CREATABLE, ycnrequest);
+        List<Database.SaveResult> saveResults = Database.Insert(ycnrequest, false);
+        for(Integer i=0;i<saveResults.size();i++){
+            
+            cls_result resultPara = new cls_result();
+            if (saveResults.get(i).isSuccess()){
+                resultPara.Status = 'Success';
+                resultPara.response_message = 'YCN Request created successfully';
+                resultPara.SFID = saveResults.get(i).getId();
+                
+            }
+            resultParaList.add(resultPara);
+        }
+        resWrap.result = resultParaList;
+        RestResponse res = RestContext.response;
+        res.statusCode = 200;
+        res.responseBody = Blob.valueof(JSON.serialize(resWrap));   
+    }
+    public class RequestBodyWrap{  
+        public String DealerID;
+        public string DealerRemark;
+        public string FieldTeamRemark;
+    }
+    
+    
+    public class responseWrap{
+        public cls_result[] result;
+    }
+    public class cls_result {
+        public String Status;	
+        public String response_message;	
+        public String SFID;	
+    }
+    public static RequestBodyWrap parse(String json) 
+    {
+        return (RequestBodyWrap) System.JSON.deserialize(json, RequestBodyWrap.class);
+    }
+    
+}

@@ -1,0 +1,198 @@
+@RestResource(urlMapping='/UpdatePincodeApI/')
+global class UpdatePincodeApI {
+    
+    @HttpPost
+    global static void doPost (){
+        restrequest req = RestContext.request;
+        RequestBodyWrap reqBodywrap = parse(req.requestBody.toString());
+        list<Pincode__c> pinList = new list<Pincode__c>();  
+        for(cls_Payment lineData: reqBodywrap.line)
+        {
+            Pincode__c lines = new Pincode__c();
+            list<Pincode__c> rec = [select id,Name,City_Code__c,Country_code__c,SearchCity__c ,City_Name__c,District_Code__c,Sub_District_Code__c,Zones__c,Territory_code__c,State_code__c from Pincode__c where Name =:lineData.Pincode];
+            
+            
+            if(rec.size()>0){
+                for(Pincode__c trr : rec){
+                    // Pincode__c TerrIns= new Pincode__c;
+                    trr.id= trr.id; 
+                    trr.Name = lineData.Pincode;
+                    /* trr.City_Code__c = lineData.Pincode;
+
+trr.Country_code__c
+trr.SearchCity__c
+
+trr.District_Code__c
+trr.Sub_District_Code__c*/
+                    if(lineData.Citycode != null && lineData.Citycode != ''){
+                        City__c code=[select id,Name from City__c where Name=:lineData.Citycode LIMIT 1];
+                        if(code != null){
+                            trr.City_Code__c = code.id;
+                            
+                        }
+                    }
+                    
+                    if(lineData.country != null && lineData.country != ''){
+                        Country__c count=[select id,Name from Country__c where Name=:lineData.country];
+                        if(count != null){
+                            trr.Country_code__c=count.id; 
+                        }
+                    }
+                    trr.SearchCity__c= lineData.Searchcity;
+                    trr.City_Name__c=lineData.cityName;
+                    trr.Name =lineData.Pincode;
+                    if(lineData.DistrictCode != null && lineData.DistrictCode != ''){
+                        District_Master__c dis=[select id,Name from District_Master__c where Name=:lineData.DistrictCode LIMIT 1];
+                        if(dis != null){
+                            trr.District_Code__c=dis.id;
+                        }
+                    }
+                    if(lineData.SubDistrictMaster != null && lineData.SubDistrictMaster != ''){
+                        Sub_District_Master__c sub=[select id,Name from Sub_District_Master__c where Name=:lineData.SubDistrictMaster LIMIT 1];
+                        if(sub != null){
+                            trr.Sub_District_Code__c= sub.id;
+                        }
+                    }
+                    
+                    if(lineData.StateCode != null && lineData.StateCode != ''){
+                        State__c state=[select id,Name from State__c where Name=:lineData.StateCode LIMIT 1];
+                        if(state != null){
+                            trr.State_Code__c=state.id;
+                        }
+                    }
+                    if(lineData.Territorycode != null && lineData.Territorycode != ''){
+                        Territory_Y__c terr=[select id,Name from Territory_Y__c where Name=:lineData.Territorycode LIMIT 1];
+                        if(terr != null){
+                            trr.Territory_code__c=terr.id;
+                        }
+                    }
+                    if(lineData.ZoneCode != null && lineData.ZoneCode != ''){
+                        Zone__c zone=[select id,Name from Zone__c where Name=:lineData.ZoneCode LIMIT 1];
+                        if(zone != null){
+                            trr.Zones__c=zone.id;
+                        }
+                    }
+                    
+                    
+                    
+                    trr.City_Name__c  = lineData.cityName;                      
+                    pinList.add(trr);
+                    system.debug('UpdateLst::::'+pinList);
+                }
+                
+            }
+            else
+            {
+                Pincode__c TerrIns= new Pincode__c();
+                
+                if(lineData.Citycode != null && lineData.Citycode != ''){
+                    City__c code=[select id,Name from City__c where Name=:lineData.Citycode LIMIT 1];
+                    if(code != null){
+                        lines.City_Code__c = code.id;
+                    }
+                }
+                
+                if(lineData.country != null && lineData.country != ''){
+                    Country__c count=[select id,Name from Country__c where Name=:lineData.country];
+                    if(count != null){
+                        lines.Country_code__c=count.id;
+                    }
+                }
+                lines.SearchCity__c= lineData.Searchcity;
+                lines.City_Name__c=lineData.cityName;
+                lines.Name =lineData.Pincode;
+                if(lineData.DistrictCode != null && lineData.DistrictCode != ''){
+                    District_Master__c dis=[select id,Name from District_Master__c where Name=:lineData.DistrictCode LIMIT 1];
+                    if(dis != null){
+                        lines.District_Code__c=dis.id;
+                    }
+                }
+                if(lineData.SubDistrictMaster != null && lineData.SubDistrictMaster != ''){
+                    Sub_District_Master__c sub=[select id,Name from Sub_District_Master__c where Name=:lineData.SubDistrictMaster LIMIT 1];
+                    if(sub != null){
+                        lines.Sub_District_Code__c= sub.id;
+                    }
+                }
+                
+                if(lineData.StateCode != null && lineData.StateCode != ''){
+                    State__c state=[select id,Name from State__c where Name=:lineData.StateCode LIMIT 1];
+                    if(state != null){
+                        lines.State_Code__c=state.id;
+                    }
+                }
+                if(lineData.Territorycode != null  && lineData.Territorycode != ''){
+                    Territory_Y__c terr=[select id,Name from Territory_Y__c where Name=:lineData.Territorycode LIMIT 1];
+                    if(terr != null){
+                        lines.Territory_code__c=terr.id;
+                    }
+                }
+                if(lineData.ZoneCode != null && lineData.ZoneCode != ''){
+                    Zone__c zone=[select id,Name from Zone__c where Name=:lineData.ZoneCode LIMIT 1];
+                    if(zone != null){
+                        lines.Zones__c=zone.id;
+                    }
+                }
+                
+                
+                pinList.add(lines);
+                system.debug('UpdateLst::::'+pinList);
+            }
+        }
+        schema.SObjectField schemafield = Pincode__c.Fields.name;
+        responseWrap resWrap = new responseWrap();
+        list<cls_result> resultParaList = new List<cls_result>();
+        system.debug('test='+pinList);
+        Database.UpsertResult[] saveResults = Database.upsert(pinList,false);
+        for(Integer i=0;i<saveResults.size();i++){
+            cls_result resultPara = new cls_result();
+            if (saveResults.get(i).isSuccess()){
+                resultPara.Status = 'Success';
+                resultPara.response_message = 'pincode  Updated Successfully';
+                
+                resultPara.SFID = saveResults.get(i).getId();
+                
+            }else if (!saveResults.get(i).isSuccess()){
+                
+                Database.Error error = saveResults.get(i).getErrors().get(0);
+                resultPara.Status = 'Failure';  
+                resultPara.response_message = error.getMessage(); 
+                resultPara.SFID = '';  
+            }
+            resultParaList.add(resultPara);
+        }
+        resWrap.result = resultParaList;
+        RestResponse res = RestContext.response;
+        res.statusCode = 200;
+        res.responseBody = Blob.valueof(JSON.serialize(resWrap));   
+    }
+    public class RequestBodyWrap{
+        public cls_Payment[] line;
+        
+    }
+    
+    public class cls_Payment {
+        public String  Citycode;
+        Public string Searchcity;
+        Public string country;
+        Public string cityName;
+        Public string Pincode;
+        Public string DistrictCode;
+        Public string SubDistrictMaster;
+        public string StateCode;
+        public string Territorycode;
+        public string  ZoneCode;
+        
+    }
+    public class responseWrap{
+        public cls_result[] result;
+    }
+    public class cls_result {
+        public String Status;
+        public String response_message;
+        public String SFID;
+    }
+    public static RequestBodyWrap parse(String json){
+        return (RequestBodyWrap) System.JSON.deserialize(json, RequestBodyWrap.class);
+        
+    }
+}

@@ -1,0 +1,37 @@
+@RestResource(urlMapping='/AdhaarEKYCAuthAPI/')
+global class AdhaarEKYCAuthAPI {
+    
+    @HttpPost
+    global static void dopost(String DealerId,String Aadhaar){
+     
+        Account AccList=[select id, Aadhar_Request_Id__c from Account where id =:DealerId];
+       
+        try{
+            API_Details__c setting=API_Details__c.getValues('Aadhaar E-KYC');
+        	String EndPointURL=setting.End_Point_URL__c;
+            Map<String, object> m1 = new Map<String, object>();
+            m1.put('Aadhaar',Aadhaar);
+            m1.put('consent','Y');
+            String jsonorder = json.serialize(m1);
+        	Httprequest request = new HttpRequest();
+        	Http http = new Http();
+            request.setMethod('POST');
+        	request.setEndpoint(EndPointURL);
+            request.setTimeout(20000); 
+        	request.setBody(jsonorder);
+        	request.setHeader('x-karza-key','lIcWRvsaWJzZVMUz');
+            
+            HttpResponse response=http.send(request);
+            String Result=response.getBody();
+            String responsevalue=Result.trim().replace('\uFEFF', '');
+            Map<String, Object> Output=(Map<String, Object>)JSON.deserializeUntyped(responsevalue.trim().replace('\uFEFF', ''));
+            system.debug(Result+'Output '+   Output.get('request_id')  );
+            String ReqId=String.valueOf(Output.get('request_id'));
+        	AccList.Aadhar_Request_Id__c=ReqId;
+            update AccList;
+            system.debug('updatedgeee'+AccList.Aadhar_Request_Id__c);
+        }
+        catch(exception e){
+        }
+    }
+}

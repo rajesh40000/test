@@ -1,0 +1,55 @@
+<apex:page standardController="Account" extensions="SecurityQuestionForMP2Controller" docType="html-5.0">
+    
+    <style>
+        body
+        {
+        background-color: black;
+        padding: 10px;
+        }
+    </style>
+    <body>
+        <apex:form id="ques">
+            <apex:pageBlock >
+                
+                <apex:outputPanel rendered="{!dropdown=='favorite pet'}">
+                    <apex:pageBlock title="Security Question">
+                        <apex:outputLabel id="ques1" >What is the name of your favorite pet? </apex:outputLabel>
+                        <apex:input type="text" value="{!answer}"/>
+                    </apex:pageBlock>
+                </apex:outputPanel>
+                
+                <apex:outputPanel rendered="{!dropdown=='maiden name'}">
+                    <apex:pageBlock title="Security Question">
+                        <apex:outputLabel id="ques2" >What is your mother's maiden name? </apex:outputLabel>
+                        <apex:input type="text" value="{!answer}"/>
+                    </apex:pageBlock>
+                </apex:outputPanel>
+                
+                <apex:outputPanel rendered="{!dropdown=='first school'}">
+                    <apex:pageBlock title="Security Question">
+                        <apex:outputLabel id="ques3" >What was the name of your first school? </apex:outputLabel>
+                        <apex:input type="text" value="{!answer}"/>
+                    </apex:pageBlock>
+                </apex:outputPanel>
+                
+                <apex:outputPanel rendered="{!dropdown=='favorite food'}">
+                    <apex:pageBlock title="Security Question">
+                        <apex:outputLabel id="ques4" >What was your favorite food as a child? </apex:outputLabel>
+                        <apex:input type="text" value="{!answer}"/>
+                    </apex:pageBlock>
+                </apex:outputPanel>
+                
+                <apex:pageMessages ></apex:pageMessages>
+                <apex:pageBlockButtons location="bottom">
+                    <apex:commandButton id="Proceed" value="Proceed" action="{!proceed2}" reRender="ques">
+                    </apex:commandButton>
+                    <apex:commandButton id="next" value="Next" action="{!reload}" reRender="ques">
+                    </apex:commandButton>
+                </apex:pageBlockButtons>
+                
+                
+            </apex:pageBlock>
+        </apex:form>
+        
+    </body>
+</apex:page>

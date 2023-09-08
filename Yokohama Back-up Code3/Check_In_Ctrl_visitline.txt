@@ -1,0 +1,138 @@
+public with sharing class Check_In_Ctrl_visitline {
+
+    public Double valueLong { get; set; }
+    public Double valueLat { get; set; }
+    public Double valueLong1 { get; set; }
+    public Double valueLat1 { get; set; }
+    public daily_plan__c con{get;set;}
+    public boolean bb{get;set;}
+    public boolean errorfields{get;set;}
+    public string valueerror{get;set;}
+    public string valueerrorcheckout{get;set;}
+    
+    //public datetime dt{get;set;}
+    
+    Public Check_In_Ctrl_visitline(){
+        
+        con= [Select Check_In_Location__c, Tour_Plan__c, Approval_Status__c,	Check_Out_Error_Message__c,Visit_Purpose__c, Error_Message__c,Reason__c, Date__c, Daily_Plan_Status__c, Check_out_Location__c, Check_In_Time__c, Check_out_Time__c from daily_plan__c where id=: apexpages.currentpage().getparameters().get('id')];
+        bb=false;
+        errorfields=false;
+    }
+    
+    public void onloadcheckout(){
+        if(system.today() != con.Date__c){
+            ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'Check-out not allowed! You are trying to check-out either before or, after the scheduled date!'));    
+            ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'Please Click on “Go Back”.'));    
+        }
+        else if(con.Check_In_Time__c==null || con.Check_Out_Time__c!=null || con.Daily_Plan_Status__c!='Scheduled'){
+             ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'Either you have not checked-in or, you have already checked-out or, you are trying to check-out on a cancelled visit!!'));   
+            ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'Please Click on “Go Back”.'));   
+        }
+        else{
+            bb=true;    
+        } 
+    }
+    
+    public PageReference iFoundYou() {
+       if(con.Check_In_Time__c==null && system.today() == con.Date__c && con.Daily_Plan_Status__c=='Scheduled' )
+       {
+        con.Check_In_Location__Latitude__s= valueLat;
+        con.Check_In_Location__Longitude__s= valueLong;
+        
+        con.Check_In_Time__c=DateTime.now();
+        update con;
+        PageReference pr = new PageReference('/' +apexpages.currentpage().getparameters().get('id'));
+        pr.setredirect(true);
+        return pr; 
+       }
+       /*else if(con.Approval_Status__c!='Approved' && con.Tour_Plan__c!=null){
+            ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'Check-in not allowed! Daily Plan Should gets Approved from Manager..!'));
+           ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'Please Click on “Go Back”'));
+        }*/
+       else if(system.today() != con.Date__c){
+            ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'Check-in not allowed! You are trying to check-in either before or, after the scheduled date!'));
+           ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'Please Click on “Go Back”'));
+        }
+       else{
+            ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'Either you have already checked-in or, you are trying to check-in on a cancelled visit!'));
+           ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'Please Click on “Go Back”.'));
+        }
+        return null;
+    } 
+    
+    
+    public PageReference iFoundYou1() {
+        
+        //if(con.Check_In_Time__c==null || con.Check_Out_Time__c!=null){
+        //     ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'In order to check out you have to check in first (or) You already checked out..!!'));
+        //}else{
+            con.Check_out_Location__Latitude__s= valueLat1;
+            con.Check_out_Location__Longitude__s= valueLong1;
+            con.Check_out_Time__c=DateTime.now();
+            con.Daily_Plan_Status__c='Completed';
+            update con;
+            PageReference pr = new PageReference('/' +apexpages.currentpage().getparameters().get('id'));
+            pr.setredirect(true);
+            return pr;
+            
+        //}
+        //return null;
+    }
+    public PageReference goback()
+    {
+        
+        PageReference pr = new PageReference('/' +apexpages.currentpage().getparameters().get('id'));
+        pr.setredirect(true);
+        return pr;
+    }
+    
+    public void erroroncheckin(){
+        if(system.today() != con.Date__c){
+            ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'Check-in not allowed! You are trying to check-in either before or, after the scheduled date!'));    
+            ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'Please Click on “Go Back”'));    
+        }
+        else if(con.Error_Message__c ==null && con.Check_In_Time__c==null){
+            ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'Looks like there is some issue while capturing Geo Location!'));
+            ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'Don’t Worry! We have already captured the time. Please follow next steps as usual.'));
+            
+            //system.debug('gfggg'+valueerror);
+            con.Error_Message__c=valueerror;
+            con.Check_In_Time__c=DateTime.now();
+            update con;
+        }
+        else{
+        	ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'Either you have already checked-in or, you are trying to check-in on a cancelled visit!'));    
+            ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'Please Click on “Go Back”.'));    
+        }
+    }
+    public void erroroncheckout(){
+        if(system.today() != con.Date__c){
+            ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'Check-out not allowed! You are trying to check-out either before or, after the scheduled date!'));    
+            ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'Please Click on “Go Back”.'));    
+        }
+        else if(con.Check_Out_Error_Message__c ==null && con.Check_Out_Time__c==null && con.Check_In_Time__c!=null && con.Daily_Plan_Status__c=='Scheduled' ){
+            
+        	ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'Looks like there is some issue while capturing Geo Location! '));  
+            ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'Don’t Worry! We have already captured the time. Please follow next steps as usual.'));  
+            con.Check_Out_Error_Message__c=valueerrorcheckout;
+            con.Check_Out_Time__c=DateTime.now();
+            errorfields=true;
+            
+        }
+        else{
+        	ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'Either you have not checked-in or, you have already checked-out or, you are trying to check-out on a cancelled visit!'));    
+            ApexPages.addmessage(new ApexPages.message(ApexPages.severity.ERROR,'Please Click on “Go Back”.'));    
+        }
+    }
+    
+    public PageReference errorcheckoutsave()
+    {	con.Daily_Plan_Status__c='Completed - Error With Check-In/Check-Out';
+        update con;
+        PageReference pr = new PageReference('/' +apexpages.currentpage().getparameters().get('id'));
+        pr.setredirect(true);
+        return pr;
+    }
+    
+    
+    
+}

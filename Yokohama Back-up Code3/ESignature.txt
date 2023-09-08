@@ -1,0 +1,126 @@
+//@RestResource(urlMapping='/ESignature/*')
+global class ESignatureApi {
+    global class Res{
+        //public final signingDetails SigningDetails; 
+        global string code;
+        global string message;
+        //line[] additionalSigners;
+        //Res.line.Name3;
+    }
+    global static Res parse(String json)
+    {
+        return (Res) System.JSON.deserialize(json, res.class);
+    }
+    public class signingDetails
+    {
+        final String signUrl, expiryDate, name;
+        
+    }
+    global class RequestBodyWrap
+    {
+        
+        
+        global string name;
+        global string email; 
+        global Integer yob; 
+        global string gender;
+        global string mobileNo;
+        
+        
+        
+    }
+    @invocablemethod(Label='EsignDocument')
+    //@HttpPost
+    global static list<string> dopostAadhaarDetail(list<string> Document){
+        
+        ID userid = userinfo.getUserId();
+        List<RequestBodyWrap> reqBodywrap = new List<RequestBodyWrap>();
+        RequestBodyWrap lineData=new RequestBodyWrap();
+        
+        list<user> jk=[select ContactId,Id from user where Id=:'0059D000003TxpfQAC' limit 1];
+        list<Contact> acc=[select AccountId, Id from contact where Id=:jk[0].ContactId];
+        //system.debug('jkkkkkkkkkkkkkkkkkk'+userid+'n     '+ jk[0].ContactId+'      '+acc[0].AccountId);
+        list<Account> AccAddharList=[select id, Aadhar_Request_Id__c,Aadhar_No__c,ESigned_Onboarding_Form__c from Account where Id =:acc[0].AccountId limit 1];
+        
+        
+        list<Customer__c> sdc=[select document_Id__c,Dealer__c,Email__c,Dealer__r.name,Customer_Mobile__c,Dealer__r.Sex_y__c,Dealer__r.DOB__c,Dealer__r.Email__c,Dealer__r.Phone from Customer__c where Dealer__c=:AccAddharList[0].Id Limit 1];
+        list<proposal__c> pp=[select ESigned_Document__c,Dealer__c from proposal__c where Dealer__c=:AccAddharList[0].Id limit 1];
+        list<Balance_Confirmation__c> bcc=[select Dealer__c,ESigned_Document__c from Balance_Confirmation__c where Dealer__c=:AccAddharList[0].Id limit 1];
+        Date dt2 = sdc[0].Dealer__r.DOB__c;
+        Integer yr2 = dt2.Year();
+        for(customer__c sal:[select document_Id__c,Email__c,Dealer__r.name,Customer_Mobile__c,Dealer__r.Sex_y__c,Dealer__r.DOB__c,Dealer__r.Email__c,Dealer__r.Phone from Customer__c where Dealer__c=:AccAddharList[0].Id limit 1]){
+        Date dt = sal.Dealer__r.DOB__c;
+        Integer yr = dt.Year();
+            
+        
+        lineData.name=sal.Dealer__r.name;
+        lineData.email=sal.Dealer__r.Email__c;
+        lineData.yob=yr;
+        lineData.gender=sal.Dealer__r.Sex_y__c;
+        lineData.mobileNo=sal.Dealer__r.Phone;
+            reqBodywrap.add(lineData);
+            
+        }
+        
+        Http http = new Http();
+        HttpRequest request = new HttpRequest();
+        request.setEndpoint('https://testapi.karza.in/v3/esign-session');
+        request.setBody('{"name": "'+sdc[0].Dealer__r.name+'","email": "'+sdc[0].Dealer__r.Email__c+'","workflowId": "djUCUHX","yob": "'+yr2+'", "gender": "M","mobileNo": "'+sdc[0].Dealer__r.Phone+'","additionalSigners": '+JSON.serialize(reqBodywrap)+',"document":"'+Document+'"}');
+        
+        
+        system.debug('{"name": "'+sdc[0].Dealer__r.name+'","email": "'+sdc[0].Email__c+'","workflowId": "djUCUHX","yob": "'+yr2+'", "gender": "'+sdc[0].Dealer__r.Sex_y__c+'","mobileNo": "'+sdc[0].Customer_Mobile__c+'","additionalSigners": '+JSON.serialize(reqBodywrap)+',"document":"'+Document+'"}');
+        system.debug('Document::::::::::::::::::::::::'+Document);
+        request.setMethod('POST');
+        request.setHeader('Content-Type','application/json');
+        request.setHeader('x-karza-key','lIcWRvsaWJzZVMUz');
+        
+        
+       
+     // checking what kind of request sending
+        system.debug('requuuuuuuuuuuuuuuuuuuuuuuuuuest'+request);
+       
+        HttpResponse response = http.send(request);
+        system.debug('response::::::::::::::::::::::::::::;'+response);
+        Map<String,Object> result = (Map<String,Object>)JSON.deserializeUntyped(response.getBody());
+        Map<String,Object> animal = (Map<String,Object>) result.get('result');
+        string DocumentId= (String)animal.get('documentId');
+        
+         String s = response.getBody();
+      
+        
+integer starts=s.indexof('0000');
+        system.debug('start--'+starts);
+        string customers=s.substring(299);
+        system.debug('check '+customers);
+        set<string> jsonlist=new set<string>();
+        jsonlist.add(customers);
+        system.debug('settttttttttttttttttttttttttttttt'+jsonlist);
+        
+        string rep = customers.replaceAll('","expiryDate":"2022-09-16T18:29:59Z"}]},"statusCode":101}','');
+        
+        System.debug('jkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk'+rep);
+        
+
+system.debug('customers::::::::::::::::::'+customers);
+        system.debug('signingDetails::::::::::::::::::'+s);
+        sdc[0].document_Id__c=DocumentId;
+        system.debug('response will be::::::::::::::::::::::::::::::::::::'+response);
+        system.debug('DocumentId:::::::::::::::::::::'+DocumentId);
+        update sdc;
+        AccAddharList[0].ESigned_Onboarding_Form__c=rep;
+        pp[0].ESigned_Document__c=rep;
+        bcc[0].ESigned_Document__c=rep;
+        list<string> replist=new list<string>();
+        update AccAddharList;
+        update pp;
+        update bcc;
+        return replist;
+        
+        
+        
+        
+        
+        
+      
+    }
+}

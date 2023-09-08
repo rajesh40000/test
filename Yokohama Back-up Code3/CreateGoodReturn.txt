@@ -1,0 +1,742 @@
+@RestResource(urlMapping='/CreateGoodReturn/')
+global class CreateGoodReturn {
+    @HttpPost
+    global static void doPost(){
+        restrequest req = RestContext.request;
+        RequestBodyWrap reqBodywrap = parse(req.requestBody.toString());
+        
+        list<Return_Order_Header__c > orderheaderList = new list<Return_Order_Header__c >();
+        list<Return_Order_Line__c> lineList = new list<Return_Order_Line__c>();
+        
+        Return_Order_Header__c orderheader= new Return_Order_Header__c(); 
+        
+        if(reqBodywrap.SelltoCustomerNo!= null && reqBodywrap.SelltoCustomerNo != ''){
+            account acc=[select id, name from Account where Customer_No__c=:reqBodywrap.SelltoCustomerNo];
+            orderheader.Sell_to_Customer_No__c= acc.id;
+        }
+        
+        if(reqBodywrap.BilltoCustomerNo!= null && reqBodywrap.BilltoCustomerNo != ''){
+            account acc=[select id, name from Account where Customer_No__c=:reqBodywrap.BilltoCustomerNo];
+            orderheader.Bill_to_Customer_No__c= acc.Id;
+        }
+        if(reqBodywrap.BilltoName!= null){
+            orderheader.Bill_to_Name__c= reqBodywrap.BilltoName;
+        }
+        if(reqBodywrap.ledgertype!= null){
+            orderheader.Ledger_Type__c= reqBodywrap.ledgertype;
+        }
+        if(reqBodywrap.BilltoName2!= null){
+            orderheader.Bill_to_Name_2__c= reqBodywrap.BilltoName2;
+        }
+        if(reqBodywrap.BilltoAddress!= null){
+            orderheader.Bill_to_Address__c= reqBodywrap.BilltoAddress;
+        }
+        if(reqBodywrap.BilltoAddress2!= null){
+            orderheader.Bill_to_Address_2__c= reqBodywrap.BilltoAddress2;
+        }
+        if(reqBodywrap.BilltoCity!= null){
+            orderheader.Bill_to_City__c= reqBodywrap.BilltoCity;
+        }
+        if(reqBodywrap.BilltoContact!= null){
+            orderheader.Bill_to_Contact__c= reqBodywrap.BilltoContact;
+        }
+        if(reqBodywrap.ShiptoCode!= null){
+            orderheader.Ship_to_Code__c= reqBodywrap.ShiptoCode;
+        }
+        if(reqBodywrap.ShiptoName!= null){
+            orderheader.Ship_to_Name__c= reqBodywrap.ShiptoName;
+        }
+        if(reqBodywrap.ShiptoName2!= null){
+            orderheader.Ship_to_Name_2__c= reqBodywrap.ShiptoName2;
+        }
+        if(reqBodywrap.shiptoAddress!= null){
+            orderheader.Ship_to_Address__c= reqBodywrap.shiptoAddress;
+        }
+        if(reqBodywrap.shiptoAddress2!= null){
+            orderheader.Ship_to_Address_2__c= reqBodywrap.shiptoAddress2;
+        }
+        if(reqBodywrap.shiptoCity!= null && reqBodywrap.shiptoCity != ''){
+            City__c city=[select id,name from City__c where name=:reqBodywrap.shiptoCity];
+            orderheader.Ship_to_City__c=city.id;
+        }
+        if(reqBodywrap.shiptoContact!= null){
+            orderheader.Ship_to_Contact__c= reqBodywrap.shiptoContact;
+        }
+        if(reqBodywrap.PostingDate!= null){
+            orderheader.Posting_Date__c= reqBodywrap.PostingDate;
+        }
+        if(reqBodywrap.ShipmemtDate!= null){
+            orderheader.Shipment_Date__c= reqBodywrap.ShipmemtDate;
+        }
+        if(reqBodywrap.PaymenttermCode!= null){
+            orderheader.Payment_Terms_Code__c= reqBodywrap.PaymenttermCode;
+        }
+        if(reqBodywrap.DueDate!= null){
+            orderheader.Due_Date__c= reqBodywrap.DueDate;
+        }
+        if(reqBodywrap.shipmentMethodCode!= null){
+            orderheader.Shipment_Method_Code__c= reqBodywrap.shipmentMethodCode;
+        }
+        if(reqBodywrap.LocationCode!= null && reqBodywrap.LocationCode != ''){
+            Location_Master__c loc=[select id, name from Location_Master__c where name=:reqBodywrap.LocationCode];
+            orderheader.Location_Code__c= loc.id;
+        }
+        if(reqBodywrap.CustomerPostingGroup!= null){
+            orderheader.Customer_Posting_Group__c= reqBodywrap.CustomerPostingGroup;
+        }
+        if(reqBodywrap.CurrencyCode!= null){
+            orderheader.Currency_Code__c= reqBodywrap.CurrencyCode;
+        }
+        if(reqBodywrap.Currencyfactor!= null){
+            orderheader.Currency_Factor__c= reqBodywrap.Currencyfactor;
+        }
+        if(reqBodywrap.CustomerPriceGroup!= null){
+            orderheader.Customer_Price_Group__c= reqBodywrap.CustomerPriceGroup;
+        }
+        if(reqBodywrap.CustomerDiscGroup!= null){
+            orderheader.Customer_Disc_Group__c= reqBodywrap.CustomerDiscGroup;
+        }
+        if(reqBodywrap.SalespersonCode!= null){
+            orderheader.Salesperson_Code__c= reqBodywrap.SalespersonCode;
+        }
+        if(reqBodywrap.OnHold!= null){
+            orderheader.On_Hold__c= reqBodywrap.OnHold;
+        }
+        if(reqBodywrap.Amount!= null){
+            orderheader.Amount__c= reqBodywrap.Amount;
+        }
+        if(reqBodywrap.GenBusPostingGroup!= null){
+            orderheader.Gen_Bus_Posting_Group__c= reqBodywrap.GenBusPostingGroup;
+        }
+        if(reqBodywrap.TransportMethod!= null){
+            orderheader.Transport_Method__c= reqBodywrap.TransportMethod;
+        }
+        if(reqBodywrap.SelltoCustomerName!= null){
+            orderheader.Sell_to_Customer_Name__c= reqBodywrap.SelltoCustomerName;
+        }
+        if(reqBodywrap.SelltoCustomerName2!= null){
+            orderheader.Sell_to_Customer_Name_2__c= reqBodywrap.SelltoCustomerName2;
+        } if(reqBodywrap.SelltoAddress!= null){
+            orderheader.Sell_to_Address__c= reqBodywrap.SelltoAddress;
+        }
+        if(reqBodywrap.SelltoAddress2!= null){
+            orderheader.Sell_to_Address_2__c= reqBodywrap.SelltoAddress2;
+        }
+        if(reqBodywrap.SelltoCity!= null){
+            orderheader.Sell_to_City__c= reqBodywrap.SelltoCity;
+        }
+        if(reqBodywrap.SelltoContact!= null){
+            orderheader.Sell_to_Contact__c= reqBodywrap.SelltoContact;
+        }
+        if(reqBodywrap.BilltoPostCode!= null && reqBodywrap.BilltoPostCode != ''){
+            Pincode__c pin=[select id,name from Pincode__c where name=:reqBodywrap.BilltoPostCode];
+            orderheader.Bill_to_Post_Code__c= pin.id;
+        }
+        if(reqBodywrap.BilltoCountryRegionCode!= null  && reqBodywrap.BilltoCountryRegionCode != ''){
+            Country__c count=[select id,name from Country__c where name=:reqBodywrap.BilltoCountryRegionCode];
+            orderheader.Bill_to_Country_Region_Code__c=count.id ;
+        }
+        if(reqBodywrap.SelltoPostCode!= null && reqBodywrap.SelltoPostCode != ''){
+            Pincode__c pin=[select id,name from Pincode__c where name=:reqBodywrap.SelltoPostCode];
+            orderheader.Sell_to_Post_Code__c= pin.id;
+        }
+        if(reqBodywrap.SelltoCountryRegionCode!= null){
+            orderheader.Sell_to_Country_Region_Code__c= reqBodywrap.SelltoCountryRegionCode;
+        }
+        if(reqBodywrap.ShiptoPostCode!= null  && reqBodywrap.ShiptoPostCode != ''){
+            Pincode__c pin=[select id, name from Pincode__c where name=:reqBodywrap.ShiptoPostCode];
+            orderheader.Ship_to_Post_Code__c= pin.Id;
+        }
+        if(reqBodywrap.ShiptoCounty!= null && reqBodywrap.ShiptoCounty != ''){
+            Country__c count=[select id,name from Country__c where name=:reqBodywrap.ShiptoCounty];
+            orderheader.Ship_to_County__c= count.Id;
+        }
+        if(reqBodywrap.ShiptoCountryRegionCode!= null && reqBodywrap.ShiptoCountryRegionCode != ''){
+            Country__c count=[select id,name from Country__c where name=:reqBodywrap.ShiptoCountryRegionCode];
+            orderheader.Ship_to_Country_Region_Code__c= count.Id;
+        }
+        if(reqBodywrap.DocumentDate!= null){
+            orderheader.Document_Date__c= reqBodywrap.DocumentDate;
+        }
+        if(reqBodywrap.ExternalDocumentNo!= null){
+            orderheader.External_Document_No__c= reqBodywrap.ExternalDocumentNo;
+        }
+        if(reqBodywrap.PaymentMethodCode!= null){
+            orderheader.Payment_Method_Code__c= reqBodywrap.PaymentMethodCode;
+        }
+        if(reqBodywrap.PreAssignedNo!= null){
+            orderheader.Pre_Assigned_No__c= reqBodywrap.PreAssignedNo;
+        }
+        if(reqBodywrap.UserID!= null){
+            orderheader.User_ID__c= reqBodywrap.UserID;
+        }
+        if(reqBodywrap.Canceled!= null){
+            orderheader.Canceled__c= reqBodywrap.Canceled;
+        }
+        if(reqBodywrap.Paid!= null){
+            orderheader.Paid__c= reqBodywrap.Paid;
+        }
+        if(reqBodywrap.RemainingAmount!= null){
+            orderheader.Remaining_Amount__c= reqBodywrap.RemainingAmount;
+        }
+        
+        
+        if(reqBodywrap.CustLedgerEntryNo!= null){
+            orderheader.Cust_Ledger_Entry_No__c= reqBodywrap.CustLedgerEntryNo;
+        }
+        if(reqBodywrap.InvoiceDiscountAmount!= null){
+            orderheader.Invoice_Discount_Amount__c= reqBodywrap.InvoiceDiscountAmount;
+        }
+        if(reqBodywrap.CampaignNo!= null){
+            orderheader.Campaign_No__c= reqBodywrap.CampaignNo;
+        }
+        if(reqBodywrap.SelltoContactNo!= null){
+            orderheader.Sell_to_Contact__c= reqBodywrap.SelltoContactNo;
+        }
+        if(reqBodywrap.BilltoContactNo!= null){
+            orderheader.Bill_to_Contact_No__c= reqBodywrap.BilltoContactNo;
+        }
+        if(reqBodywrap.ResponsibilityCenter!= null){
+            orderheader.Responsibility_Center__c= reqBodywrap.ResponsibilityCenter;
+        }
+        if(reqBodywrap.ReturnOrderNo!= null){
+            orderheader.Return_Order_No__c= reqBodywrap.ReturnOrderNo;
+        }
+        if(reqBodywrap.AssesseeCode!= null){
+            orderheader.Assessee_Code__c= reqBodywrap.AssesseeCode;
+        }
+        if(reqBodywrap.AmounttoCustomer!= null){
+            orderheader.Amount_to_Customer__c= reqBodywrap.AmounttoCustomer;
+        }
+        
+        if(reqBodywrap.BilltoCustomerState!= null && reqBodywrap.BilltoCustomerState != ''){
+            State__c state=[select id ,name from State__c where name=:reqBodywrap.BilltoCustomerState];
+            orderheader.Bill_to_Customer_State__c= state.id;
+        }
+        if(reqBodywrap.Structure!= null){
+            orderheader.Structure__c= reqBodywrap.Structure;
+        }
+        if(reqBodywrap.VehicleNo!= null){
+            orderheader.Vehicle_No__c= reqBodywrap.VehicleNo;
+        }
+        if(reqBodywrap.SalesReturnType!= null){
+            orderheader.Sales_Return_Type__c= reqBodywrap.SalesReturnType;
+        }
+        if(reqBodywrap.GSTCustomerType!= null){
+            orderheader.GST_Customer_Type__c= reqBodywrap.GSTCustomerType;
+        }
+        if(reqBodywrap.InvoiceType!= null){
+            orderheader.Invoice_Type__c= reqBodywrap.InvoiceType;
+        }
+        if(reqBodywrap.GSTBilltoStateCode!= null){
+            orderheader.GST_Bill_to_State_Code__c= reqBodywrap.GSTBilltoStateCode;
+        }
+        if(reqBodywrap.GSTShiptoStateCode!= null){
+            orderheader.GST_Ship_to_State_Code__c= reqBodywrap.GSTShiptoStateCode;
+        }
+        if(reqBodywrap.LocationStateCode!= null  && reqBodywrap.LocationStateCode != ''){
+            State__c loc=[select id, name from State__c where name=:reqBodywrap.LocationStateCode];
+            orderheader.Location_State_Code__c= loc.id;
+        }
+        
+        
+        if(reqBodywrap.State!= null && reqBodywrap.State != ''){
+            State__c state=[select id ,name from State__c where name=:reqBodywrap.State];
+            orderheader.State__c= state.ID;
+        }
+        if(reqBodywrap.LocationGSTRegNo!= null){
+            orderheader.Location_GST_Reg_No__c= reqBodywrap.LocationGSTRegNo;
+        }
+        
+        
+        
+        if(reqBodywrap.CustomerGSTRegNo!= null){
+            orderheader.Customer_GST_Reg_No__c= reqBodywrap.CustomerGSTRegNo;
+        }
+        if(reqBodywrap.ShiptoGSTRegNo!= null){
+            orderheader.Ship_to_GST_Reg_No__c= reqBodywrap.ShiptoGSTRegNo;
+        }
+        if(reqBodywrap.DistanceKm!= null){
+            orderheader.Distance_Km__c= reqBodywrap.DistanceKm;
+        }
+        if(reqBodywrap.VehicleType!= null){
+            orderheader.Vehicle_Type__c= reqBodywrap.VehicleType;
+        }
+        if(reqBodywrap.ReferenceInvoiceNo!= null && reqBodywrap.ReferenceInvoiceNo!=''){
+            orderheader.Invoice__c= reqBodywrap.ReferenceInvoiceNo;
+        }
+        if(reqBodywrap.EWayBillNo!= null){
+            orderheader.E_Way_Bill_No__c= reqBodywrap.EWayBillNo;
+        }
+        if(reqBodywrap.IRNHash!= null){
+            orderheader.IRN_Hash__c= reqBodywrap.IRNHash;
+        }
+        if(reqBodywrap.DiscountRemarks!= null){
+            orderheader.Discount_Remarks__c= reqBodywrap.DiscountRemarks;
+        }
+        if(reqBodywrap.DocketNo!= null){
+            orderheader.Docket_No__c= reqBodywrap.DocketNo;
+        }
+        if(reqBodywrap.ReferanceID!= null){
+            orderheader.Referance_ID__c= reqBodywrap.ReferanceID;
+        }
+        if(reqBodywrap.CancelReferanceID!= null){
+            orderheader.Cancel_Referance_ID__c= reqBodywrap.CancelReferanceID;
+        }
+        if(reqBodywrap.eInvoiceCreated!= null){
+            orderheader.e_Invoice_Created__c= reqBodywrap.eInvoiceCreated;
+        }
+        if(reqBodywrap.CancellingIRN!= null){
+            orderheader.Cancelling_IRN__c= reqBodywrap.CancellingIRN;
+        }
+        if(reqBodywrap.LocationGSTRegNo!= null){
+            orderheader.Location_GST_Reg_No__c= reqBodywrap.CancellingIRNDate;
+        }
+        if(reqBodywrap.Territory!= null){
+            orderheader.Territory__c= reqBodywrap.Territory;
+        }
+        insert orderheader;
+        for(cls_invoiceline lineData: reqBodywrap.line){
+            Return_Order_Line__c line = new Return_Order_Line__c();
+            if(orderheader.id!= null){
+                line.Return_Order_Header__c= orderheader.id;
+            }
+            if(linedata.AGM!=null){
+                line.AGM__c=linedata.AGM;
+            }
+            
+            if(linedata.ledgertype!= null){
+            line.Ledger_Type__c= linedata.ledgertype;
+        }
+            if(lineData.AGMCode != null  && lineData.AGMCode != ''){
+                User AgmUsr=[select id from User where Employee_Code__c=:lineData.AGMCode];
+                if(AgmUsr != null){
+                    line.AGM_Code__c=AgmUsr.id;
+                }
+            }
+            if(linedata.AmountToCustomer!=null){
+                line.Amount_To_Customer__c=linedata.AmountToCustomer;
+            }
+            if(linedata.AssessableValue!=null){
+                line.Assessable_Value__c=linedata.AssessableValue;
+            }
+            if(linedata.AssesseeCode!=null){
+                line.Assessee_Code__c=linedata.AssesseeCode;
+            }
+            if(linedata.BilltoCustomerNo!= null && linedata.BilltoCustomerNo != ''){
+                account acc=[select id, name from Account where Customer_No__c=:linedata.BilltoCustomerNo];
+                line.Bill_to_Customer_No__c= acc.Id;
+            }
+            if(linedata.BinCode!=null){
+                line.Bin_Code__c=linedata.BinCode;
+            }
+            if(linedata.ChargesToCustomer!=null){
+                line.Charges_To_Customer__c=linedata.ChargesToCustomer;
+            }
+            if(linedata.ConcessionalCode!=null){
+                line.Concessional_Code__c=linedata.ConcessionalCode;
+            }
+            if(linedata.CustomerDiscGroup!=null){
+                line.Customer_Disc_Group__c=linedata.CustomerDiscGroup;
+            }
+            if(linedata.CustomerPriceGroup!=null){
+                line.Customer_Price_Group__c=linedata.CustomerPriceGroup;
+            }
+            if(linedata.Description!=null){
+                line.Description__c=linedata.Description;
+            }
+            if(linedata.DocumentNo!=null){
+                line.Document_No__c=linedata.DocumentNo;
+            }
+            if(lineData.DSM != null  && lineData.DSM != ''){
+                User AgmUsr=[select id from User where Employee_Code__c=:lineData.DSM];
+                if(AgmUsr != null){
+                    line.DSM__c=AgmUsr.id;
+                }
+            }
+            
+            if(linedata.GenBusPostingGroup!=null){
+                line.Gen_Bus_Posting_Group__c=linedata.GenBusPostingGroup;
+            }
+            if(linedata.GenProdPostingGroup!=null){
+                line.Gen_Prod_Posting_Group__c=linedata.GenProdPostingGroup;
+            }
+            if(linedata.GrossWeight!=null){
+                line.Gross_Weight__c=linedata.GrossWeight;
+            }
+            if(linedata.GST!=null){
+                line.GST__c=linedata.GST;
+            }
+            if(linedata.GSTBaseAmount!=null){
+                line.GST_Base_Amount__c=linedata.GSTBaseAmount;
+            }
+            if(linedata.GSTGroupCode!=null){
+                line.GST_Group_Code__c=linedata.GSTGroupCode;
+            }
+            if(linedata.GSTGroupType!=null){
+                line.GST_Group_Type__c=linedata.GSTGroupType;
+            }
+            if(linedata.GSTJurisdictionType!=null){
+                line.GST_Jurisdiction_Type__c=linedata.GSTJurisdictionType;
+            }
+            if(linedata.GSTPlaceofSupply!=null){
+                line.GST_Place_of_Supply__c=linedata.GSTPlaceofSupply;
+            }
+            if(linedata.HSNSACCode!=null){
+                line.HSN_SAC_Code__c=linedata.HSNSACCode;
+            }
+            if(linedata.InvDiscountAmount!=null){
+                line.Inv_Discount_Amount__c=linedata.InvDiscountAmount;
+            }
+            if(linedata.InvoiceType!=null){
+                line.Invoice_Type__c=linedata.InvoiceType;
+            }
+            if(linedata.ItemCategoryCode!=null){
+                line.Item_Category_Code__c=linedata.ItemCategoryCode;
+            }
+            if(linedata.LineAmount!=null){
+                line.Line_Amount__c=linedata.LineAmount;
+            }
+            if(linedata.LineDiscount!=null){
+                line.Line_Discount__c=linedata.LineDiscount;
+            }
+            if(linedata.LineDiscountAmount!=null){
+                line.Line_Discount_Amount__c=linedata.LineDiscountAmount;
+            }
+            if(linedata.LineNo!=null){
+                line.Line_No__c=linedata.LineNo;
+            }
+            if(linedata.LocationCode!= null && linedata.LocationCode != ''){
+                Location_Master__c loc=[select id, name from Location_Master__c where name=:linedata.LocationCode];
+                line.Location_Code__c= loc.id;
+            }
+            
+            if(linedata.NetWeight!=null){
+                line.Net_Weight__c=linedata.NetWeight;
+            }
+            if(linedata.PostingDate!=null){
+                line.Posting_Date__c=linedata.PostingDate;
+            }
+            if(linedata.ProductGroupCode!=null){
+                line.Product_Group_Code__c=linedata.ProductGroupCode;
+            }
+            if(linedata.Quantity!=null){
+                line.Quantity__c=linedata.Quantity;
+            }
+            if(linedata.QuantityBase!=null){
+                line.Quantity_Base__c=linedata.QuantityBase;
+            }
+            if(linedata.ResponsibilityCenter!=null){
+                line.Responsibility_Center__c=linedata.ResponsibilityCenter;
+            }
+           /* if(linedata.ReturnOrderListsName!=null){
+                line.Name=linedata.ReturnOrderListsName;
+            }*/
+            if(linedata.ReturnReasonCode!=null){
+                line.Return_Reason_Code__c=linedata.ReturnReasonCode;
+            }
+            if(lineData.RSM != null  && lineData.RSM != ''){
+                User AgmUsr=[select id from User where Employee_Code__c=:lineData.RSM];
+                if(AgmUsr != null){
+                    line.RSM__c=AgmUsr.id;
+                }
+            }
+            if(lineData.SalesIncharge != null  && lineData.SalesIncharge != ''){
+                User salesuser=[select id from User where Employee_Code__c=:lineData.SalesIncharge];
+                if(salesuser != null){
+                    line.Sales_In_charge__c =salesuser.id;
+                }
+            }
+            if(linedata.SalesType!=null){
+                line.Sales_Type__c=linedata.SalesType;
+            }
+            if(linedata.SelltoCustomerNo!= null && linedata.SelltoCustomerNo != ''){
+                account acc=[select id, name from Account where Customer_No__c=:linedata.SelltoCustomerNo];
+                line.Sell_to_Customer_No__c= acc.id;
+            }
+            if(linedata.ShipmentDate!=null){
+                line.Shipment_Date__c=linedata.ShipmentDate;
+            }
+            if(linedata.State!=null  && linedata.State != ''){
+                State__c stt=[select id, name from State__c where name=:linedata.State];
+                line.State__c=stt.id;
+            }
+            if(linedata.Surcharge!=null){
+                line.Surcharge__c=linedata.Surcharge;
+            }
+            if(linedata.SurchargeAmount!=null){
+                line.Surcharge_Amount__c=linedata.SurchargeAmount;
+            }
+            if(linedata.SurchargeBaseAmount!=null){
+                line.Surcharge_Base_Amount__c=linedata.SurchargeBaseAmount;
+            }
+            if(linedata.TCSNatureofCollection!=null){
+                line.TCS_Nature_of_Collection__c=linedata.TCSNatureofCollection;
+            }
+            if(linedata.TCSType!=null){
+                line.TCS_Type__c=linedata.TCSType;
+            }
+            if(linedata.TDSTCS!=null){
+                line.TDS_TCS__c=linedata.TDSTCS;
+            }
+            if(linedata.TDSTCSAmount!=null){
+                line.TDS_TCS_Amount__c=linedata.TDSTCSAmount;
+            }
+            if(linedata.TDSTCSBaseAmount!=null){
+                line.TDS_TCS_Base_Amount__c=linedata.TDSTCSBaseAmount;
+            }
+            if(lineData.Territory != null  && lineData.Territory != ''){
+                Territory_Y__c trr=[select id from Territory_Y__c where Name=:lineData.Territory limit 1];
+                if(trr != null){
+                    line.Territory__c=trr.id;
+                }
+            }
+            if(linedata.TotalGSTAmount!=null){
+                line.Total_GST_Amount__c=linedata.TotalGSTAmount;
+            }
+            if(linedata.TransportMethod!=null){
+                line.Transport_Method__c=linedata.TransportMethod;
+            }
+            if(linedata.Type!=null){
+                line.Type__c=linedata.Type;
+            }
+            if(linedata.UnitofMeasure!=null){
+                line.Unit_of_Measure__c=linedata.UnitofMeasure;
+            }
+            if(linedata.UnitofMeasureCode!=null){
+                line.Unit_of_Measure_Code__c=linedata.UnitofMeasureCode;
+            }
+            if(linedata.UnitPrice!=null){
+                line.Unit_Price__c=linedata.UnitPrice;
+            }
+            if(linedata.VariantCode!=null){
+                line.Variant_Code__c=linedata.VariantCode;
+            }
+            if(lineData.ZM != null  && lineData.ZM != ''){
+                User AgmUsr=[select id from User where Employee_Code__c=:lineData.ZM];
+                if(AgmUsr != null){
+                    line.ZM__c=AgmUsr.id;
+                }
+            }
+            if(lineData.Invoiceline !=null && lineData.Invoiceline !=''){
+                line.Invoice_Line__c=lineData.Invoiceline;
+            }
+            
+            lineList.add(line);
+            responseWrap resWrap = new responseWrap();
+            
+            list<cls_result> resultParaList = new List<cls_result>();
+            List<Database.SaveResult> saveResults = Database.Insert(lineList, false);
+            List<Return_Order_Header__c> orr = [Select name from Return_Order_Header__c where Id =: line.Return_Order_Header__c ];
+            
+            for(Integer i=0;i<saveResults.size();i++)
+            {
+                cls_result resultPara = new cls_result();
+                if (saveResults.get(i).isSuccess()){
+                    resultPara.Status = 'Success';
+                    resultPara.response_message = 'GoodReturn Inserted Successfully';
+                    resultPara.SFID = saveResults.get(i).getId();
+                    resultPara.Return_order_Name = orr[0].Name;
+                    //resultPara.InvoiceId=inv.id;
+                }
+                else if (!saveResults.get(i).isSuccess())
+                {
+                    Database.Error error = saveResults.get(i).getErrors().get(0);
+                    resultPara.Status = 'Failure';
+                    resultPara.response_message = error.getMessage();
+                    System.debug('ERROR>>>'+error.getMessage());
+                }
+                resultParaList.add(resultPara);
+            }
+            resWrap.result = resultParaList;
+            RestResponse res = RestContext.response;
+            res.statusCode = 200;
+            res.responseBody = Blob.valueof(JSON.serialize(resWrap));    
+        }
+    }
+    public class RequestBodyWrap{    
+        public String SelltoCustomerNo;
+        public String No;
+        public string ledgertype;
+        public String BilltoCustomerNo;
+        public String BilltoName;
+        public String BilltoName2;
+        public string BilltoAddress;
+        public string BilltoAddress2;
+        public String BilltoCity;
+        public String BilltoContact;
+        Public String ShiptoCode;
+        public String ShiptoName;
+        public String ShiptoName2;
+        public string shiptoAddress;
+        public string shiptoAddress2;
+        public string shiptoCity;
+        public string shiptoContact;
+        public Date PostingDate;
+        public Date ShipmemtDate;
+        public String PaymenttermCode;
+        public Date DueDate;
+        public String shipmentMethodCode;
+        public string LocationCode;
+        public String CustomerPostingGroup;
+        public String CurrencyCode;
+        public Decimal Currencyfactor;
+        public string CustomerPriceGroup;
+        public String CustomerDiscGroup;
+        public String SalespersonCode;
+        public String OnHold;
+        public Decimal Amount;
+        public String GenBusPostingGroup;
+        public String TransportMethod;
+        public string SelltoCustomerName;
+        public String SelltoCustomerName2;
+        public String SelltoAddress;
+        public String SelltoAddress2;
+        public String SelltoCity;
+        public String SelltoContact;
+        public String BilltoPostCode;
+        public String BilltoCountryRegionCode;
+        public string SelltoPostCode;
+        public String SelltoCountryRegionCode;
+        public String ShiptoPostCode;
+        public String ShiptoCounty;
+        public String ShiptoCountryRegionCode;
+        public Date DocumentDate;
+        public String ExternalDocumentNo;
+        public String PaymentMethodCode;
+        public string PreAssignedNo;
+        public String UserID;
+        public Boolean Canceled;
+        public boolean Paid;
+        public Decimal RemainingAmount;
+        public Decimal CustLedgerEntryNo;
+        public Decimal InvoiceDiscountAmount;
+        public String CampaignNo;
+        public string SelltoContactNo;
+        public String BilltoContactNo;
+        public String ResponsibilityCenter;
+        public String ReturnOrderNo;
+        
+        
+        public String AssesseeCode;
+        public Decimal AmounttoCustomer;
+        public String BilltoCustomerState;
+        public String State;
+        public String Structure;
+        public String VehicleNo;
+        public String SalesReturnType;
+        public string GSTCustomerType;
+        public String InvoiceType;
+        public String GSTBilltoStateCode;
+        public String GSTShiptoStateCode;
+        
+        public String LocationStateCode;
+        public String LocationGSTRegNo;
+        public String CustomerGSTRegNo;
+        public String ShiptoGSTRegNo;
+        public Decimal DistanceKm;
+        public String VehicleType;
+        public String ReferenceInvoiceNo;
+        public string EWayBillNo;
+        public String IRNHash;
+        public String DiscountRemarks;
+        public String DocketNo;
+        
+        
+        public String ReferanceID;
+        public String CancelReferanceID;
+        public Boolean eInvoiceCreated;
+        public Boolean CancellingIRN;
+        public String CancellingIRNDate;
+        public String Territory;
+        
+        // public string PostingDate;
+        
+        public cls_invoiceline[] line;        
+    }
+    public class cls_invoiceline 
+    {
+        public string AGM;
+        public string AGMCode;
+        public string ledgertype;
+        public decimal Amount;
+        public decimal AmountToCustomer;
+        public decimal AssessableValue;
+        public string AssesseeCode;
+        public string BilltoCustomerNo;
+        public string BinCode;
+        public decimal ChargesToCustomer;
+        public string ConcessionalCode;
+        public string CustomerDiscGroup;
+        public string CustomerPriceGroup;
+        public string Description;
+        public string DocumentNo;
+        public string DSM;
+        public string GenBusPostingGroup;
+        public string GenProdPostingGroup;
+        public Decimal GrossWeight;
+        public Decimal GST;
+        public Decimal GSTBaseAmount;
+        public string GSTGroupCode;
+        public string GSTGroupType;
+        public string GSTJurisdictionType;
+        public string GSTPlaceofSupply;
+        public string HSNSACCode;
+        public Decimal InvDiscountAmount;
+        public string InvoiceType;
+        public String ItemCategoryCode;
+        public Decimal LineAmount;
+        public Decimal LineDiscount;
+        public Decimal LineDiscountAmount;
+        public Decimal LineNo;
+        public string LocationCode;
+        public Decimal NetWeight;
+        public string No;
+        public Date PostingDate;
+        public string ProductGroupCode;
+        public Decimal Quantity;
+        public Decimal QuantityBase;
+        // public string ReturnOrderHeader;
+        public string ResponsibilityCenter;
+        public string ReturnOrderListsName;
+        public string ReturnReasonCode;
+        public string RSM;
+        public string SalesIncharge;
+        public string SalesType;
+        public string SelltoCustomerNo;
+        public date ShipmentDate;
+        public string State;
+        public Decimal Surcharge;
+        public Decimal SurchargeAmount;
+        public Decimal SurchargeBaseAmount;
+        public string TCSNatureofCollection;
+        public string TCSType;
+        public Decimal TDSTCS;
+        public Decimal TDSTCSAmount;
+        public Decimal TDSTCSBaseAmount;
+        public string Territory;
+        public Decimal TotalGSTAmount;
+        public string TransportMethod;
+        public string Type;
+        public string UnitofMeasure;
+        public string UnitofMeasureCode;
+        public Decimal UnitPrice;
+        public string VariantCode;
+        public string Invoiceline;
+        public string ZM;
+        
+    }
+    public class responseWrap{
+        public cls_result[] result;
+    }
+    public class cls_result {
+        public String Status;
+        public String response_message;
+        public String SFID;
+        public string Return_order_Name;
+    }
+    public static RequestBodyWrap parse(String json)
+    {
+        return (RequestBodyWrap) System.JSON.deserialize(json, RequestBodyWrap.class);
+    } 
+}

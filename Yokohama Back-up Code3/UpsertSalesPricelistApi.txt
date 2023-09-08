@@ -1,0 +1,223 @@
+@RestResource(urlMapping='/UpsertSalesPricelistApi/')
+global class UpsertSalesPricelistApi {
+    @HttpPost
+    global static void doPost (){
+        restrequest req = RestContext.request;
+        RequestBodyWrap reqBodywrap = parse(req.requestBody.toString());
+        list<Price_List__c> Pricelist = new list<Price_List__c>(); 
+        for(cls_Salespricelist lineData: reqBodywrap.line)
+        {
+            Price_List__c lines = new Price_List__c();
+            list<Price_List__c> pl = [select id,Approval_Status__c ,Description__c,Ending_Date__c,Min_Qty__c,Name,
+                                      Starting_Date__c,Unit_of_Measure__c,SalesType__c,Unit_Price__c,Variant__c,Sales_Code__c,Item_Code__c,Price_Group__c
+                                      from Price_List__c where Variant__r.Name=:lineData.Variant and SalesType__c=:lineData.SalesType
+                                      and Item_Code__r.Name=:lineData.ItemNo and Starting_Date__c=:lineData.StartingDate ];
+            
+            if(pl.size()>0){
+                for(Price_List__c pc:pl){
+                    if(linedata.Description != null){
+                        pc.Description__c=linedata.Description;
+                    }
+                    
+                    if(linedata.EndingDate != null){
+                        pc.Ending_Date__c=linedata.EndingDate;
+                    }
+                    if(linedata.MinQuantity != null){
+                        pc.Min_Qty__c=linedata.MinQuantity;
+                    }
+                    
+                    if(lineData.SalesType=='Customer'){
+                       
+                            if(linedata.Salescode != null){
+                                Account acc=[select id,Customer_No__c from Account  where Customer_No__c=:lineData.Salescode];
+                                if(acc != null){
+                                    pc.Customer__c=acc.id;
+                                }
+                            
+                        }
+                    }
+                    if(lineData.SalesType=='Customer Price Group'){
+                        if(linedata.Salescode != null){
+                           Customer_Price_Group__c cp=[Select id,Code__c,Name from Customer_Price_Group__c where Code__c=:lineData.Salescode limit 1];
+                            if(cp != null){
+                                pc.Price_Group__c=cp.id;
+                            }
+                        }
+                    }
+                    if(lineData.SalesType=='Campaign'){
+                        if(linedata.Salescode != null){
+                           Campaign_Group__c cm=[Select id,Name from Campaign_Group__c where Name=:lineData.Salescode];
+                            if(cm != null){
+                                pc.Campaign_Group__c=cm.id;
+                            }
+                        }
+                    }
+                    if(linedata.SalesType != null){
+                        pc.SalesType__c=linedata.SalesType;
+                    }
+                    if(linedata.StartingDate != null){
+                        pc.Starting_Date__c=linedata.StartingDate;
+                    }
+                    if(linedata.UnitOfMeasure != null){
+                        pc.Unit_of_Measure__c=linedata.UnitOfMeasure;
+                    }
+                    if(linedata.UnitPrice != null){
+                        pc.Unit_Price__c=linedata.UnitPrice;
+                    }
+                    if(lineData.ApprovalStatus != null){
+                        pc.Approval_Status__c = lineData.ApprovalStatus;
+                    }
+                    if(lineData.ItemNo != null && lineData.ItemNo != ''){
+                        Product__c pd=[select id from Product__c  where name=:lineData.ItemNo];
+                        if(pd != null){
+                            pc.Item_Code__c=pd.id;
+                        }
+                    }
+                    /*  if(lineData.SalesCode != null && lineData.SalesCode != ''){
+Account acc=[select id from Account  where Name=:lineData.SalesCode];
+if(acc != null){
+pc.Sales_Code__c=acc.id;
+}
+}*/
+                    if(lineData.Variant != null && lineData.Variant != ''){
+                        list<Variant__c> vr=[select id from Variant__c  where Name=:lineData.Variant];
+                        if(vr.size()>0){
+                            pc.Variant__c=vr[0].id;
+                        }
+                    }
+                    Pricelist.add(pc);
+                    
+                    
+                }
+            }
+            else{
+                Price_List__c pList= new Price_List__c();
+                // lines.Name=lineData.;
+                if(linedata.Description != null){
+                    lines.Description__c=linedata.Description;
+                }
+                if(linedata.EndingDate != null){
+                    lines.Ending_Date__c=linedata.EndingDate;
+                }
+                if(linedata.MinQuantity != null){
+                    lines.Min_Qty__c=linedata.MinQuantity;
+                }
+                
+                if(lineData.salestype=='Customer'){
+                    if(linedata.Salescode != null){
+                        Account acc=[select id,Customer_No__c from Account  where Customer_No__c=:lineData.Salescode];
+                        if(acc != null){
+                            lines.Customer__c=acc.id;
+                        }
+                    }
+                }
+                 if(lineData.SalesType=='Customer Price Group'){
+                        if(linedata.Salescode != null){
+                           Customer_Price_Group__c cp=[Select id,Code__c,Name from Customer_Price_Group__c where Code__c=:lineData.Salescode];
+                            if(cp != null){
+                                lines.Price_Group__c=cp.id;
+                            }
+                        }
+                    }
+                    if(lineData.SalesType=='Campaign'){
+                        if(linedata.Salescode != null){
+                           Campaign_Group__c cm=[Select id,Name from Campaign_Group__c where Name=:lineData.Salescode];
+                            if(cm != null){
+                                lines.Campaign_Group__c=cm.id;
+                            }
+                        }
+                    }
+               
+               if(linedata.SalesType != null){
+                    lines.SalesType__c=linedata.SalesType;
+                }
+                
+                if(linedata.StartingDate != null){
+                    lines.Starting_Date__c=linedata.StartingDate;
+                }
+                if(linedata.UnitOfMeasure != null){
+                    lines.Unit_of_Measure__c=linedata.UnitOfMeasure;
+                }
+                if(linedata.UnitPrice != null){
+                    lines.Unit_Price__c=linedata.UnitPrice;
+                }
+                if(lineData.ApprovalStatus != null){
+                    lines.Approval_Status__c = lineData.ApprovalStatus;
+                }
+                if(lineData.ItemNo != null && lineData.ItemNo != ''){
+                    Product__c pd=[select id from Product__c  where name=:lineData.ItemNo];
+                    if(pd != null){
+                        lines.Item_Code__c=pd.id;
+                    }
+                }
+              
+                if(lineData.Variant != null && lineData.Variant != ''){
+                    list<Variant__c> vr=[select id from Variant__c  where Name=:lineData.Variant];
+                    if(vr.size()>0){
+                        lines.Variant__c=vr[0].id;
+                    }
+                }
+                Pricelist.add(lines);
+                
+            }
+            
+        }
+        responseWrap resWrap = new responseWrap();
+        list<cls_result> resultParaList = new List<cls_result>();
+        Database.UpsertResult[] saveResults = Database.upsert(Pricelist,false);
+        for(Integer i=0;i<saveResults.size();i++){
+            cls_result resultPara = new cls_result();
+            if (saveResults.get(i).isSuccess()){
+                resultPara.Status = 'Success';
+                resultPara.response_message = 'SalesPricelist Updated Successfully';
+                
+                resultPara.SFID = saveResults.get(i).getId();
+                
+            }else if (!saveResults.get(i).isSuccess()){
+                
+                Database.Error error = saveResults.get(i).getErrors().get(0);
+                resultPara.Status = 'Failure';  
+                resultPara.response_message = error.getMessage(); 
+                resultPara.SFID = '';  
+            }
+            resultParaList.add(resultPara);
+        }
+        resWrap.result = resultParaList;
+        RestResponse res = RestContext.response;
+        res.statusCode = 200;
+        res.responseBody = Blob.valueof(JSON.serialize(resWrap));   
+        
+    }
+    public class RequestBodyWrap{
+        public cls_Salespricelist[] line;
+        
+    }
+    public class cls_Salespricelist {
+        //public string Name;
+        public String  ApprovalStatus;
+        Public String Description ;
+        public Date EndingDate; 
+        Public string ItemNo;
+        Public string MinQuantity;
+        Public string SalesCode;
+        Public string SalesType;
+        public Date StartingDate;
+        Public string UnitOfMeasure;
+        Public Decimal UnitPrice;
+        Public string Variant;
+        Public string CustomerPriceGroup;
+        public String Campaign;
+    }
+    public class responseWrap{
+        public cls_result[] result;
+    }
+    public class cls_result {
+        public String Status;
+        public String response_message;
+        public String SFID;
+    }
+    public static RequestBodyWrap parse(String json){
+        return (RequestBodyWrap) System.JSON.deserialize(json, RequestBodyWrap.class);
+        
+    }
+}

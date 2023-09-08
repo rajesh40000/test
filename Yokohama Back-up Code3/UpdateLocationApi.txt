@@ -1,0 +1,316 @@
+@RestResource(urlMapping='/UpdateLocationApi/')
+global class UpdateLocationApi {
+  
+    global class Response {     
+        global string id;
+        global string code;
+        global string message;
+    }
+@HttpPost
+    global static void doPost (){
+        restrequest req = RestContext.request;
+        RequestBodyWrap reqBodywrap = parse(req.requestBody.toString());
+        
+        // for gstregistrationNo
+        Set<String> RegistrationCodeSet=new Set<String>();
+        for(cls_Payment lineData:reqBodywrap.line){
+            RegistrationCodeSet.add(lineData.GSTRegistrationNo);
+        }
+        Map<String,id> RegistrationCodeMap=new Map<String,id>();
+        for(GST_Registration_No__c grr:[select id,Name,State_Code__c,Description__c  from GST_Registration_No__c where Name =:RegistrationCodeSet]){
+            RegistrationCodeMap.put(grr.Name,grr.Id);
+        }
+        
+        // for Citycode
+        Set<String> CitycodeSet=new Set<String>();
+        for(cls_Payment lineData:reqBodywrap.line){
+            CitycodeSet.add(lineData.Citycode);
+        }
+        Map<String,id> CitycodeMap=new Map<String,id>();
+        for(City__c ct:[select id,Name from City__c where Name=:CitycodeSet]){
+            CitycodeMap.put(ct.Name,ct.Id);
+        }
+        
+        // for country
+        Set<String> countrySet=new Set<String>();
+        for(cls_Payment lineData:reqBodywrap.line){
+            countrySet.add(lineData.country);
+        }
+        Map<String,id> countryMap=new Map<String,id>();
+        for(Country__c ct:[select id,Name from Country__c where Name=:countrySet]){
+            countryMap.put(ct.Name,ct.Id);
+        }
+        
+        list<Location_Master__c> pinList = new list<Location_Master__c>();  
+        for(cls_Payment lineData: reqBodywrap.line)
+        {
+            Location_Master__c lines = new Location_Master__c();
+            list<Location_Master__c> rec = [select id,Name,Name_2__c,Address__c,Address_2__c,Bin_Mandatory__c,Blocked__c,Budget_Code_Mandatory__c,
+                  Contact__c,E_Mail__c,E_Way_Bill_Mandatory__c,E_Way_Bill_Mandatory_From_Date__c,C_S_T_No__c,Sub_District_Code__c,State__c,District_Code__c,City__c,Country__c,Pincode__c,
+                  Enable_Variant_Wise_Disc__c,Enable_Warranty_Claim__c,Plant_Location__c,GST_Registration_No__c,L_S_T_No__c,Logistic_Points__c,
+                  OwnerId,Phone_No__c,Phone_No_2__c,Route_Code_Mandatory__c,Service_Tax_Registration_No__c,
+                  T_A_N_No__c,T_C_A_N_No__c,T_I_N_No__c,Location_Code__c,Taxable_Enitity_Id__c,Use_As_In_Transit__c,Zone_Code__c from
+                  Location_Master__c where Name =:lineData.Name ];
+            if(rec.size()>0){
+                for(Location_Master__c LocLst : rec){
+                 
+                   LocLst.id= LocLst.id; 
+                   LocLst.Name = lineData.Name;
+                    LocLst.Name_2__c= lineData.Name2;
+           // LocLst[0].Name__c=Name_c;
+            LocLst.Address__c=lineData.Address;
+            locLst.Taxable_Enitity_Id__c=lineData.taxenitityid;
+            LocLst.Address_2__c=lineData.Address2;
+            LocLst.Bin_Mandatory__c=lineData.BinMandatory;
+            LocLst.Blocked__c= lineData.Blocked;
+            LocLst.Budget_Code_Mandatory__c= lineData.BudgetCodeMandatory;//
+             LocLst.C_S_T_No__c= lineData.CSTNo;
+            LocLst.Contact__c= lineData.Contact;
+            LocLst.Location_Code__c=lineData.locationcode;
+            LocLst.E_Mail__c=lineData.EMail;
+            LocLst.E_Way_Bill_Mandatory__c=lineData.EWayBillMandatory;
+            //LocLst.E_Way_Bill_Mandatory_From_Date__c=lineData.EWayBillMandatoryFromDate;
+             if(lineData.EWayBillMandatoryFromDate != null && lineData.EWayBillMandatoryFromDate != '')
+            LocLst.E_Way_Bill_Mandatory_From_Date__c=Date.ValueOf(lineData.EWayBillMandatoryFromDate);
+            LocLst.Enable_Variant_Wise_Disc__c=lineData.EnableVariantWiseDisc;
+            LocLst.Enable_Warranty_Claim__c=lineData.EnableWarrantyClaim;
+            if(lineData.GSTRegistrationNo != null && lineData.GSTRegistrationNo !=''){
+                GST_Registration_No__c GstIns=[select id from GST_Registration_No__c where Name=:lineData.GSTRegistrationNo];
+                if(GstIns != null){
+                    LocLst.GST_Registration_No__c=GstIns.id;
+                }
+            }
+            LocLst.L_S_T_No__c=lineData.LSTNo;
+            LocLst.Logistic_Points__c=lineData.LogisticPoints;
+            LocLst.Nav_Owner_Id__c=lineData.OwnerId;
+            LocLst.Phone_No__c= lineData.PhoneNo;
+            LocLst.Phone_No_2__c= lineData.PhoneNo2;
+          LocLst.Plant_Location__c= lineData.PlantLocation;
+            LocLst.Route_Code_Mandatory__c= lineData.RouteCodeMandatory;
+            LocLst.Service_Tax_Registration_No__c= lineData.ServiceTaxRegistrationNo;
+            LocLst.T_A_N_No__c=lineData.TANNo;
+            LocLst.T_C_A_N_No__c=lineData.TCANNo;
+            LocLst.T_I_N_No__c=lineData.TINNo;
+            LocLst.Use_As_In_Transit__c	=lineData.UseAsInTransit;
+            LocLst.Zone_Code__c=lineData.ZoneCode;
+            
+                    if(lineData.Citycode != null && lineData.Citycode != ''){
+                City__c code=[select id,Name from City__c where Name=:lineData.Citycode];
+                if(code != null){
+                    LocLst.City__c = code.id;
+                    
+                }
+            }
+                  
+                if(lineData.country != null && lineData.country != ''){
+                Country__c count=[select id,Name from Country__c where Name=:lineData.country];
+                if(count != null){
+                    LocLst.Country__c=count.id; 
+            }
+             }
+                     if(lineData.DistrictCode != null && lineData.DistrictCode != ''){
+                District_Master__c dis=[select id,Name from District_Master__c where Name=:lineData.DistrictCode];
+                if(dis != null){
+                    LocLst.District_Code__c=dis.id;
+                }
+            }
+            if(lineData.subdistrictname != null && lineData.subdistrictname != ''){
+                Sub_District_Master__c sub=[select id,Name from Sub_District_Master__c where Name=:lineData.subdistrictname];
+                if(sub != null){
+                    LocLst.Sub_District_Code__c= sub.id;
+                }
+            }
+                    
+                 if(lineData.StateCode != null && lineData.StateCode != ''){
+                State__c state=[select id,Name from State__c where Name=:lineData.StateCode];
+                if(state != null){
+                    LocLst.State__c=state.id;
+                }
+            }
+                  
+                    if(lineData.pincode != null && lineData.pincode != ''){
+                list<Pincode__c> pin=[select id,Name from Pincode__c where Name=:lineData.pincode];
+                if(pin != null){
+                    LocLst.Pincode__c=pin[0].id;
+                }
+            }
+                                   
+                    pinList.add(LocLst);
+                system.debug('UpdateLst::::'+pinList);
+                }
+                
+            }
+            else
+            {
+                Location_Master__c TerrIns= new Location_Master__c();
+                   lines.Name =lineData.Name;
+                lines.Name_2__c= lineData.Name2;
+           //LocLst[0].Name__c=Name_c;
+            lines.Address__c=lineData.Address;
+            lines.Address_2__c=lineData.Address2;
+            lines.Bin_Mandatory__c=lineData.BinMandatory;
+            lines.Blocked__c= lineData.Blocked;
+            lines.Taxable_Enitity_Id__c=lineData.taxenitityid;  
+            lines.Budget_Code_Mandatory__c= lineData.BudgetCodeMandatory;//
+            lines.C_S_T_No__c= lineData.CSTNo;
+            lines.Contact__c= lineData.Contact;
+            lines.Location_Code__c=lineData.locationcode;
+            lines.E_Mail__c=lineData.EMail;
+            lines.E_Way_Bill_Mandatory__c=lineData.EWayBillMandatory;
+           // lines.E_Way_Bill_Mandatory_From_Date__c=lineData.EWayBillMandatoryFromDate;
+              if(lineData.EWayBillMandatoryFromDate != null && lineData.EWayBillMandatoryFromDate != '')
+            lines.E_Way_Bill_Mandatory_From_Date__c=Date.ValueOf(lineData.EWayBillMandatoryFromDate);
+            lines.Enable_Variant_Wise_Disc__c=lineData.EnableVariantWiseDisc;
+            lines.Enable_Warranty_Claim__c=lineData.EnableWarrantyClaim;
+           // lines.Enable_Variant_Wise_Disc__c=lineData.Enable_Variant_Wise_Disc__c;
+            if(lineData.GSTRegistrationNo != null && lineData.GSTRegistrationNo != ''){
+                GST_Registration_No__c GstIns=[select id from GST_Registration_No__c where Name=:lineData.GSTRegistrationNo];
+                if(GstIns != null){
+                    lines.GST_Registration_No__c=GstIns.id;
+                }
+            }
+            lines.L_S_T_No__c=lineData.LSTNo;
+            lines.Logistic_Points__c=lineData.LogisticPoints;
+            lines.Nav_Owner_Id__c=lineData.OwnerId;
+            
+            lines.Phone_No__c= lineData.PhoneNo;
+            lines.Phone_No_2__c= lineData.PhoneNo2;
+           lines.Plant_Location__c= lineData.PlantLocation;
+            lines.Route_Code_Mandatory__c= lineData.RouteCodeMandatory;
+            lines.Service_Tax_Registration_No__c= lineData.ServiceTaxRegistrationNo;
+            lines.T_A_N_No__c=lineData.TANNo;
+            lines.T_C_A_N_No__c=lineData.TCANNo;
+            lines.T_I_N_No__c=lineData.TINNo;
+            lines.Use_As_In_Transit__c	=lineData.UseAsInTransit;
+            lines.Zone_Code__c=lineData.ZoneCode;
+                if(lineData.Citycode != null && lineData.Citycode != ''){
+                City__c code=[select id,Name from City__c where Name=:lineData.Citycode];
+                if(code != null){
+                    lines.City__c = code.id;
+                }
+            }
+                  
+                if(lineData.country != null && lineData.country != ''){
+                Country__c count=[select id,Name from Country__c where Name=:lineData.country];
+                if(count != null){
+                     lines.Country__c=count.id;
+            }
+             }
+                if(lineData.DistrictCode != null && lineData.DistrictCode != ''){
+                District_Master__c dis=[select id,Name from District_Master__c where Name=:lineData.DistrictCode];
+                if(dis != null){
+                    lines.District_Code__c=dis.id;
+                }
+            }
+            if(lineData.subdistrictname != null && lineData.subdistrictname != ''){
+                Sub_District_Master__c sub=[select id,Name from Sub_District_Master__c where Name=:lineData.subdistrictname];
+                if(sub != null){
+                    lines.Sub_District_Code__c= sub.id;
+                }
+            }
+                
+                if(lineData.StateCode != null && lineData.StateCode != ''){
+                State__c state=[select id,Name from State__c where Name=:lineData.StateCode];
+                if(state != null){
+                    lines.State__c=state.id;
+                }
+            }
+                     if(lineData.pincode != null && lineData.pincode != ''){
+                list<Pincode__c> pin=[select id,Name from Pincode__c where Name=:lineData.pincode];
+                if(pin != null){
+                    lines.Pincode__c=pin[0].id;
+                }
+            }
+                 
+            
+                  
+                   
+                pinList.add(lines);
+                system.debug('UpdateLst::::'+pinList);
+            }
+        }
+        schema.SObjectField schemafield = Location_Master__c.Fields.name;
+        responseWrap resWrap = new responseWrap();
+        list<cls_result> resultParaList = new List<cls_result>();
+        system.debug('test='+pinList);
+        Database.UpsertResult[] saveResults = Database.upsert(pinList,false);
+        for(Integer i=0;i<saveResults.size();i++){
+            cls_result resultPara = new cls_result();
+            if (saveResults.get(i).isSuccess()){
+                resultPara.Status = 'Success';
+                resultPara.response_message = 'Location Upsert Successfully';
+                
+                resultPara.SFID = saveResults.get(i).getId();
+                
+            }else if (!saveResults.get(i).isSuccess()){
+                
+                Database.Error error = saveResults.get(i).getErrors().get(0);
+                resultPara.Status = 'Failure';  
+                resultPara.response_message = error.getMessage(); 
+                resultPara.SFID = '';  
+            }
+            resultParaList.add(resultPara);
+        }
+        resWrap.result = resultParaList;
+        RestResponse res = RestContext.response;
+        res.statusCode = 200;
+        res.responseBody = Blob.valueof(JSON.serialize(resWrap));   
+    }
+    public class RequestBodyWrap{
+        public cls_Payment[] line;
+        
+    }
+    
+    public class cls_Payment {
+       public string  Name;
+       public string Name2;
+       public string Address;
+       public string Address2;
+       public  string cityName;
+       public Boolean BinMandatory;
+       public string locationcode;
+       public string taxenitityid;
+       public Boolean Blocked;
+       public Boolean BudgetCodeMandatory;
+       public  string CSTNo;
+       public string Contact;
+       public string EMail;
+       public  Boolean EWayBillMandatory;
+       public String EWayBillMandatoryFromDate;
+       public Boolean EnableVariantWiseDisc;
+       public  Boolean EnableWarrantyClaim;
+       public  string GSTRegistrationNo;
+       public string LSTNo;
+       public Boolean LogisticPoints;
+       public string OwnerId;
+       public string PhoneNo;
+       public string PhoneNo2;
+       public boolean PlantLocation;
+       public Boolean RouteCodeMandatory;
+       public string ServiceTaxRegistrationNo;
+       public string TANNo;
+       public  string TCANNo;
+       public string TINNo;
+       public string TaxableEnitityId;
+       public Boolean UseAsInTransit;
+       public string ZoneCode;
+       public String  Citycode;
+       Public string country;
+        Public string DistrictCode;
+        Public string subdistrictname;
+        public string StateCode;
+        public string pincode;
+    }
+    public class responseWrap{
+        public cls_result[] result;
+    }
+    public class cls_result {
+        public String Status;
+        public String response_message;
+        public String SFID;
+    }
+    public static RequestBodyWrap parse(String json){
+        return (RequestBodyWrap) System.JSON.deserialize(json, RequestBodyWrap.class);
+        
+    }
+}

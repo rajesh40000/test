@@ -1,0 +1,40 @@
+public class AuthCallout 
+{
+    @future(callout=true)
+    public static void basicAuthCallout(String Phone, String message)
+    { 
+        API_Details__c obj = API_Details__c.getValues('SMS');
+        string endpoint	= obj.End_Point_URL__c;
+        String encodeMessage = EncodingUtil.urlEncode(message, 'UTF-8');
+        System.debug('phone'+phone);
+        system.debug(message);
+        HttpRequest req = new HttpRequest();
+       
+       // String urls= 'http://sms.bulksmsind.in/v2/sendSMS?username=rprasad&message=Dear Ayush, Invoice No 98542 dated fdgh for Rs. 84 issued by Yokohama India. Thanks. Please do not reply&sendername=YOKOIN&smstype=TRANS&numbers=7999625653&apikey=b07b857f-2d55-4374-aca7-2b2dcd2f8617&peid=1101118960000019870&templateid=1207162409922097207';
+       String urls= 'http://sms.bulksmsind.in/v2/sendSMS?username=rprasad&message=Dear Ayush, Invoice No 98542 dated fdgh for Rs. 84 issued by Yokohama India. Thanks. Please do not reply&sendername=YOKOIN&smstype=TRANS&numbers=7999625653&apikey=b07b857f-2d55-4374-aca7-2b2dcd2f8617&peid=1101118960000019870&templateid=1207162409922097207';
+         //req.setEndpoint(urls/*+phone+'&message='+encodeMessage*/);
+         req.setEndpoint(urls);
+        req.setMethod('POST');
+        //req.setHeader('Content-Type','application/JSON');  
+        //req.setHeader('Content-Length', '0');  
+        
+        req.setTimeout(120000);
+ 
+        if(Phone != null)
+        {
+            //req.setBody('SmsText='+message);
+            //req.setBody('Phone No='+Phone);
+            
+            try
+            {
+                Http http=new Http();
+                HTTPResponse res=http.send(req);
+                system.debug(res.getBody());
+            }
+            catch(Exception e)
+            {
+                system.debug('errror>>>>>>'+e);
+            }
+        }
+    }
+}

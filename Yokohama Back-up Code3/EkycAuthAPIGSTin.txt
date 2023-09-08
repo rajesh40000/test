@@ -1,0 +1,51 @@
+//@RestResource(urlMapping='/EkycAuthAPIGSTIN/')
+global class EkycAuthAPIGSTin {
+    @invocablemethod(Label='EkycGSTIN')
+    public static list<string> dopostGST(list<String> GST){
+        
+        
+         String userid = userinfo.getUserId();
+        system.debug('checking:::::'+userid);
+        list<user> jk=[select ContactId,Id from user where Id=:userid limit 1];
+        //system.debug('response will be::::::'+jk[0].contactId  +' user id is '+jk[0].id);
+        //list<user> jk=[select ContactId,Id from user where Id=:'0059D000003TxpfQAC' limit 1];
+        list<Contact> acc=[select AccountId, Id from contact where ID=:jk[0].ContactId limit 1];
+        system.debug('output of user  '+[select AccountId, Id from contact where ID=:jk[0].ContactId limit 1]);
+        list<string> account=new list<string>();
+        list<Account> AccAddharList=[select id, GST_Request_Id__c,GSTIN_No__c from Account where Id =:acc[0].AccountId limit 1];
+        string requestsId=AccAddharList[0].GST_Request_Id__c;
+        //account.add(requestsId);
+        system.debug('acc.id>>>>>>>>>>>>>>>>>>>>>>>'+acc[0].id);
+		
+        Http http = new Http();
+        HttpRequest request = new HttpRequest();
+        request.setEndpoint('https://api.karza.in/gst/uat/v2/gstdetailed');
+        request.setBody('{"gstin":"'+GST[0]+'","consent": "Y","additionalData": '+false+'}');
+        system.debug('output will be::::'+GST[0]);
+        request.setMethod('POST');
+        request.setHeader('Content-Type','application/json');
+        request.setHeader('x-karza-key','lIcWRvsaWJzZVMUz');
+        system.debug('jkkkkkkkkkkkkkkkkkkk'+request);
+       
+        HttpResponse response = http.send(request);
+        system.debug('jkkkkkkkkkkkkkkkkkkk'+response);
+        String Result=response.getBody();
+        String responsevalue=Result.trim().replace('\uFEFF', '');
+        Map<String, Object> Output=(Map<String, Object>)JSON.deserializeUntyped(responsevalue.trim().replace('\uFEFF', ''));
+        system.debug(Result+'Output '+   Output.get('requestId')  );
+        String ReqId=String.valueOf(Output.get('requestId'));
+        account.add(ReqId);
+            AccAddharList[0].GST_Request_Id__c=ReqId;
+            AccAddharList[0].GSTIN_No__c=GST[0];
+        
+        system.debug('requestId::::::::'+ReqId);
+        update AccAddharList;
+       
+        
+        return account;
+            
+        
+        
+    }
+
+}
