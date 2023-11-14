@@ -1,0 +1,168 @@
+<template>
+	<div class="slds-tabs_card">
+		<div class="slds-page-header">
+			<div class="slds-page-header__row">
+				<div class="slds-page-header__col-title">
+					<div class="slds-media">
+						<div class="slds-media__figure">
+							<span class="slds-icon_container slds-icon-standard-opportunity">
+                                 <lightning-icon icon-name="standard:recipe" alternative-text="recipe" title="recipe"></lightning-icon>
+                            </span>
+						</div>
+						<div class="slds-media__body">
+							<div class="slds-page-header__name">
+								<div class="slds-page-header__name-title">
+									<h1>
+										<span>Benificiary Addition</span>
+									</h1>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<lightning-card variant="Narrow">
+		<template if:true={createChildval}>
+			<div class="slds-p-horizontal_small">
+				<lightning-combobox name="Criteria" label="Criteria" value={nonselectedValueType}
+					placeholder="Select Criteria" options={nonpicklistTypeOptions} multi-select="true"
+					onchange={nonhandleChangeType}>
+				</lightning-combobox>
+			</div>
+			<div class="slds-p-horizontal_small">
+				<lightning-combobox name="Operator" label="Operator" value={nonselectedValueTypeoperator}
+					placeholder="Select Operator" options={nonpicklistTypeOptionsoperator} multi-select="true"
+					onchange={nonhandleChangeTypeoperator}>
+				</lightning-combobox>
+			</div>
+			<template if:true={isonboardeddatebetween}>
+				<div class="slds-p-horizontal_small">
+					<lightning-input type="date" label="From Date" onchange={inputfromdatechange} value={fromdate}> </lightning-input>
+				</div>
+				<div class="slds-p-horizontal_small">
+					<lightning-input type="date" label="To Date" onchange={inputtodatechange} value={todate}> </lightning-input>
+				</div>
+			</template>
+			<template if:true={isreactivationdate}>
+				<div class="slds-p-horizontal_small">
+					<lightning-input type="date" label="Reactivation Date" value={reactivationdate} onchange={inputactivationchange}> </lightning-input>
+				</div>
+			</template>
+			<template if:true={isArea}>
+				<div class="slds-p-horizontal_small">
+					<c-multi-select-pick-list multi-select="true" onselectoption={handleSelectOptionList}
+						options={optionsmul} selected-values={selectedValueList} label="Select Area">
+					</c-multi-select-pick-list>
+				</div>
+			</template>
+			<template if:true={iscustomer}>
+				<div class="slds-p-horizontal_small">
+					<c-multi-select-pick-list multi-select="true" onselectoption={handleSelectOptionListcust}
+						options={optionsmulcust} selected-values={selectedValueListcust} label="Select Customer Code">
+					</c-multi-select-pick-list>
+				</div>
+			</template>
+			<template if:true={isisInvoicePaymentupto}>
+				<div class="slds-p-horizontal_small">
+					<lightning-input type="date" label="Invoice Payment Upto" value={invoicepaymentuptoval} onchange={inputinvoicepaymentuptochange}> </lightning-input>
+				</div>
+			</template>
+			<template if:true={isplantdepot}>
+				<div class="slds-p-horizontal_small">
+					<c-multi-select-pick-list multi-select="true" onselectoption={handleSelectOptionListplant}
+						options={optionsmulplant} selected-values={selectedValueListplant} label="Select Plant Code">
+					</c-multi-select-pick-list>
+				</div>
+			</template>
+			<template if:true={isBatchno}>
+				<div class="slds-p-horizontal_small">
+					<lightning-input type="text" label="Batch No" value={batchnoval} onchange={inputbatchnochange}> </lightning-input>
+				</div>
+			</template>
+			<template if:true={isIncoterm}>
+				<div class="slds-p-horizontal_small">
+					<lightning-input type="text" label="Inco Term" value={incotermval} onchange={inputincotermchange}> </lightning-input>
+				</div>
+			</template>
+			<template if:true={ispacktype}>
+				<div class="slds-p-horizontal_small">
+			<lightning-combobox name="packtype" label="Pack Type" value={packtypevalue}
+					placeholder="Select Pack type" options={packtypeoptions} multi-select="true"
+					onchange={nonhandleChangepacktype}>
+				</lightning-combobox>
+			</div>
+			</template>
+
+			<template if:true={iscustomergroup}>
+				<div class="slds-p-horizontal_small">
+			<lightning-combobox name="customergroup" label="Customer Group" value={customergroupvalue}
+					placeholder="Select Customer group" options={customergroupoption} multi-select="true"
+					onchange={customergroupchange}>
+				</lightning-combobox>
+			</div>
+			</template>
+			</br>
+			<div class="slds-p-horizontal_small">
+				<lightning-button label="Add Criteria" onclick={addOrderLineItem}></lightning-button>&nbsp;&nbsp;
+				<button class="slds-button slds-button_brand" onclick={handleClick} >Add Benificiary</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			</div>
+			
+
+
+		</template>
+		<div>
+                       <table>
+                          <thead>
+                            <tr>
+                                <th>Criteria Type</th>
+                                <th>Operator</th>
+                                <th>Value</th>
+                                <th></th>
+                              </tr>
+                          </thead>
+                          <tbody style="background-color: lightgray;">
+                            <template for:each={orderLineItems} for:item="cart" for:index="index">
+                                <tr key={cart.id}>
+                                    <td>{cart.criteriatype}</td>
+                                    <td>{cart.operatorval}</td>
+									<template if:true={cart.isonboardeddatebetween}>
+										<td>{cart.fromdate} - {cart.todate}</td>
+									</template>
+									<template if:true={cart.areaval}>
+										<td>{cart.value}</td>
+									</template>
+									<template if:true={cart.isreactivationdate}>
+										<td>{cart.reactivation_date}</td>
+									</template>
+									<template if:true={cart.customer}>
+										<td>{cart.customerval}</td>
+									</template>
+									<template if:true={cart.invpayupto}>
+										<td>{cart.Invoicepaymentval}</td>
+									</template>
+									<template if:true={cart.plant}>
+										<td>{cart.plantval}</td>
+									</template>
+									<template if:true={cart.batch}>
+										<td>{cart.batchval}</td>
+									</template>
+									<template if:true={cart.incoterm}>
+										<td>{cart.incoval}</td>
+									</template>
+									<template if:true={cart.pack}>
+										<td>{cart.packval}</td>
+									</template>
+									<template if:true={cart.customergroup}>
+										<td>{cart.customergroupval}</td>
+									</template>
+									
+                                        
+                                </tr>
+                            </template>
+                          </tbody>
+                       </table>
+                 </div>
+	</lightning-card>
+</template>
