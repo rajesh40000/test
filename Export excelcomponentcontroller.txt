@@ -1,0 +1,59 @@
+({
+    FindCustomerLedger : function(component, event, helper) {
+        //alert('Gaytri');
+        var fromPostingDate = component.find('fromPostingDate').get('v.value');
+        var toPostingDate = component.find('toPostingDate').get('v.value');
+        var docType = component.find('docType').get('v.value');
+        //alert('Gaytri'+' '+ fromPostingDate + ' '+ toPostingDate + ' '+ docType);  
+        var sampleEvent = $A.get("e.c:SampleEvent");
+        //Set Parameter Value
+        sampleEvent.setParams({"msg":docType});
+        //Fire Event
+        sampleEvent.fire();
+        var action1 = component.get('c.getCustomerLedger');
+        //alert('action1--'+action1);
+        action1.setParams({   
+            "fromPostingDate":fromPostingDate, 
+            "toPostingDate":toPostingDate, 
+            "docType":docType
+        });
+        
+        action1.setCallback(this,function(response){
+            var responseValue=response.getReturnValue();
+            //alert(responseValue + ' responseValue');
+            var state = response.getState();
+            console.log(state);
+            //alert(state+'  state') 
+            if(state=='SUCCESS'){  
+                component.set('v.LedgerList',responseValue);
+                component.set("v.recordList",responseValue);   
+                //alert('ankittest--'+component.get('v.LedgerList'));
+                //alert('ankittestrec--'+component.get("v.recordList"));
+                
+                component.set('v.Flag1',true);
+            }
+        });
+        $A.enqueueAction(action1);
+    },
+    
+    convertintocsvfile : function(component, event, helper) {
+        debugger;
+        var getRecord = component.get("v.recordList");
+        var formatcsvfile  = helper.convertintocsvfileHelper(component, getRecord);
+        if (formatcsvfile == null){
+            return;
+        }
+        debugger;
+        var hiddenElement = document.createElement('a');
+        hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(formatcsvfile);
+        hiddenElement.target = '_self';
+        hiddenElement.download = 'CustomerLedger.csv';
+        //hiddenElement.download = component.get("v.fileName");
+        document.body.appendChild(hiddenElement); //Required for FireFox browser
+        hiddenElement.click(); // using click() js function to download csv file
+    },
+    
+    ExportPDF : function(component, event, helper) {
+        
+    }
+})

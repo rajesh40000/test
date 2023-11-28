@@ -1,0 +1,170 @@
+<apex:page standardController="Claim__c" extensions="ClaimReportPDFController" renderAs="PDF" >
+    <html>
+        <head>
+            <style>
+                
+            </style>
+        </head>
+        
+        <body style="margin-top:-15px">
+                
+                <table style="background-color:black;" width="100%" >
+                    <tr>
+                        <td rowspan="2"><img src="{!$Resource.YokohamaDealerPortalLogin}" padding-top="200px" width="150px" height="100%" align="left"/></td>
+                        <td style="color:rgb(177,179,180); text-align:right; font-size:12px;">YOKOHAMA INDIA PRIVATE LIMITED</td>
+                    </tr>
+                    <tr>
+                        <td style="color:rgb(177,179,180); text-align:right; font-size:12px;">(CIN {!Dealer.CIN_No_y__c})</td>
+                    </tr>
+                </table>
+                <div>
+                    <table width="100%">
+                        <tr>
+                            <td style="color:rgb(105,105,105); text-align:left; font-size:12px;">Docket No.: {!Claim.Docket_No__c}</td>
+                            <td style="color:rgb(105,105,105); text-align:right; font-size:12px;">Date:
+                                <apex:outputText value="{0, date, MMMM d','  yyyy}">
+                                    <apex:param value="{!Claim.Date_of_Complaint__c}"/> 
+                                </apex:outputText>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div style="color:rgb(105,105,105); text-align:center;">
+                    <h3><b>SUBJECT: CLAIM TYRE RESULT</b></h3>
+                </div>
+                
+                <div>
+                    <table style="color:black; font-size:12px;" border="1" cellpadding="2" cellspacing="0" width="100%">
+                        <tr>
+                            <td width="25%">Customer's Name and Phone</td>
+                            <td colspan="4">{!Claim.Customer_Name__c} {!Claim.customer_mobile__c}</td>
+                        </tr>
+                        <tr>
+                            <td width="25%">Dealer's Name and Phone</td>
+                            <td colspan="4">{!Dealer.Name} {!Dealer.Phone}</td>
+                        </tr>
+                        <tr>
+                            <td width="20%" rowspan="3">Information</td>
+                            <td width="20%">Tyre Size</td>
+                            <td width="20%">{!Claim.Tyre_Size__c}</td>
+                            <td width="20%">Pattern</td>
+                            <td width="20%">{!Claim.Pattern__c}</td>
+                        </tr>
+                        <tr>
+                            <td width="20%">Serial No.</td>
+                            <td width="20%">{!Claim.Tyre_Serial_No__c}</td>
+                            <td width="20%">LI/SS</td>
+                            <td width="20%">-</td>
+                        </tr>
+                        <tr>
+                            <td width="20%">RTD</td>
+                            <td width="20%" >-</td>
+                            <td width="20%">Chargeable amount</td>
+                            <td width="20%">{!Claim.Discount_Price_with_GST__c}</td>
+                        </tr>
+                        <tr>
+                            <td width="25%">Customer Complaint</td>
+                            <td colspan="4">{!Claim.Complaint_Nature__c	}</td>
+                        </tr>
+                        <tr>
+                            <td width="25%">Decision</td>
+                            <td colspan="4">{!Claim.Service_Team_Approval__c}</td>
+                        </tr>
+                        <tr>
+                            <td width="25%">Reason for the decision</td>
+                            <td colspan="4">{!Claim.Damage_Condition__c}</td>
+                        </tr>
+                        <tr>
+                            <td width="25%">Remark</td>
+                            <td colspan="4">{!Claim.Claim_Remarks__c}</td>
+                        </tr>
+                        
+                    </table>
+                    
+                    <p style="color:black; text-align:left; font-size:10px">
+                        <span><b>Note:</b></span><br/>
+                        <span><b>In case of Adjustment:</b> Kindly contact the above mentioned dealer for the replacement and this award letter is valid for 15 days from the date of issuing.</span><br/>
+                        <span><b>In case of Rejection:</b> Kindly contact the above mention dealer to collect your tyre within 15 days from the date of issuing this letter afterwards dealer has 
+                            no liability.</span><br/>
+                        <br/>
+                        <br/>
+                        <span>For,</span><br/>
+                        <br/>
+                        <span>Yokohama India Pvt. Ltd.</span><br/>
+                        <span><i>(This is a computer generated printout and no signature is required)</i></span>
+                    </p>
+                </div>
+                <div style="text-aling:center">
+                    <center>
+                        <!--<apex:outputField style="width:200px; height:100px!important;" value="{!Claim.Tyre_Serial_Image__c}"/>
+                        <!--<img src="{!agree.Attachment_Url__c}" width="200px" height="100%" style="border: 2px solid gray;"/>
+                        <img src="{!agree.Attachment_Url__c}" width="200px" height="100%" style="border: 2px solid gray;"/>
+                        <img src="{!agree.Attachment_Url__c}" width="200px" height="100%" style="border: 2px solid gray;"/>-->
+                    </center>
+                    <div>
+                        <table cellpadding="2" cellspacing="1" width="100%">
+                            <tr>
+                                <td>
+                                    <center>
+                                            <img src="{!imageUrlofTyreSerial}" style="width:150px;"/><br/>
+                                            <span style="color:rgb(105,105,105);">Tyre Serial Image</span>
+                                    </center>
+                                </td>
+                                
+                                <td>
+                                    <center>
+                                            <img src="{!imageUrlofDefectImageInside}" style="width:150px;"/><br/>
+                                            <span style="color:rgb(105,105,105);">Defect Image Inside</span>
+                                    </center>
+                                </td>
+                                <td>
+                                    <center>
+                                            <img src="{!imageUrlofDefectImageOutSide}" style="width:150px;"/><br/>
+                                            <span style="color:rgb(105,105,105);">Defect Image Outside</span>
+                                    </center>
+                                </td>
+                                
+                            </tr>
+                            <tr>
+                                <td>
+                                    <center>
+                                            <img src="{!imageUrlofCurrentODOReading}" style="width:150px;"/><br/>
+                                            <span style="color:rgb(105,105,105);">Current Odometer Reading</span>
+                                    </center>
+                                </td>
+                                
+                                <td>
+                                    <center>
+                                            <img src="{!imageUrlofTreadDepthGauge}" style="width:150px;"/><br/>
+                                            <span style="color:rgb(105,105,105);">Tread Depth Gauge</span>
+                                    </center>
+                                </td>
+                                <td>
+                                    <center>
+                                            <img src="{!imageUrlofExtra}" style="width:150px;"/><br/>
+                                            <span style="color:rgb(105,105,105);">Extra</span>
+                                    </center>
+                                    
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <!--center>
+                    <!--<img src="{!agree.Attachment_Url__c}" width="200px" height="100%" style="border: 2px solid gray;"/>
+                    <img src="{!agree.Attachment_Url__c}" width="200px" height="100%" style="border: 2px solid gray;"/>
+                    </center>-->
+						<!-- <p style="text-indent:220px; color:rgb(105,105,105); font-size:12px;" >
+                    <span>Inside Defect image &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                    <span>Side Wall Image</span>
+                    </p>-->
+                </div>
+        </body>
+        <br/>
+        <div class="footer" style=" color:black; text-align:center; font-size:10px">
+                <span><b>Corporate / Registered Office and Plant:</b></span><br/>
+                <span>Plot No. 1, Sector 4B, Bahadurgarh Industrial Estate, HSIIDC Bahadurgarh, District - Jhajjar, Haryana 124507 Tel.: +91-1276-662200</span><br/>
+                <span>Fax: +91-1276-662000 Email: info@yokohama-india.com Website: www.yokohama-india.com</span>
+        </div>
+    </html>
+</apex:page>

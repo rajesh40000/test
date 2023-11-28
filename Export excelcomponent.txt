@@ -1,0 +1,57 @@
+<aura:component controller="CustomerController"  implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" >
+    
+    <aura:handler name="init" value="{!this}" action="{!c.loadPJPList}"/>
+    <aura:attribute name="recordId" type="string" />
+    
+    <aura:attribute name="aqrList" type="AggregateResult[]"/> 
+    <aura:handler name="init" value="{!this}" action="{!c.loadPJPList}"/>
+    
+    
+    <aura:attribute name="ListOfPJP" type="list" access="global"/>
+    <aura:attribute name="ShowModule" type="boolean" default="false"/>
+    <aura:attribute name="showcard" type="boolean" default="false"/>
+    
+    <aura:attribute name="Flag1" type="Boolean" default="false" />
+    <aura:attribute name="LedgerList" type="Customer_Ledger__c[]"></aura:attribute>
+    <aura:attribute type="List" name="recordList"/>
+    <aura:attribute name="vfMsgMethod" type="list" description="this attribute is for visualforce page javascript method"/>
+    <aura:registerEvent name="sampleEvent" type="c:SampleEvent" />
+    
+    
+    <lightning:card title="Customer Ledger">
+        <div class="slds-col--padded">
+            <center>
+                <div class="slds-form_horizontal slds-grid slds-wrap">
+                    <lightning:input class="slds-size_1-of-4"  aura:id="fromPostingDate" type="date" Name="From" label="From" onchange=""></lightning:input>
+                    <lightning:input class="slds-size_1-of-4"  aura:id="toPostingDate" type="date" Name="To" label="To" onchange=""></lightning:input>
+                </div>
+            </center>
+            <lightning:select aura:id="docType" name="DocType" label="Document Type">
+                <option value="">Choose One...</option>
+                <option value="Payment">Payment</option>
+                <option value="Invoice">Invoice</option>
+                <option value="Credit Memo">Credit Memo</option>
+                <option value="Finance Charge Memo">Finance Charge Memo</option>
+                <option value="Reminder">Reminder</option>
+                <option value="Refund">Refund</option>
+            </lightning:select>
+            <br/>
+        </div>
+        <div class="slds-col--padded">
+            <center>
+                <p>
+                    <lightning:button  label="Find" onclick="{!c.FindCustomerLedger}" class="slds-button slds-button--brand"></lightning:button>
+                    <lightning:button  label="Export Excel" onclick="{!c.downloadCsv}" class="slds-button slds-button--brand"></lightning:button>
+                    <lightning:button  label="Export PDF" onclick="{!c.ExportPDF}" class="slds-button slds-button--brand"></lightning:button>
+                </p>
+            </center>
+        </div>
+    </lightning:card>
+    <br/>
+    <div>
+        
+    </div>
+    
+    
+    
+</aura:component>

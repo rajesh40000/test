@@ -1,0 +1,22 @@
+@RestResource(urlMapping='/getCustomerLedger/*')
+global  with sharing class getCustomerLedger {
+    @Httpget
+    global static List<Customer_Ledger__c> getCustomer(){
+        RestRequest cc= RestContext.request;
+        map<string, string> contactparam=cc.params;
+        //integer jk=integer.valueOf(contactparam.get('limit'));
+        //Date Active_from=date.valueof(contactparam.get('jk'));
+        //Date Active_to=date.valueof(contactparam.get('Posting_Date__c'));
+        //Date active_from=date.valueof(contactparam.get('AccountID'));
+   
+        string AccountID=contactparam.get('AccountID');
+        list<Customer_Ledger__c> conlist=[SELECT Id,Adjusted_Currency_Factor__c,Posting_Date__c,Customer_No__c FROM Customer_Ledger__c where Customer_No__c=:AccountID AND Posting_Date__c<=Today AND Posting_Date__c>=Today ];
+        system.debug('kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk'+[SELECT Id,Adjusted_Currency_Factor__c,Posting_Date__c,Customer_No__c FROM Customer_Ledger__c where Customer_No__c=:AccountID AND Posting_Date__c<=Today AND Posting_Date__c>=Today]);
+        return conlist;
+        //list<Customer_Ledger__c> clclist=[SELECT ID,Adjusted_Currency_Factor__c,Posting_Date__c FROM Customer_Ledger__c where  Posting_Date__c<=Active_from AND Posting_Date__c<=Active_To];
+        //return clclist;
+       // system.debug('kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk'+conlist);
+        
+    }
+
+}

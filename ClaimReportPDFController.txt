@@ -1,0 +1,61 @@
+public with sharing class ClaimReportPDFController {
+    
+    public Claim__c Claim{get;set;}
+    public YCN_Agreement__c agree{get;set;}
+    public Account Dealer{get;set;}
+    public List <ContentVersion> attach{get;set;}
+    public string acc{get;set;}
+    public String currentRecordId {get;set;}
+    public string imageUrlofTyreSerial{get;set;}
+    public string imageUrlofDefectImageInside{get;set;}
+    public string imageUrlofDefectImageOutSide{get;set;}
+    public string imageUrlofCurrentODOReading{get;set;}
+    public string imageUrlofTreadDepthGauge{get;set;}
+    public string imageUrlofExtra{get;set;}
+    
+    public ClaimReportPDFController(ApexPages.StandardController controller){
+        
+        currentRecordId  = controller.getId();  //'a0G6D0000078cwHUAQ'; 
+        Claim = [SELECT id,Name,Dealer__r.CIN_No_y__c, Customer_Name__c, customer_mobile__c, CreatedDate, Docket_No__c,Pattern__c,Tyre_Size__c,Damage_Condition__c,
+                 Tyre_Serial_No__c,Discount_Price_with_GST__c,Claim_Remarks__c,Image_test__c, Date_of_Complaint__c,Complaint_Nature__c,Service_Team_Approval__c,
+                 Tyre_Serial_Image__c,Defect_image_inside__c,Defect_image_outside__c,Current_Odometer_Reading__c,Thread_Depth_Gauge__c,Extra__c
+                 FROM Claim__c WHERE id=:currentRecordId];
+        //System.debug('Claim '+Claim);
+        Dealer = [SELECT id, Name, CIN_No_y__c, Address__c,Phone
+                  FROM Account WHERE id=:Claim.Dealer__c];
+        
+        /*
+        agree=[SELECT id,Name, Attachment_Url__c FROM YCN_Agreement__c WHERE id=:'a0U6D000004YqXtUAK'];
+        System.debug('agree '+agree);
+        */
+        
+        if(Claim !=null){
+            imageUrlofTyreSerial = fetchImageUrl(Claim.Tyre_Serial_Image__c);
+            imageUrlofDefectImageInside = fetchImageUrl(Claim.Defect_image_inside__c);
+            imageUrlofDefectImageOutSide = fetchImageUrl(Claim.Defect_image_outside__c);
+            imageUrlofCurrentODOReading = fetchImageUrl(Claim.Current_Odometer_Reading__c);
+            imageUrlofTreadDepthGauge = fetchImageUrl(Claim.Thread_Depth_Gauge__c);
+            imageUrlofExtra = fetchImageUrl(Claim.Extra__c);
+        }
+        System.debug('imageUrlofTyreSerial '+imageUrlofTyreSerial); 
+        System.debug('imageUrlofDefectImageInside '+imageUrlofDefectImageInside);
+        System.debug('imageUrlofDefectImageOutSide '+imageUrlofDefectImageOutSide); 
+        System.debug('imageUrlofCurrentODOReading '+imageUrlofCurrentODOReading);
+        System.debug('imageUrlofTreadDepthGauge'+imageUrlofTreadDepthGauge);
+        System.debug('imageUrlofExtra '+imageUrlofExtra);
+    }
+    public string fetchImageUrl(String imageRichText){
+        System.debug('imageRichText::'+imageRichText);
+        String img = '';
+        if(imageRichText !=null){
+            Matcher imgMatcher = Pattern.compile( '<img(.+?)>' ).matcher(imageRichText);
+            
+            while (imgMatcher.find()){                
+                String imageTag = imgMatcher.group();
+                img = imageTag.substringBetween(' src="', '"' );
+                System.debug('img ===>' + img);
+            }
+        }
+        return img.unescapeHtml4();
+    }
+}
