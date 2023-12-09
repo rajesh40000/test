@@ -1,0 +1,45 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" 
+               controller= "AdhocControllerClass">
+        <aura:handler name="init" value="{!this}" action="{!c.mycmp}"/>
+
+    <aura:attribute name="razorpay" type= "string"/>
+      <aura:attribute name="amtt" type= "string" default="0" />
+    <aura:attribute name="UTRId" type="Id"/>
+    <aura:attribute name="recordList" type="Object[]" />
+    <aura:attribute name="wrapperdata" type="Object[]" />
+       <aura:attribute name="toggleSpinner" type="boolean" default="false"/>
+    <ltng:require scripts="https://checkout.razorpay.com/v1/checkout.js"></ltng:require>
+   
+    
+    <div  class="slds-box  ">
+   <b>      <center>
+        <h6 class="slds-text-heading_large font-bold "   style="background-color:#000000;color:white;" >AD-HOC PAYMENT </h6>
+       </center>  
+       
+    
+     <br/>
+    
+    <div style="background-color:white;margin:2px; padding:10px;"> 
+       <center>     <div  class="slds-col--padded slds-size--1-of-1 slds-medium-size--1-of-2">
+            <br/>
+             <lightning:input aura:id="AmountIdd" name="enter-search" value="{!v.amtt}" label="Total Amount"  placeholder="Please Enter Amount..."  />
+            <br/>
+        </div> </center>
+    </div>      
+
+
+
+        
+        <div style="background-color:white; margin:2px; padding:10px;overflow: auto;" >
+            <span style="float: right;"><lightning:button   label="Make Payment" onclick="{!c.NextHandler}"/></span>
+        </div>
+    </b>
+    </div> 
+    
+      <aura:if isTrue="{!v.toggleSpinner}"> 
+            <div class="exampleHolder" width="200%" height="100%">
+                <lightning:spinner alternativeText="Loading" size="Large" />
+            </div>
+      </aura:if>       
+    
+</aura:component>

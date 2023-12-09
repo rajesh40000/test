@@ -1,0 +1,263 @@
+public class RazorpayorderAPI {
+    
+    // @Future(callout=true)
+    
+    Public static string getUTR(string UTR)
+    { 
+        if (!Schema.sObjectType.UTR__c.isUpdateable()) {
+            System.debug('You have not access to perform operation in your profile');
+        }
+        String RazpayId ;   
+        try
+        {
+            
+            string UTRid;
+            Decimal UTRAmount;
+            Integer UTRAmount1;
+            string UTRstatus;
+            string UTRRPid;
+            
+            
+            List<UTR__c> UTRlist = new List<UTR__c>();
+            
+            UTRList = [Select id, name, amount__c, Payment_Status__c, Razor_Pay_Id__c from UTR__c where id =: UTR];
+            
+            if(UTRList.size()>0)
+            {
+                system.debug('RazoorrrPayyyiddd '+ UTRlist[0].amount__c);
+                
+                UTRid = UTRList[0].name;
+                //UTRAmount = UTRlist[0].amount__c ;
+                 UTRAmount = Integer.valueOf(UTRlist[0].amount__c * 100);  
+                 //UTRAmount1 = Integer.valueOf(UTRAmount); 
+                
+                system.debug('RazoorrrPayyyiddd '+ UTRAmount);             
+                UTRstatus = UTRlist[0].Payment_Status__c;
+                UTRRPid = UTRlist[0].Razor_Pay_Id__c;            
+            }
+            
+            Api_Details__c obj = Api_Details__c.getValues('UTRAPI');
+            
+            string fakejson = '{"response": {"data": { "empcode": "E181", "approver_empcode": "E013",  "exit_type": "Resigned: "Resigned",ation_date": "2021-02-01", "relieving_date": "2021-02-10" }, "status": 1,"message": "Resignation submitted Successfully...","error": ""}}';          
+            string endpointUrl = obj.End_Point_URL__c;
+            string headerauthorization = obj.Key__c;   
+            string json = '{"amount" : "'+UTRAmount+'","currency" : "INR","receipt" : "'+utrid+'"}';
+            System.debug(json);
+            Httprequest request = new HttpRequest();
+            Http http = new Http();
+            request.setMethod('POST');
+            request.setEndpoint(endpointUrl);
+            request.setTimeout(120000); 
+            request.setBody(json);
+            request.setHeader('Content-Type','application/json');
+            request.setHeader('Authorization',headerauthorization);
+            HttpResponse response = http.send(request);
+            System.debug('responseBody: '+response.getBody());
+            String Results=response.getBody();
+            String responseText = Results.trim().replace('\uFEFF', '');
+            system.debug(responseText);   
+            Map<String,object> Output = (Map<String,object>)System.JSON.deserializeUntyped(responseText.trim().replace('\uFEFF', ''));
+            system.debug(output);   
+            RazpayId = String.valueOf(Output.get('id'));
+            String Razpaystatus = String.valueof(Output.get('status'));   
+            
+            if(Razpaystatus == 'created')
+            {
+                if(UTRList.size()>0)
+                {
+                    if(!Schema.SObjectType.Utr__c.fields.Razor_Pay_Id__c.isUpdateable()){
+                        System.debug('Access error');
+                    }
+                    UTRList[0].Razor_Pay_Id__c = RazpayId;
+                }
+                system.debug('anub'+RazpayId);
+                update as system UTRList;           
+            }
+            
+            system.debug(razpayid+razpaystatus);   
+            if (!Schema.sObjectType.Logs__c.isCreateable()) {
+                System.debug('You have not access to perform operation in your profile');
+            }
+            Logs__c log = new Logs__c();
+            
+            log.Name = 'RazorpayorderAPI';
+            log.Request__c = 'Request '+json;                        
+            log.Response__c = 'Response '+Output;
+            log.status__c = 'Success';
+            list<Logs__c> log1=new list<logs__c>();
+            log1.add(log);
+            security.stripInaccessible(accessType.CREATABLE, log1);
+            Insert log1;
+            
+        }
+        
+        
+        
+        catch(exception e)
+        {
+            if (!Schema.sObjectType.Logs__c.isCreateable()) {
+                System.debug('You have not access to perform operation in your profile');
+            }
+            Logs__c log = new Logs__c();
+            
+            log.Name = 'RazorpayorderAPI';
+            log.Request__c = 'Salesforce Error';                        
+            log.Response__c = 'Response'+e;
+            log.status__c = 'Failure';
+             list<Logs__c> log1=new list<logs__c>();
+            log1.add(log);
+            security.stripInaccessible(accessType.CREATABLE, log1);
+            Insert log1;
+            
+            System.debug('response'+e);
+            
+        }
+        return RazpayId;
+        
+    }
+    
+    @Future(callout=true)
+    Public static void getpayment(string paymentid,string sfids)
+    { 
+        try{
+        Api_Details__c obj = Api_Details__c.getValues('Payment');
+        
+        string endpointUrl = obj.End_Point_URL__c+paymentid;
+        System.debug('endpointUrl:::'+endpointUrl);
+        string headerauthorization = obj.Key__c;   
+        Httprequest request = new HttpRequest();
+        Http http = new Http();
+        request.setMethod('GET');
+        request.setEndpoint(endpointUrl);
+        request.setTimeout(120000); 
+        request.setHeader('Authorization',headerauthorization);
+        HttpResponse response = http.send(request);
+        System.debug('requestbody: '+request);
+        System.debug('responseBody: '+response.getBody());
+        String Results=response.getBody();
+        String responseText = Results.trim().replace('\uFEFF', '');
+        system.debug(responseText);   
+        Map<String,object> Output = (Map<String,object>)System.JSON.deserializeUntyped(responseText.trim().replace('\uFEFF', ''));
+        system.debug(output);   
+        
+        String Razpaystatus = String.valueof(Output.get('status'));   
+        
+        // if(Razpaystatus == 'captured')
+        if (!Schema.sObjectType.UTR__c.isUpdateable() && !Schema.sObjectType.UTR__c.isCreateable()) {
+            System.debug('You have not access to perform operation in your profile');
+        }
+        UTR__c UTRList = new UTR__c(id=sfids);
+        
+        UTRList.Bank_Transction_Type__c =  String.valueOf(Output.get('method'));
+        
+        system.debug('output--'+Output.get('method')); 
+        UTRList.Payment_Type__c='Normal';
+        system.debug('RazorpayorderAPIIIIII amounttttttttttt '+ (Decimal) Output.get('amount'));
+        UTRList.Entitiy__c = String.valueOf(Output.get('entity'));
+        //   UTRList.Amount__c =(Decimal) Output.get('amount');
+        // UTRList.currency__c = (decimal)Output.get('currency');
+        UTRList.Status__c = String.valueOf(Output.get('status'));
+        UTRList.Order_id__c = String.valueOf(Output.get('order_id'));
+        UTRList.International__c = (Boolean)Output.get('international');
+        UTRList.Amount_refunded__c = (decimal)Output.get('amount_refunded');
+        UTRList.captured__c = (Boolean)Output.get('captured');
+        UTRList.description__c = String.valueOf(Output.get('description'));
+        UTRList.Email__c = String.valueOf(Output.get('email'));
+        UTRList.Contact__c =(string)Output.get('contact') ;
+        UTRList.Invoice_id__c = String.valueOf(Output.get('invoice_id'));
+        UTRList.Refund_Status__c = String.valueOf(Output.get('refund_status'));
+        UTRList.Card_id__c = String.valueOf(Output.get('card_id'));
+        UTRList.Bank__c = String.valueOf(Output.get('bank'));
+        UTRList.Wallet__c = String.valueOf(Output.get('wallet'));
+        UTRList.Vpa__c = String.valueOf(Output.get('vpa'));
+        UTRList.Address__c = String.valueOf(Output.get('address'));
+        UTRList.Fee__c = (decimal)Output.get('fee');
+        UTRList.Tax__c = (decimal)Output.get('tax');
+        UTRList.Error_Code__c = String.valueOf(Output.get('error_code'));
+        UTRList.Error_Description__c = String.valueOf(Output.get('error_description'));
+        UTRList.Error_Source__c = String.valueOf(Output.get('error_source'));
+        UTRList.Error_Step__c = String.valueOf(Output.get('error_step'));
+        UTRList.Created_at__c = (Decimal)Output.get('created_at');
+        UTRList.rrn__c = (Decimal)Output.get('rrn');
+        UTRList.UPI_Transaction_id__c = String.valueOf(Output.get('upi_transaction_id'));
+            
+            List<Utr__c> uttlist=new List<Utr__c>();
+            uttlist.add(UTRList);
+            //Security.stripInaccessible(AccessType.Upsertable, uttlist);
+            upsert as  system UTRList; 
+            //Httpcallout.SFDCPayment(sfids);
+        }
+        catch(exception e){}
+        
+    }
+    
+    @Future(callout=true) 
+    Public static void getOrder( string order_id, string sfids)
+    { 
+        if (!Schema.sObjectType.UTR__c.isUpdateable() && !Schema.sObjectType.UTR__c.isCreateable()) {
+            System.debug('You have not access to perform operation in your profile');
+        }
+        Api_Details__c obj = Api_Details__c.getValues('Payment');
+        
+        string endpointUrl = obj.End_Point_URL__c+order_id;
+        string headerauthorization = obj.Key__c;   
+        Httprequest request = new HttpRequest();
+        Http http = new Http();
+        request.setMethod('GET');
+        request.setEndpoint(endpointUrl);
+        request.setTimeout(120000); 
+        request.setHeader('Authorization',headerauthorization);
+        HttpResponse response = http.send(request);
+        System.debug('responseBody: '+response.getBody());
+        String Results=response.getBody();
+        String responseText = Results.trim().replace('\uFEFF', '');
+        system.debug(responseText);   
+        Map<String,object> Output = (Map<String,object>)System.JSON.deserializeUntyped(responseText.trim().replace('\uFEFF', ''));
+        system.debug(output);   
+        
+        String Razpaystatus = String.valueof(Output.get('status'));   
+        
+        // if(Razpaystatus == 'captured')
+        
+        UTR__c UTRList = new UTR__c();
+        
+        UTRList.Bank_Transction_Type__c =  String.valueOf(Output.get('method'));
+        
+        system.debug('output--'+Output.get('method')); 
+        UTRList.Payment_Type__c='Normal';
+        
+        UTRList.Entitiy__c = String.valueOf(Output.get('entity'));
+        //    UTRList.Amount__c =(Decimal) Output.get('amount');
+        // UTRList.currency__c = (decimal)Output.get('currency');
+        UTRList.Status__c = String.valueOf(Output.get('status'));
+        UTRList.Order_id__c = String.valueOf(Output.get('order_id'));
+        //UTRList.International__c = (Boolean)Output.get('international');
+        UTRList.Amount_refunded__c = (decimal)Output.get('amount_refunded');
+        //UTRList.captured__c = (Boolean)Output.get('captured');
+        UTRList.description__c = String.valueOf(Output.get('description'));
+        UTRList.Email__c = String.valueOf(Output.get('email'));
+        UTRList.Contact__c =(string)Output.get('contact') ;
+        UTRList.Invoice_id__c = String.valueOf(Output.get('invoice_id'));
+        UTRList.Refund_Status__c = String.valueOf(Output.get('refund_status'));
+        UTRList.Card_id__c = String.valueOf(Output.get('card_id'));
+        UTRList.Bank__c = String.valueOf(Output.get('bank'));
+        UTRList.Wallet__c = String.valueOf(Output.get('wallet'));
+        UTRList.Vpa__c = String.valueOf(Output.get('vpa'));
+        UTRList.Address__c = String.valueOf(Output.get('address'));
+        UTRList.Fee__c = (decimal)Output.get('fee');
+        UTRList.Tax__c = (decimal)Output.get('tax');
+        UTRList.Error_Code__c = String.valueOf(Output.get('error_code'));
+        UTRList.Error_Description__c = String.valueOf(Output.get('error_description'));
+        UTRList.Error_Source__c = String.valueOf(Output.get('error_source'));
+        UTRList.Error_Step__c = String.valueOf(Output.get('error_step'));
+        UTRList.Created_at__c = (Decimal)Output.get('created_at');
+        UTRList.rrn__c = (Decimal)Output.get('rrn');
+        UTRList.UPI_Transaction_id__c = String.valueOf(Output.get('upi_transaction_id'));
+        List<Utr__c> uttlist=new List<Utr__c>();
+        uttlist.add(UTRList);
+        //Security.stripInaccessible(AccessType.Upsertable, uttlist);
+        upsert as system UTRList;
+        
+        
+    }
+}

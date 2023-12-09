@@ -1,0 +1,61 @@
+({
+	NextHandler : function(component, event, helper) {
+	
+    
+         component.set("v.toggleSpinner",true);
+        
+      //  var total =  component.find("AmountIdd").get("v.value");
+      var total =component.get("v.amtt");
+      alert(total+' total')
+        
+        if( total =='' || total == undefined )
+        {
+                var toastEvent = $A.get("e.force:showToast");
+                toastEvent.setParams({
+                title : "Error",
+                message: "Please Enter Some Amount !!",
+                type: "Error",
+                mode: "sticky"
+                });
+                toastEvent.fire();
+             component.set("v.toggleSpinner",false);
+        }
+        else
+        { 
+         var action8 = component.get("c.getUTRId");  
+         action8.setParams({
+             "total" : total
+                      });
+        action8.setCallback(this,function(response){   
+            var responseValue=response.getReturnValue();
+            var state = response.getState(); 
+            
+            component.set("v.UTRId", responseValue); 
+            
+           if(state=='SUCCESS')
+            { 
+               
+           //   alert( responseValue+' responseValue getUTRId')
+                helper.OrderHelper(component, event, helper); 
+                component.set("v.toggleSpinner",false);
+            }
+            
+        });   $A.enqueueAction(action8);
+        
+        }
+        
+	},
+    
+    mycmp: function(component, event, helper) {
+    
+ var sURL = window.location.href;
+var data = sURL.split('=')[1];
+
+// alert(data); 
+       
+            component.set("v.amtt",data);
+          
+                
+        
+    }
+})

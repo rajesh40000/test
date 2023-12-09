@@ -1,0 +1,71 @@
+({
+    doInit: function(component, event, helper) {
+        //alert('invoiceselection');
+        helper.invoicelist(component);
+    },
+    
+    activateNextClass: function(component, event, helper){
+        
+        var productIndex = event.getSource().get("v.name");
+        var packageIndex = event.getSource().get("v.title");
+        var checkboxvalue = event.getSource().get("v.checked");
+        
+        var recordList = component.get("v.recordList");
+        var wrapperdata = component.get("v.wrapperdata");
+        
+        if(checkboxvalue){
+            //console.log(JSON.stringify(recordList[parseInt(packageIndex)+1]));    
+            if(!(recordList.length == packageIndex+1))   
+                recordList[parseInt(packageIndex)+1].disabledtrue = false; 
+            wrapperdata.push(recordList[packageIndex]);
+        }
+        else{
+            for(var i=parseInt(packageIndex)+1; i<recordList.length-parseInt(packageIndex); i++){
+                recordList[i].disabledtrue = true;
+                recordList[i].checkbox = false;
+            }
+            for(var j=wrapperdata.length; j>=parseInt(packageIndex)+1; j--){
+                wrapperdata.splice(j-1,1);
+            }  
+        }
+        component.set("v.recordList",recordList);
+        console.log("wrapperdata------->"+JSON.stringify(wrapperdata));
+        component.set("v.wrapperdata",wrapperdata);
+        
+    },
+    
+    sendDataVF : function(component, event, helper) {
+        //alert('Enter into Button click');
+        component.set("v.toggleSpinner",true);
+        var wrapperData = component.get("v.wrapperdata");
+        console.log("wrapperdata--->"+JSON.stringify(wrapperData));
+        var invoiceIds = [];
+        for(var i=0; i<wrapperData.length; i++)
+        {
+            alert(  wrapperData[i].record.Unpaid_Amount__c + ' Unpaid_Amount__c')
+            invoiceIds.push(wrapperData[i].record.Id);
+        }
+        
+        console.log("InvoiceIds--->"+invoiceIds);
+        var action=component.get("c.getUTRId");        
+        action.setParams({
+            invoiceIds : invoiceIds
+        });  
+        action.setCallback(this,function(response){
+            var state = response.getState();
+            console.log("state--->"+state);
+            if(state==="SUCCESS")
+            {   
+                var res = response.getReturnValue();
+                component.set("v.UTRId", res);
+                console.log("UTRId-->"+component.get('v.UTRId'));
+                helper.sendDataVF2(component);
+            }          
+        });
+        
+        if(wrapperData.length>0)          
+            $A.enqueueAction(action);  
+        
+    },
+    
+})

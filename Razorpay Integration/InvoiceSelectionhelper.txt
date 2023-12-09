@@ -1,0 +1,63 @@
+({
+    
+    invoicelist : function(component){
+        var action = component.get('c.selectedInvoice');
+        action.setCallback(this,function(response){
+            var state = response.getState();
+            if(state == 'SUCCESS')
+            {   
+                //alert(response.getReturnValue() +' response ')
+                component.set("v.recordList", response.getReturnValue());
+                var recordListA = component.get('v.recordList');
+            }
+        });
+        
+        $A.enqueueAction(action);
+    },
+    
+    calculateTotalInvoiceAmount : function(cmp){
+        
+        var wrapperData = cmp.get("v.wrapperdata");
+        var Total = 0;
+        for(var i=0; i<wrapperData.length; i++)
+            Total += wrapperData[i].record.Unpaid_Amount__c;
+        return Total*100;
+    },
+    
+    sendDataVF2 : function(component) {   
+        var Amount = this.calculateTotalInvoiceAmount(component);
+        
+        var action2 = component.get("c.getOrderId");        
+        action2.setParams({
+            UTRId : component.get("v.UTRId")
+        });  
+        action2.setCallback(this,function(response){
+            var state = response.getState();            
+            console.log("state--->"+state);
+            if(state == "SUCCESS")
+            {            
+                var responseValue=response.getReturnValue();
+                alert(responseValue);
+                var rzrid=  component.get('v.razorpay');
+                var utrid = component.get('v.UTRId');
+                var urlEvent = $A.get("e.force:navigateToURL");
+                
+                component.set("v.toggleSpinner",false);
+                alert(Amount);
+                if(urlEvent) {
+                    urlEvent.setParams({
+                        "url":"https://yokohama-india--partial.sandbox.my.site.com/apex/InvoiceSum2?rzrid="+Amount+"&id="+responseValue+"&UTRId="+utrid
+                    });
+                    
+                    urlEvent.fire();
+                } else {
+                    window.location = "https://yokohama-india--partial.sandbox.my.site.com/apex/InvoiceSum2?rzrid="+Amount+"&id="+responseValue+"&UTRId="+utrid
+                }   
+            }          
+        }); 
+        
+        if(component.get("v.UTRId"))
+            $A.enqueueAction(action2);
+    },
+    
+})

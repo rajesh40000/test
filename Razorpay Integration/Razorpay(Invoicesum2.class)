@@ -1,0 +1,148 @@
+public with sharing class PassSelectedIdsToFlowVFController 
+{
+    public ApexPages.StandardSetController PassSelectedIdsToFlowVFController {get; set;}
+    public string[] SelectedInvoiceIDs{get;set;}
+    public List<Invoice__c> selectedInvoiceRecords{ get; set; }    
+    public string[] InvoiceName{get;set;}
+    Public Decimal total{get;set;}
+    Public String  totaldummy='';
+    Public string name{get;set;} 
+    public String data{get;set;}
+    Public string phone{get;set;}
+    Public string email{get;set;}
+    Public String razorpay{get;set;}
+    Public String secondParam{get;set;}
+    public id recid{get;set;}
+    Public decimal amountVal{get;set;}
+    
+    Public static String UTRId{get;set;}
+    Public static String payid{get;set;}
+    Public static String orderid{get;set;}
+    Public static String signatureid{get;set;}
+    
+    public  static     ID contactId = [Select contactid from User where id =: Userinfo.getUserid()].contactId;
+    Contact RecordId =[Select Account.Email__c,Account.Phone,AccountID from Contact where id =: contactid];
+    
+    public PassSelectedIdsToFlowVFController(ApexPages.StandardSetController controller)
+    {
+        amountVal= decimal.valueOf(apexpages.currentpage().getparameters().get('rzrid'));
+        system.debug('amountVallllll '+ amountVal);
+        UTRId =  apexpages.currentpage().getparameters().get('UTRId');  
+        system.debug('UTRId '+ UTRId);
+        razorpay=apexpages.currentpage().getparameters().get('id');
+        
+        
+        system.debug('listcontroller '+ selectedInvoiceRecords);
+        if(selectedInvoiceRecords==Null){
+            selectedInvoiceRecords=new List<Invoice__c>();
+        }
+        System.debug('selectedInvoiceRecords:::'+selectedInvoiceRecords);
+        //selectedInvoiceRecords = selectedInvoiceRecords;
+        SelectedInvoiceIDs = new string[]{};
+            InvoiceName = new string[]{};           
+                set<string> accss=new set<string>();
+        
+        for(Invoice__c inv : selectedInvoiceRecords)
+        {
+            SelectedInvoiceIDs.add(inv.Id);
+            accss.add(inv.Id);
+        }
+        
+        selectedInvoiceRecords = [Select Id,  Name, Total_Invoice__c  from Invoice__c where id =: SelectedInvoiceIDs ];   
+        
+        list<Invoice__c> SelectedInvo = [SELECT Id, Name, customer__r.name, customer__r.Phone, customer__r.Email__c  FROM Invoice__c WHERE Id =: SelectedInvoiceIDs];
+        System.debug('SelectedInvo::'+SelectedInvo);
+        for(Invoice__c inv : SelectedInvo)
+        {                    
+            InvoiceName.add(inv.Name);
+            name = inv.customer__r.name;
+            phone = inv.customer__r.Phone;
+            email = inv.customer__r.Email__c;              
+        }
+        
+        AggregateResult[] groupedResults = [SELECT  Sum(Amount__c)i FROM Invoice__c where Id =: accss];
+        
+        for(AggregateResult ags: groupedResults)
+        {       
+            //totaldummy=
+            total=integer.valueof(ags.get('i'));//decimal.valueof(totaldummy);
+            system.debug('groupedResults'+groupedResults);
+        }
+        
+    }
+    @RemoteAction
+    public static String myRemoteAction(String currentRecordId) {
+        
+        System.debug('selected Ids'+currentRecordId);
+        
+        list<Invoice__c> SelectedInvoo = [SELECT  Name, UTR__c FROM Invoice__c where Id =: currentRecordId];
+        list<Invoice__c> invv = new list<Invoice__c>();
+        
+        for(Invoice__c invi:SelectedInvoo)
+        {  
+            
+            invv.add(invi);
+        }
+        update invv;
+        return 'Response from Remote Action';
+    }
+    
+    public pageReference newForm()
+    {
+      /*  phone=RecordId.Account.Phone;
+        email=RecordId.Account.Email__c;
+        System.debug('selected Ids'+SelectedInvoiceIDs);
+        
+        list<Invoice__c> SelectedInvoo = [SELECT  Name, UTR__c FROM Invoice__c where Id =: SelectedInvoiceIDs];
+        list<Invoice__c> invv = new list<Invoice__c>();
+        
+        for(Invoice__c invi:SelectedInvoo)
+        {  
+            InvoiceName.add(invi.Name); 
+            invv.add(invi);
+        }
+        update invv;*/
+        return null;
+    }
+    
+    
+    public static String getSha256(String input)
+    {
+        return Crypto.generateDigest('SHA-256', Blob.valueOf(input)).toString();
+    }
+    
+    public void passpaymentid()
+    {
+        if (!Schema.sObjectType.Utr__c.isUpdateable()) {
+            System.debug('You have not access to perform operation in your profile');
+        }
+        system.debug(Apexpages.currentPage().getParameters().get('UTRId') + ' UtrrIdddd ');
+        system.debug(Apexpages.currentPage().getParameters().get('payid') + '  PaymentIddd');
+        system.debug(Apexpages.currentPage().getParameters().get('signatureid') + ' SignatureIddd');
+        UTR__c utr =[Select Id,Status__c, Amount__c from UTR__c where id =: Apexpages.currentPage().getParameters().get('UTRId') ];
+        system.debug(' AmounttttttInVFController '+ utr.Amount__c);
+        utr.Signature_ID__c= Apexpages.currentPage().getParameters().get('signatureid');
+        utr.Payment_Id__c= Apexpages.currentPage().getParameters().get('payid');
+        
+        update as system utr;
+        
+        system.debug(orderid+'test'+payid);
+        proceed();
+        // PageReference pr = new PageReference('https://atctirepvtltd--partial.sandbox.my.site.com/Dealerportal/s/utr/UTR__c/Default');
+        //        pr.setRedirect(True);
+        //     return pr;
+        
+    }
+    
+    public  PageReference proceed(){
+        
+        PageReference p = new PageReference('https://yokohama-india--partial.sandbox.my.site.com/Dealerportal/s/utr/UTR__c/Default');
+        
+        p.setRedirect(true);
+        return p;
+    }
+    
+    
+    
+    
+}

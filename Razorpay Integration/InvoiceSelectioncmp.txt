@@ -1,0 +1,78 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" 
+                controller= "InvoiceSelection" >
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:attribute name="razorpay" type= "string"/>
+    <aura:attribute name="UTRId" type="Id"/>
+    <aura:attribute name="recordList" type="Object[]" />
+    <aura:attribute name="wrapperdata" type="Object[]" />
+    <ltng:require scripts="https://checkout.razorpay.com/v1/checkout.js"></ltng:require>
+    <aura:attribute name="toggleSpinner" type="boolean" default="false"/>
+    
+    <!-- <aura:attribute type="Object" name="item"/>  -->
+    
+    <div  class="slds-box  ">
+        
+        <aura:if isTrue="{!v.toggleSpinner}"> 
+            <div class="exampleHolder" width="200%" height="100%">
+                <lightning:spinner alternativeText="Loading" size="Large" />
+            </div>
+        </aura:if>  
+        
+        
+        
+        <div  class="slds-col--padded slds-size--1-of-1 slds-medium-size--1-of-1">
+            <br/>
+            <h4 class="slds-section-title--divider" style="background-color:#000000;color:white;">Select Invoice</h4>
+            <br/>
+        </div>
+        
+        <center> <table  style="background-color:white;"  class="slds-table   slds-max-medium-table_stacked  slds-table_bordered">
+            <thead>
+                <tr class="slds-line-height_reset">
+                    <th class="" scope="col">
+                        <div class="slds-truncate slds-size_6-of-12">Invoice Number</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class="slds-truncate slds-size_6-of-12">Remaining Amount</div>
+                    </th>
+                    <!---<th class="" scope="col">
+                        <div class="slds-truncate">Created Date</div>
+                    </th>-->
+                </tr>
+            </thead>
+            <tbody> 
+                
+                <aura:iteration items="{!v.recordList}" var="item" indexVar="indexcc" > 
+                    <tr class="slds-hint-parent">
+                        <th data-label="Invoice Number" scope="row">
+                            <div class="slds-truncate" >
+                                <aura:if isTrue="{!indexcc != 0}">
+                                    <lightning:input type="checkbox" name="{!index}" title="{!indexcc}" label="{!item.record.Name}" onchange="{!c.activateNextClass}" checked="{!item.checkbox}" disabled="{!item.disabledtrue}"/>
+                                    <aura:set attribute="else">
+                                        <lightning:input type="checkbox" name="{!index}" title="{!indexcc}" label="{!item.record.Name}" onchange="{!c.activateNextClass}" checked="false" disabled="false"/>
+                                    </aura:set>
+                                </aura:if>
+                                
+                            </div>
+                        </th>
+                        
+                        <th data-label="Invoice Amount" scope="row">
+                            <div class="slds-truncate" >{!item.record.Unpaid_Amount__c} </div>
+                        </th>
+                        
+                        <!--<th data-label="Invoice Number" scope="row">
+                            <div class="slds-truncate"><span class="test-id__field-value slds-form-element__static slds-grow  is-read-only"><span class="uiOutputText"><ui:outputDate value="{!item.record.CreatedDate}" format="DD/MM/YYYY"/></span></span></div>
+                        </th>-->  
+                        
+                    </tr>
+                </aura:iteration>
+            </tbody>
+            </table>
+        </center>
+        <div style="background-color:white; margin:2px; padding:10px;overflow: auto;" >
+            <span style="float: right;"><lightning:button class="Next" label="Make Payment" onclick="{!c.sendDataVF}"/></span>
+        </div>
+    </div>
+    
+</aura:component>

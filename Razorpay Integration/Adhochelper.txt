@@ -1,0 +1,45 @@
+({
+    OrderHelper : function(component)
+    {
+        var Amount = component.find("AmountIdd").get("v.value");
+        var utrid = component.get('v.UTRId');
+        //  alert(component.get("v.UTRId") +' UTRId OrderHelper')
+        
+        var action8 = component.get("c.getOrderId");  
+        action8.setParams({
+            "UTRId" : utrid
+        });
+        action8.setCallback(this,function(response){   
+            var responseValue=response.getReturnValue();
+            var state = response.getState(); 
+            // alert(state+' state getOrderId')
+            // alert(Amount+' -har- '+utrid+' -utrid- ' + responseValue + '-responseValue-')    
+            
+            if(state=='SUCCESS')
+            { 
+                //  alert( responseValue+' responseValue getOrderId')
+                
+                component.set("v.toggleSpinner",false);
+                
+                var urlEvent = $A.get("e.force:navigateToURL");
+                 alert( Amount);
+                if(urlEvent) {
+                    
+                    urlEvent.setParams({
+                        "url":"https://yokohama-india--partial.sandbox.my.site.com/apex/InvoiceSum2?rzrid="+Amount+"&id="+responseValue+"&UTRId="+utrid
+                    });
+                    
+                    urlEvent.fire();
+                }
+                else {
+                    window.location = "https://yokohama-india--partial.sandbox.my.site.com/apex/InvoiceSum2?rzrid="+Amount+"&id="+responseValue+"&UTRId="+utrid
+                }
+                
+                
+            }
+            
+        });   $A.enqueueAction(action8);
+        
+        
+    }
+})
